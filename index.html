@@ -450,7 +450,8 @@
             border-radius: 12px; padding: 14px; margin-bottom: 16px;
         }
         .just-title { font-size: 12px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; }
-        .just-point { display: flex; gap: 6px; margin-bottom: 4px; font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+        .just-point { display: flex; gap: 6px; margin-bottom: 8px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+        .just-point strong { color: rgba(255,255,255,0.85); }
         .just-point span:first-child { color: var(--green); flex-shrink: 0; }
 
         .result-distances { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
@@ -703,12 +704,37 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* ===== CONFETTI ===== */
-        .confetti-piece {
-            position: fixed; z-index: 9998;
-            width: 8px; height: 8px; border-radius: 2px;
-            pointer-events: none;
+
+
+
+        /* ===== MAP TYPE TOGGLE ===== */
+        .map-type-toggle {
+            position: fixed;
+            bottom: calc(24px + var(--safe-bottom));
+            right: 16px;
+            z-index: 700;
+            display: flex;
+            background: rgba(10,20,35,0.88);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            overflow: hidden;
         }
+        [dir="ltr"] .map-type-toggle { right: auto; left: 16px; }
+        .map-type-btn {
+            padding: 8px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 11px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .map-type-btn.active {
+            background: rgba(16,185,129,0.2);
+            color: var(--green-light);
+        }
+        .map-type-btn:active { transform: scale(0.95); }
 
         /* ===== AD SLOT ===== */
         .ad-slot {
@@ -774,6 +800,16 @@
     <div class="map-hint" id="mapHint">
         <span class="map-hint-icon">👆</span>
         <span data-ar="اضغط على الخريطة لتحديد مكان" data-en="Tap on map to add a place">اضغط على الخريطة لتحديد مكان</span>
+    </div>
+
+    <!-- MAP TYPE TOGGLE -->
+    <div class="map-type-toggle" id="mapTypeToggle">
+        <button class="map-type-btn active" onclick="setMapType('street')" id="mapStreetBtn">
+            🗺️ <span data-ar="عادي" data-en="Street">عادي</span>
+        </button>
+        <button class="map-type-btn" onclick="setMapType('satellite')" id="mapSatBtn">
+            🛰️ <span data-ar="قمر صناعي" data-en="Satellite">قمر صناعي</span>
+        </button>
     </div>
 
     <!-- ADD FORM OVERLAY (appears on map click) -->
@@ -950,7 +986,7 @@
                 <div class="broker-success" id="brokerSuccess">
                     <div class="broker-success-icon">🎉</div>
                     <div class="broker-success-title" data-ar="تم إرسال طلبك!" data-en="Request sent!">تم إرسال طلبك!</div>
-                    <div class="broker-success-desc" data-ar="راح يتواصلون معك خلال 24-48 ساعة" data-en="They'll contact you within 24-48 hours">راح يتواصلون معك خلال 24-48 ساعة</div>
+                    <div class="broker-success-desc" data-ar="تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!" data-en="Your request has been registered. Thanks for using Wain Askan!">تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!</div>
                 </div>
             </div>
         </div>
@@ -970,6 +1006,7 @@
         let selectedFreq = 'daily';
 
         let map, markersGroup;
+        let streetLayer, satelliteLayer, currentMapType = 'street';
         let centroidMarker = null, zoneRect = null;
         let connectionLines = [], distanceLabels = [];
         let tempMarker = null;
@@ -1028,10 +1065,17 @@
                 keyboard: true
             });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
                 maxZoom: 19
-            }).addTo(map);
+            });
+
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; Esri',
+                maxZoom: 19
+            });
+
+            streetLayer.addTo(map);
 
             markersGroup = L.layerGroup().addTo(map);
 
@@ -1334,7 +1378,7 @@
                 const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
                     icon: L.divIcon({
                         className: '',
-                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🚗 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
+                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🟢 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
                         iconSize: [90, 40], iconAnchor: [45, 20]
                     }), interactive: false
                 }).addTo(map);
@@ -1357,15 +1401,15 @@
             const avgR = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
 
             document.getElementById('resultDesc').textContent = lang === 'ar'
-                ? `متوسط: ${avgDist.toFixed(1)} كم · عادي ~${avgN} د · ذروة ~${avgR} د`
-                : `Avg: ${avgDist.toFixed(1)} km · Normal ~${avgN} min · Rush ~${avgR} min`;
+                ? `متوسط: ${avgDist.toFixed(1)} كم · الوضع الطبيعي ~${avgN} د · وقت الذروة ~${avgR} د`
+                : `Avg: ${avgDist.toFixed(1)} km · Normal ~${avgN} min · Rush hour ~${avgR} min`;
 
             buildJustification(distData, cLat, cLng, neighborhood);
 
             // Distance list
             const dLabel = lang === 'ar' ? 'د' : 'min';
-            const nLabel = lang === 'ar' ? 'عادي' : 'Normal';
-            const rLabel = lang === 'ar' ? 'ذروة' : 'Rush';
+            const nLabel = lang === 'ar' ? 'الوضع الطبيعي' : 'Normal';
+            const rLabel = lang === 'ar' ? 'وقت الذروة' : 'Rush hour';
             document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, normalMin, rushMin }) => `
                 <div class="rdist-item">
                     <div class="rdist-header">
@@ -1373,7 +1417,7 @@
                         <span class="rdist-km">${dist.toFixed(1)} km</span>
                     </div>
                     <div class="rdist-times">
-                        <span class="rdist-time rdist-normal">🚗 ${nLabel}: ${normalMin} ${dLabel}</span>
+                        <span class="rdist-time rdist-normal">🟢 ${nLabel}: ${normalMin} ${dLabel}</span>
                         <span class="rdist-time rdist-rush">🔴 ${rLabel}: ${rushMin} ${dLabel}</span>
                     </div>
                 </div>`).join('');
@@ -1392,12 +1436,11 @@
 
             // Show result
             document.getElementById('resultOverlay').classList.add('show');
-            launchConfetti();
 
             showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
         }
 
-        // ===== JUSTIFICATION =====
+        // ===== JUSTIFICATION (5 strong analysis points) =====
         function buildJustification(distData, cLat, cLng, neighborhood) {
             const el = document.getElementById('resultJustification');
             const sorted = [...distData].sort((a, b) => FREQ_WEIGHTS[b.loc.frequency] - FREQ_WEIGHTS[a.loc.frequency]);
@@ -1407,24 +1450,42 @@
 
             const totalTrips = distData.reduce((s, d) => s + FREQ_WEIGHTS[d.loc.frequency], 0);
             const totalKm = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency] * 2, 0);
+            const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
+            const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
+            const dailyNormal = Math.round(totalNormalMin / 30);
+            const dailyRush = Math.round(totalRushMin / 30);
+
+            // Fuel cost estimate (92 octane ~2.33 SAR/liter, avg 12km/l)
+            const monthlyFuel = Math.round((totalKm / 12) * 2.33);
+
+            // Weighted distance score (lower is better)
+            const avgWeightedDist = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency], 0) / totalTrips;
+
+            // Time saved vs living at farthest point
+            const farthestAvgMin = Math.round(distData.reduce((s, d) => s + far.normalMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0) / 30);
+            const timeSaved = Math.max(0, farthestAvgMin - dailyNormal);
 
             let pts;
             if (lang === 'ar') {
                 pts = [
-                    `أقرب لمكانك الأكثر زيارة "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].ar}).`,
-                    `أقرب مكان: "${near.loc.name}" (${near.dist.toFixed(1)} كم). أبعد: "${far.loc.name}" (${far.dist.toFixed(1)} كم).`,
-                    `إجمالي: ${totalTrips} رحلة/شهر · ~${Math.round(totalKm)} كم/شهر.`
+                    `📍 <strong>الموقع الأمثل:</strong> هذا الحي مختار بناءً على حساب المركز الثقلي المرجّح لجميع أماكنك. المكان الأكثر تأثيراً هو "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].ar}) لأنك تزوره بشكل متكرر، فتم ترجيح الموقع ليكون أقرب إليه.`,
+                    `📊 <strong>تحليل المسافات:</strong> أقرب مكان لك "${near.loc.name}" (${near.dist.toFixed(1)} كم فقط)، وأبعد مكان "${far.loc.name}" (${far.dist.toFixed(1)} كم). المسافة المرجّحة المتوسطة ${avgWeightedDist.toFixed(1)} كم — يعني كل أماكنك في نطاق قريب ومتوازن.`,
+                    `⏱️ <strong>الوقت اليومي:</strong> بتقضي تقريباً ~${dailyNormal} دقيقة يومياً في الوضع الطبيعي و ~${dailyRush} دقيقة وقت الذروة. إجمالي رحلاتك الشهرية ${totalTrips} رحلة (ذهاب وعودة) بمسافة ~${Math.round(totalKm)} كم.`,
+                    `⛽ <strong>التكلفة الشهرية المقدّرة:</strong> بناءً على متوسط استهلاك الوقود (~12 كم/لتر، بنزين 91)، التكلفة التقديرية للتنقل ~${monthlyFuel} ريال شهرياً. السكن هنا يوفر لك وقت ومال مقارنة بالمناطق البعيدة.`,
+                    `✅ <strong>الخلاصة:</strong> ${neighborhood} يمنحك أفضل توازن بين جميع أماكنك المتكررة.${timeSaved > 0 ? ` لو كنت ساكن بعيد مثل منطقة "${far.loc.name}" كنت بتضيّع ~${timeSaved} دقيقة إضافية يومياً.` : ''} هذا الموقع يقلل إجمالي وقت التنقل ويحسّن جودة حياتك اليومية.`
                 ];
             } else {
                 pts = [
-                    `Closest to "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].en}).`,
-                    `Nearest: "${near.loc.name}" (${near.dist.toFixed(1)} km). Farthest: "${far.loc.name}" (${far.dist.toFixed(1)} km).`,
-                    `Total: ${totalTrips} trips/mo · ~${Math.round(totalKm)} km/mo.`
+                    `📍 <strong>Optimal location:</strong> This area was calculated using a weighted geographic centroid of all your places. "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].en}) has the highest influence since you visit it most frequently.`,
+                    `📊 <strong>Distance analysis:</strong> Nearest place: "${near.loc.name}" (${near.dist.toFixed(1)} km). Farthest: "${far.loc.name}" (${far.dist.toFixed(1)} km). Weighted average distance: ${avgWeightedDist.toFixed(1)} km — all your places are within a balanced range.`,
+                    `⏱️ <strong>Daily commute:</strong> ~${dailyNormal} min/day normal, ~${dailyRush} min/day rush hour. Monthly total: ${totalTrips} trips (round-trip), ~${Math.round(totalKm)} km.`,
+                    `⛽ <strong>Estimated monthly cost:</strong> Based on avg fuel consumption (~12 km/L), estimated commute cost is ~${monthlyFuel} SAR/month. Living here saves time and money compared to distant areas.`,
+                    `✅ <strong>Conclusion:</strong> ${neighborhood} gives you the best balance across all your frequent places.${timeSaved > 0 ? ` Living near "${far.loc.name}" would add ~${timeSaved} extra minutes daily.` : ''} This location minimizes total commute and improves daily quality of life.`
                 ];
             }
 
-            el.innerHTML = `<div class="just-title">${lang === 'ar' ? '💡 لماذا هذه المنطقة؟' : '💡 Why this area?'}</div>
-                ${pts.map(p => `<div class="just-point"><span>•</span><span>${p}</span></div>`).join('')}`;
+            el.innerHTML = `<div class="just-title">${lang === 'ar' ? '💡 لماذا هذا الحي هو الأفضل لك؟' : '💡 Why is this the best area for you?'}</div>
+                ${pts.map(p => `<div class="just-point"><span>▸</span><span>${p}</span></div>`).join('')}`;
         }
 
         // ===== CLEAR / RESET =====
@@ -1566,28 +1627,24 @@
             toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        // ===== CONFETTI =====
-        function launchConfetti() {
-            const colors = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#6ee7b7'];
-            for (let i = 0; i < 50; i++) {
-                const el = document.createElement('div');
-                el.className = 'confetti-piece';
-                el.style.left = Math.random() * 100 + 'vw';
-                el.style.top = '-10px';
-                el.style.background = colors[Math.floor(Math.random() * colors.length)];
-                el.style.width = (4 + Math.random() * 6) + 'px';
-                el.style.height = (4 + Math.random() * 6) + 'px';
-                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                document.body.appendChild(el);
 
-                const duration = 1500 + Math.random() * 2000;
-                const drift = (Math.random() - 0.5) * 200;
-                el.animate([
-                    { transform: `translateY(0) translateX(0) rotate(0deg)`, opacity: 1 },
-                    { transform: `translateY(100vh) translateX(${drift}px) rotate(${360 + Math.random()*360}deg)`, opacity: 0 }
-                ], { duration, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
 
-                setTimeout(() => el.remove(), duration);
+
+        // ===== MAP TYPE =====
+        function setMapType(type) {
+            if (type === currentMapType) return;
+            currentMapType = type;
+
+            if (type === 'satellite') {
+                map.removeLayer(streetLayer);
+                satelliteLayer.addTo(map);
+                document.getElementById('mapStreetBtn').classList.remove('active');
+                document.getElementById('mapSatBtn').classList.add('active');
+            } else {
+                map.removeLayer(satelliteLayer);
+                streetLayer.addTo(map);
+                document.getElementById('mapSatBtn').classList.remove('active');
+                document.getElementById('mapStreetBtn').classList.add('active');
             }
         }
 
