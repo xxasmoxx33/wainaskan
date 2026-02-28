@@ -4,786 +4,867 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>وين أسكن - اكتشف أفضل منطقة للسكن في الرياض</title>
-    <meta name="description" content="أداة ذكية تساعدك على اكتشاف المنطقة المثالية للسكن في الرياض بناءً على أماكنك المتكررة. حدد مكان عملك وبيت أهلك واستراحتك ونحسب لك أفضل موقع!">
-    <meta name="keywords" content="وين أسكن, سكن الرياض, أفضل حي للسكن, عقارات الرياض, شقق الرياض, فلل الرياض, بيوت الرياض, أفضل منطقة للسكن">
-    <meta name="author" content="وين أسكن">
+    <meta name="description" content="أداة ذكية تساعدك على اكتشاف المنطقة المثالية للسكن في الرياض بناءً على أماكنك المتكررة">
+    <meta name="keywords" content="وين أسكن, سكن الرياض, أفضل حي للسكن, عقارات الرياض">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="وين أسكن - اكتشف أفضل منطقة للسكن في الرياض">
     <meta property="og:description" content="أداة ذكية تحسب لك أفضل منطقة للسكن في الرياض بناءً على أماكنك المتكررة">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_SA">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="وين أسكن - اكتشف أفضل منطقة للسكن في الرياض">
-    <meta name="twitter:description" content="حدد أماكنك المتكررة ونحسب لك أفضل موقع للسكن في الرياض">
     <link rel="canonical" href="https://weeenaskn.com/">
-    <!-- Google Ads - Replace with your publisher ID -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         :root {
             --green: #10b981;
             --green-dark: #059669;
             --green-light: #6ee7b7;
             --amber: #f59e0b;
-            --amber-dark: #d97706;
-            --bg-dark: #0a1628;
-            --bg-mid: #132a13;
-            --bg-light: #1a2332;
+            --red: #ef4444;
+            --bg: #0a1628;
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1);
+            --text: #fff;
+            --text-dim: rgba(255,255,255,0.5);
+            --text-dimmer: rgba(255,255,255,0.3);
+            --radius: 14px;
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
-            color: #fff;
-            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
-        /* ===== NAV ===== */
-        .nav {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.03); backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            z-index: 1000; position: relative;
+        /* ===== MAP FULLSCREEN ===== */
+        #map {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            cursor: crosshair;
         }
-        .nav-brand { display: flex; align-items: center; gap: 10px; }
-        .nav-logo {
-            width: 38px; height: 38px;
+
+        .leaflet-control-zoom { margin-top: 70px !important; }
+        .leaflet-control-zoom a {
+            background: rgba(10,20,30,0.85) !important;
+            color: #fff !important;
+            border-color: var(--glass-border) !important;
+            backdrop-filter: blur(10px);
+            width: 36px !important; height: 36px !important;
+            line-height: 36px !important; font-size: 18px !important;
+        }
+        .leaflet-control-zoom a:hover { background: rgba(16,185,129,0.3) !important; }
+        .leaflet-control-attribution {
+            background: rgba(10,20,30,0.6) !important;
+            color: rgba(255,255,255,0.3) !important;
+            font-size: 9px !important;
+            padding: 2px 6px !important;
+        }
+        .leaflet-control-attribution a { color: rgba(255,255,255,0.4) !important; }
+
+        /* ===== TOP BAR (Logo + Lang) ===== */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 900;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: linear-gradient(180deg, rgba(10,22,40,0.9) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .top-logo {
+            width: 34px; height: 34px;
             background: linear-gradient(135deg, var(--green), var(--green-dark));
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
         }
-        .nav-title {
-            font-size: 20px; font-weight: 800;
+        .top-title {
+            font-size: 17px; font-weight: 800;
             background: linear-gradient(135deg, var(--green), var(--green-light));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .nav-actions { display: flex; align-items: center; gap: 8px; }
+
+        .top-actions { display: flex; gap: 6px; }
         .lang-btn {
-            padding: 6px 16px; border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
-            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-            min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center;
+            padding: 5px 14px; border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            background: rgba(10,20,30,0.7); backdrop-filter: blur(10px);
+            color: var(--text-dim); font-family: 'Cairo'; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
         }
-        .lang-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .lang-btn.active { background: linear-gradient(135deg, var(--green), var(--green-dark)); border-color: transparent; color: #fff; }
+        .lang-btn.active {
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border-color: transparent; color: #fff;
+        }
 
-        /* ===== PROGRESS INDICATOR ===== */
-        .progress-bar {
-            display: flex; align-items: center; gap: 4px; padding: 8px 24px;
-            background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05);
+        /* ===== ADD FORM OVERLAY (on map) ===== */
+        .add-overlay {
+            position: fixed;
+            bottom: calc(24px + var(--safe-bottom));
+            left: 12px; right: 12px;
+            z-index: 800;
+            background: rgba(10,20,35,0.92);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 18px 16px;
+            transform: translateY(120%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
         }
-        .progress-step {
-            flex: 1; height: 4px; border-radius: 4px;
-            background: rgba(255,255,255,0.08); transition: all 0.5s ease; position: relative;
-        }
-        .progress-step.active { background: linear-gradient(135deg, var(--green), var(--green-light)); }
-        .progress-step.active::after {
-            content: attr(data-label); position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-            font-size: 10px; color: var(--green-light); white-space: nowrap; font-weight: 600;
-        }
-        .progress-step-dot {
-            width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-            background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
-            font-size: 10px; color: rgba(255,255,255,0.3); transition: all 0.5s ease; font-weight: 700;
-        }
-        .progress-step-dot.active { background: var(--green); color: #fff; transform: scale(1.1); }
+        .add-overlay.show { transform: translateY(0); }
 
-        /* ===== DESKTOP LAYOUT ===== */
-        .app-layout { display: flex; height: calc(100vh - 62px - 36px); }
-        [dir="rtl"] .app-layout { flex-direction: row; }
+        .add-overlay-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .add-overlay-neighborhood {
+            font-size: 12px; color: var(--green-light); font-weight: 600;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .add-overlay-close {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: none; background: rgba(255,255,255,0.1);
+            color: var(--text-dim); font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
 
-        /* ===== SIDEBAR (desktop) ===== */
-        .sidebar {
-            width: 400px; min-width: 400px; overflow-y: auto; padding: 24px;
-            background: rgba(255,255,255,0.02);
-            border-inline-start: 1px solid rgba(255,255,255,0.08);
-            display: flex; flex-direction: column; gap: 20px; order: 2;
+        .add-name-input {
+            width: 100%; padding: 14px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px; color: #fff;
+            font-family: 'Cairo'; font-size: 16px; font-weight: 600;
+            outline: none; transition: all 0.3s;
+            margin-bottom: 10px;
         }
-        .sidebar::-webkit-scrollbar { width: 4px; }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .add-name-input:focus {
+            border-color: var(--green);
+            background: rgba(16,185,129,0.1);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+        }
+        .add-name-input::placeholder { color: var(--text-dimmer); }
 
-        .sidebar-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-        .sidebar-header p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+        .quick-row {
+            display: flex; gap: 6px; margin-bottom: 12px;
+        }
+        .quick-btn {
+            flex: 1; padding: 10px 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .quick-btn:active { transform: scale(0.95); }
+        .quick-btn .q-icon { font-size: 18px; }
+        .quick-btn.selected {
+            background: rgba(16,185,129,0.15);
+            border-color: var(--green); color: var(--green-light);
+        }
 
-        /* ===== SEARCH ===== */
-        .search-container { position: relative; }
-        .search-input {
-            width: 100%; padding: 14px 48px 14px 16px;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 16px; outline: none; transition: all 0.3s;
+        .freq-row {
+            display: flex; gap: 8px; margin-bottom: 14px;
         }
-        [dir="rtl"] .search-input { padding: 14px 16px 14px 48px; }
-        .search-input::placeholder { color: rgba(255,255,255,0.3); }
-        .search-input:focus {
-            border-color: var(--green); background: rgba(16, 185, 129, 0.08);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        .freq-btn {
+            flex: 1; padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            text-align: center;
         }
-        .search-icon {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            color: rgba(255,255,255,0.3); font-size: 18px; pointer-events: none;
+        .freq-btn:active { transform: scale(0.95); }
+        .freq-btn.selected {
+            background: rgba(16,185,129,0.15);
+            border-color: var(--green); color: var(--green-light);
         }
-        [dir="rtl"] .search-icon { left: 16px; }
-        [dir="ltr"] .search-icon { right: 16px; }
-        .search-results {
-            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-            background: rgba(15, 25, 20, 0.98); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
-            overflow: hidden; z-index: 100; display: none;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-        }
-        .search-results.show { display: block; }
-        .search-result-item {
-            padding: 12px 16px; cursor: pointer; transition: background 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; gap: 10px; min-height: 44px;
-        }
-        .search-result-item:last-child { border-bottom: none; }
-        .search-result-item:hover { background: rgba(16, 185, 129, 0.15); }
-        .search-result-icon { font-size: 16px; opacity: 0.5; }
-        .search-result-text {
-            font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .search-loading { padding: 16px; text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; }
 
-        /* ===== LOCATIONS LIST ===== */
-        .locations-section-title {
-            font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.5);
+        .add-confirm-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: none; border-radius: 12px;
+            color: #fff; font-family: 'Cairo'; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .add-confirm-btn:active { transform: scale(0.97); }
+
+        /* ===== MAP HINT ===== */
+        .map-hint {
+            position: fixed;
+            bottom: calc(30px + var(--safe-bottom));
+            left: 50%; transform: translateX(-50%);
+            z-index: 700;
+            background: rgba(10,20,35,0.88);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 13px; font-weight: 600;
+            color: var(--text-dim);
+            display: flex; align-items: center; gap: 8px;
+            animation: hintPulse 3s ease infinite;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        .map-hint.hidden { opacity: 0; pointer-events: none; }
+        .map-hint-icon { font-size: 20px; animation: hintBounce 2s ease infinite; }
+
+        @keyframes hintPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.2); }
+            50% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+        }
+        @keyframes hintBounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        /* ===== RESULT FAB (floating button) ===== */
+        .result-fab {
+            position: fixed;
+            bottom: calc(24px + var(--safe-bottom));
+            left: 16px;
+            z-index: 800;
+            display: none;
+            align-items: center; gap: 8px;
+            padding: 14px 22px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: none; border-radius: 50px;
+            color: #fff; font-family: 'Cairo'; font-size: 14px; font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 25px rgba(16,185,129,0.4);
+            transition: all 0.3s;
+            animation: fabPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .result-fab.show { display: flex; }
+        .result-fab:active { transform: scale(0.95); }
+        .result-fab .fab-icon { font-size: 18px; }
+        .result-fab .fab-count {
+            background: rgba(255,255,255,0.25);
+            padding: 2px 8px; border-radius: 50px;
+            font-size: 11px;
+        }
+
+        @keyframes fabPop {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ===== SIDEBAR DRAWER ===== */
+        .sidebar-backdrop {
+            position: fixed; inset: 0; z-index: 999;
+            background: rgba(0,0,0,0.5);
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s;
+        }
+        .sidebar-backdrop.show { opacity: 1; visibility: visible; }
+
+        .sidebar-drawer {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            width: 340px; max-width: 85vw;
+            z-index: 1000;
+            background: rgba(10,20,35,0.97);
+            backdrop-filter: blur(30px);
+            border-inline-start: 1px solid var(--glass-border);
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        [dir="ltr"] .sidebar-drawer { right: auto; left: 0; transform: translateX(-100%); }
+        .sidebar-drawer.show { transform: translateX(0); }
+
+        .sidebar-header {
+            padding: 20px 18px 14px;
+            border-bottom: 1px solid var(--glass-border);
             display: flex; align-items: center; justify-content: space-between;
         }
-        .locations-count {
-            background: rgba(16, 185, 129, 0.2); color: var(--green-light);
-            padding: 2px 10px; border-radius: 50px; font-size: 12px; font-weight: 600;
+        .sidebar-title {
+            font-size: 17px; font-weight: 800;
+            background: linear-gradient(135deg, var(--green), var(--green-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .locations-list { display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
-
-        /* ===== EMPTY STATE ===== */
-        .empty-state { text-align: center; padding: 30px 16px; color: rgba(255,255,255,0.3); }
-        .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
-        .empty-state-animated { animation: emptyFloat 3s ease-in-out infinite; }
-        @keyframes emptyFloat {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-10px) scale(1.05); }
-        }
-        .empty-state p { font-size: 13px; line-height: 1.6; }
-        .empty-state-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
-        .empty-state-dots span {
-            width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15);
-            animation: dotPulse 1.5s ease-in-out infinite;
-        }
-        .empty-state-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .empty-state-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotPulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
+        .sidebar-close {
+            width: 34px; height: 34px; border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text-dim); font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        /* ===== LOCATION CARD ===== */
-        .location-card {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px;
-            animation: slideIn 0.3s ease; transition: all 0.3s; cursor: pointer;
-        }
-        .location-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
-        .location-card:active { transform: scale(0.98); }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .location-card-icon {
-            width: 42px; height: 42px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
-        }
-        .location-card-info { flex: 1; min-width: 0; }
-        .location-card-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .location-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
-        .location-card-freq { font-size: 10px; padding: 2px 8px; border-radius: 50px; font-weight: 600; }
-        .location-card-delete {
-            width: 44px; height: 44px; border-radius: 10px; border: none;
-            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3);
-            font-size: 16px; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .location-card-delete:hover { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .sidebar-body { flex: 1; padding: 16px 18px; overflow-y: auto; }
 
-        /* ===== ADD FORM ===== */
-        .add-form {
-            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 20px; display: none; animation: fadeIn 0.3s ease;
+        .sidebar-locations { display: flex; flex-direction: column; gap: 8px; }
+
+        .sidebar-loc-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 12px;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideUp 0.3s ease;
         }
-        .add-form.show { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .add-form-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-        .add-form-close {
-            width: 44px; height: 44px; border-radius: 8px; border: none;
-            background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
-            font-size: 14px; cursor: pointer; transition: all 0.3s;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sloc-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .sloc-info { flex: 1; min-width: 0; }
+        .sloc-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sloc-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .sloc-freq-badge {
+            font-size: 10px; padding: 2px 8px; border-radius: 50px; font-weight: 600;
+        }
+        .sloc-delete {
+            width: 28px; height: 28px; border-radius: 8px;
+            border: none; background: rgba(255,255,255,0.05);
+            color: var(--text-dimmer); font-size: 14px;
+            cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
         }
-        .add-form-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        .form-group { margin-bottom: 16px; }
-        .form-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 8px; display: block; }
-        .form-input {
-            width: 100%; padding: 12px 14px;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 16px; outline: none; transition: all 0.3s;
-        }
-        .form-input:focus { border-color: var(--green); background: rgba(16, 185, 129, 0.08); }
-        .form-input.readonly-subtle { color: rgba(255,255,255,0.45); font-size: 14px; }
+        .sloc-delete:active { background: rgba(239,68,68,0.2); color: var(--red); }
 
-        /* ===== QUICK NAMES ===== */
-        .quick-names { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .quick-name {
-            padding: 5px 12px; border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.55); font-family: 'Cairo', sans-serif;
-            font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; gap: 4px; min-height: 44px;
+        .sidebar-empty {
+            text-align: center; padding: 40px 16px;
+            color: var(--text-dimmer);
         }
-        .quick-name:hover { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: var(--green-light); }
+        .sidebar-empty-icon { font-size: 36px; margin-bottom: 10px; }
+        .sidebar-empty p { font-size: 13px; line-height: 1.6; }
 
-        /* ===== CHIPS ===== */
-        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; }
-        .chip {
-            padding: 10px 16px; border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
-            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; gap: 6px; min-height: 44px;
-        }
-        .chip:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .chip.selected { background: rgba(16, 185, 129, 0.2); border-color: var(--green); color: var(--green-light); }
-        .chip:active { transform: scale(0.95); }
-
-        /* ===== BUTTONS ===== */
-        .btn-primary {
-            width: 100%; padding: 16px;
+        /* ===== SIDEBAR CALCULATE BTN ===== */
+        .sidebar-calc-btn {
+            margin: 16px 18px 20px;
+            padding: 16px;
             background: linear-gradient(135deg, var(--green), var(--green-dark));
-            border: none; border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+            border: none; border-radius: 14px;
+            color: #fff; font-family: 'Cairo'; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            min-height: 52px; position: relative; overflow: hidden;
         }
-        .btn-primary::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .btn-primary:active::after { opacity: 1; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
-        .btn-primary:active { transform: translateY(0) scale(0.98); }
-        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-primary.loading { pointer-events: none; }
+        .sidebar-calc-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .sidebar-calc-btn:active:not(:disabled) { transform: scale(0.97); }
 
-        .btn-secondary {
-            width: 100%; padding: 12px;
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; color: rgba(255,255,255,0.7); font-family: 'Cairo', sans-serif;
-            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; min-height: 44px;
+        /* ===== SIDEBAR TOGGLE BUTTON ===== */
+        .sidebar-toggle {
+            position: fixed;
+            top: 50%; right: 0;
+            transform: translateY(-50%);
+            z-index: 800;
+            width: 32px; height: 70px;
+            background: rgba(10,20,35,0.88);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            color: var(--text-dim); font-size: 14px;
+            cursor: pointer;
+            display: none;
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 4px;
+            transition: all 0.3s;
         }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-secondary:active { transform: scale(0.97); }
+        [dir="ltr"] .sidebar-toggle { right: auto; left: 0; border-radius: 0 12px 12px 0; border-left: none; border-right: 1px solid var(--glass-border); }
+        .sidebar-toggle.show { display: flex; }
+        .sidebar-toggle:active { background: rgba(16,185,129,0.15); }
+        .sidebar-toggle .toggle-count {
+            font-size: 11px; font-weight: 800; color: var(--green-light);
+        }
+        .sidebar-toggle .toggle-icon { font-size: 12px; }
 
-        .btn-add {
-            padding: 14px; background: linear-gradient(135deg, var(--green), var(--green-dark));
-            border: none; border-radius: 12px; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.3s;
-            min-height: 48px;
+        /* ===== RESULT OVERLAY ===== */
+        .result-overlay {
+            position: fixed; inset: 0; z-index: 1100;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none; align-items: flex-end; justify-content: center;
         }
-        .btn-add:hover { box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-        .btn-add:active { transform: scale(0.97); }
+        .result-overlay.show { display: flex; }
 
-        /* ===== RESULT CARD ===== */
-        .result-card {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 18px; padding: 24px; display: none; animation: resultReveal 0.5s ease;
+        .result-sheet {
+            width: 100%; max-width: 500px;
+            max-height: 90vh;
+            background: rgba(10,20,35,0.97);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px 24px 0 0;
+            overflow-y: auto;
+            animation: sheetUp 0.4s cubic-bezier(0.32, 0.72, 0, 1);
         }
-        .result-card.show { display: block; }
-        @keyframes resultReveal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes sheetUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .result-sheet-handle {
+            width: 36px; height: 4px; border-radius: 4px;
+            background: rgba(255,255,255,0.15);
+            margin: 10px auto 0;
+        }
+
+        .result-sheet-body { padding: 20px 18px calc(20px + var(--safe-bottom)); }
+
         .result-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(16, 185, 129, 0.25); color: var(--green-light);
-            padding: 4px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; margin-bottom: 14px;
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(16,185,129,0.2); color: var(--green-light);
+            padding: 4px 12px; border-radius: 50px;
+            font-size: 11px; font-weight: 700; margin-bottom: 12px;
         }
-        .result-neighborhood { font-size: 22px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
-        .result-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 18px; }
+        .result-neighborhood {
+            font-size: 22px; font-weight: 800; margin-bottom: 6px; line-height: 1.3;
+        }
+        .result-desc {
+            font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;
+        }
 
-        /* ===== JUSTIFICATION ===== */
         .result-justification {
-            background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15);
-            border-radius: 12px; padding: 14px; margin-bottom: 18px;
+            background: rgba(16,185,129,0.06);
+            border: 1px solid rgba(16,185,129,0.12);
+            border-radius: 12px; padding: 14px; margin-bottom: 16px;
         }
-        .justification-title { font-size: 12px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .justification-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.7; }
-        .justification-point { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
-        .justification-point span:first-child { color: var(--green); flex-shrink: 0; }
+        .just-title { font-size: 12px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; }
+        .just-point { display: flex; gap: 6px; margin-bottom: 4px; font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+        .just-point span:first-child { color: var(--green); flex-shrink: 0; }
 
-        /* ===== DISTANCES ===== */
-        .result-distances { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
-        .result-distance-item { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px 14px; font-size: 13px; }
-        .result-distance-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .result-distance-name { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 700; }
-        .result-distance-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .result-distance-km { font-weight: 700; color: var(--green-light); direction: ltr; font-size: 13px; flex-shrink: 0; }
-        .result-distance-times { display: flex; gap: 8px; flex-wrap: wrap; }
-        .result-time-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 8px; direction: ltr; }
-        .result-time-normal { background: rgba(16, 185, 129, 0.12); color: var(--green-light); }
-        .result-time-rush { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
-        .result-actions { display: flex; gap: 8px; }
-        .result-actions button { flex: 1; }
+        .result-distances { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .rdist-item {
+            background: var(--glass); border-radius: 10px; padding: 10px 12px;
+        }
+        .rdist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+        .rdist-name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; flex: 1; min-width: 0; }
+        .rdist-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rdist-km { font-weight: 700; color: var(--green-light); font-size: 13px; direction: ltr; }
+        .rdist-times { display: flex; gap: 6px; flex-wrap: wrap; }
+        .rdist-time {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; direction: ltr;
+        }
+        .rdist-normal { background: rgba(16,185,129,0.1); color: var(--green-light); }
+        .rdist-rush { background: rgba(239,68,68,0.1); color: #fca5a5; }
 
-        /* ===== AD SLOTS ===== */
-        .ad-slot {
-            border: 1px dashed rgba(255,255,255,0.1); border-radius: 14px;
-            padding: 16px; text-align: center; min-height: 100px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.02); position: relative;
+        .result-actions { display: flex; gap: 8px; margin-bottom: 20px; }
+        .result-btn {
+            flex: 1; padding: 12px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 13px; font-weight: 600;
+            cursor: pointer; text-align: center;
         }
-        .ad-slot-label {
-            position: absolute; top: 8px; right: 8px;
-            font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 600;
-        }
-        [dir="ltr"] .ad-slot-label { right: auto; left: 8px; }
+        .result-btn:active { background: rgba(255,255,255,0.1); }
 
-        /* ===== MAP ===== */
-        .map-container { flex: 1; position: relative; order: 1; }
-        #map { width: 100%; height: 100%; z-index: 1; cursor: crosshair; }
-        .map-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(10, 22, 40, 0.85); backdrop-filter: blur(10px);
-            padding: 24px 36px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
-            text-align: center; z-index: 500; pointer-events: none; transition: opacity 0.5s;
+        /* ===== BROKER SECTION (inside result) ===== */
+        .broker-divider {
+            height: 1px; background: var(--glass-border); margin: 4px 0 18px;
         }
-        .map-overlay.hidden { opacity: 0; }
-        .map-overlay-icon { font-size: 36px; margin-bottom: 8px; animation: bounce 2s ease-in-out infinite; }
-        .map-overlay p { font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 600; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .broker-title {
+            font-size: 16px; font-weight: 800; margin-bottom: 4px; text-align: center;
+        }
+        .broker-desc {
+            font-size: 12px; color: var(--text-dim); text-align: center; margin-bottom: 16px; line-height: 1.6;
+        }
 
-        /* ===== QUICK ADD (mobile) ===== */
-        .quick-add-bar {
-            display: none; position: absolute; bottom: 12px; left: 12px; right: 12px;
-            z-index: 500; overflow-x: auto; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; gap: 8px; padding: 4px;
+        .broker-q-label {
+            font-size: 13px; font-weight: 700; color: var(--text-dim); margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
         }
-        .quick-add-bar::-webkit-scrollbar { display: none; }
-        .quick-add-btn {
-            flex-shrink: 0; padding: 8px 16px; border-radius: 50px;
-            background: rgba(10, 22, 40, 0.9); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.15); color: #fff;
-            font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
-            white-space: nowrap; min-height: 44px;
+        .broker-q-num {
+            font-size: 10px; font-weight: 800; color: var(--amber);
+            background: rgba(245,158,11,0.15);
+            padding: 2px 8px; border-radius: 50px;
         }
-        .quick-add-btn:active { transform: scale(0.95); background: rgba(16, 185, 129, 0.3); }
 
-        /* ===== CUSTOM MARKERS ===== */
+        .prop-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 6px; margin-bottom: 16px;
+        }
+        .prop-btn {
+            padding: 10px 4px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+        .prop-btn:active { transform: scale(0.95); }
+        .prop-btn .prop-icon { font-size: 20px; }
+        .prop-btn.selected {
+            background: rgba(245,158,11,0.12);
+            border-color: var(--amber); color: #fbbf24;
+        }
+
+        .purpose-row {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .purpose-btn {
+            flex: 1; padding: 12px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 14px; font-weight: 700;
+            cursor: pointer; text-align: center;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .purpose-btn:active { transform: scale(0.95); }
+        .purpose-btn.selected {
+            background: rgba(245,158,11,0.12);
+            border-color: var(--amber); color: #fbbf24;
+        }
+
+        .phone-wrapper {
+            display: flex; gap: 8px; margin-bottom: 16px; direction: ltr;
+        }
+        .phone-prefix-box {
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px; color: var(--text-dim);
+            font-family: 'Cairo'; font-size: 15px; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .phone-input {
+            flex: 1; padding: 12px 14px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 10px; color: #fff;
+            font-family: 'Cairo'; font-size: 16px; font-weight: 600;
+            outline: none; direction: ltr; text-align: left;
+        }
+        .phone-input:focus {
+            border-color: var(--amber);
+            background: rgba(245,158,11,0.08);
+        }
+        .phone-input::placeholder { color: var(--text-dimmer); }
+
+        .broker-submit {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--amber), #d97706);
+            border: none; border-radius: 12px;
+            color: #fff; font-family: 'Cairo'; font-size: 15px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .broker-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+        .broker-submit:active:not(:disabled) { transform: scale(0.97); }
+
+        .broker-success {
+            display: none; text-align: center; padding: 24px 16px;
+        }
+        .broker-success.show { display: block; }
+        .broker-success-icon { font-size: 44px; margin-bottom: 10px; }
+        .broker-success-title { font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+        .broker-success-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+        /* ===== MARKER STYLES ===== */
         .custom-marker { background: none; border: none; }
         .marker-pin {
-            width: 42px; height: 42px; border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg); display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 20px rgba(16,185,129,0.15);
-            border: 3px solid rgba(255,255,255,0.9); animation: markerDrop 0.4s ease-out;
+            width: 40px; height: 40px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255,255,255,0.9);
+            animation: markerDrop 0.4s ease-out;
         }
-        .marker-pin .marker-icon { transform: rotate(45deg); font-size: 18px; line-height: 1; }
+        .marker-pin .marker-icon { transform: rotate(45deg); font-size: 17px; line-height: 1; }
         @keyframes markerDrop {
-            0% { transform: rotate(-45deg) translateY(-30px); opacity: 0; }
-            60% { transform: rotate(-45deg) translateY(3px); }
+            0% { transform: rotate(-45deg) translateY(-25px); opacity: 0; }
+            60% { transform: rotate(-45deg) translateY(2px); }
             100% { transform: rotate(-45deg) translateY(0); opacity: 1; }
         }
+
         .marker-info-label {
-            background: rgba(10, 22, 15, 0.92); backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
-            padding: 5px 10px; font-family: 'Cairo', sans-serif; font-size: 11px;
-            font-weight: 700; white-space: nowrap; text-align: center;
-            line-height: 1.5; color: #fff; min-width: 80px;
+            background: rgba(10,20,15,0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 4px 8px;
+            font-family: 'Cairo'; font-size: 10px; font-weight: 700;
+            white-space: nowrap; text-align: center; color: #fff;
         }
         .marker-info-km { color: var(--green-light); }
-        .marker-info-time { color: rgba(255,255,255,0.5); font-size: 10px; }
-        .marker-info-rush { color: #fca5a5; font-size: 10px; }
+        .marker-info-time { color: var(--text-dim); font-size: 9px; }
+        .marker-info-rush { color: #fca5a5; font-size: 9px; }
+
         .centroid-marker-inner {
-            width: 22px; height: 22px;
+            width: 20px; height: 20px;
             background: linear-gradient(135deg, var(--green), var(--green-dark));
             border: 3px solid #fff; border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 0 0 0 rgba(16,185,129,0.4);
             animation: centroidPulse 2s infinite;
         }
         @keyframes centroidPulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 4px 15px rgba(0,0,0,0.3); }
-            70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0), 0 4px 15px rgba(0,0,0,0.3); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 4px 15px rgba(0,0,0,0.3); }
+            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+            70% { box-shadow: 0 0 0 18px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
         }
 
-        /* ===== LEAFLET OVERRIDES ===== */
+        /* ===== LEAFLET POPUP ===== */
         .leaflet-popup-content-wrapper {
-            background: rgba(15, 25, 20, 0.95); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
-            color: #fff; font-family: 'Cairo', sans-serif; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            background: rgba(10,20,30,0.95); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            color: #fff; font-family: 'Cairo';
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
-        .leaflet-popup-tip { background: rgba(15, 25, 20, 0.95); border: 1px solid rgba(255,255,255,0.12); }
-        .leaflet-popup-content { margin: 14px 16px; font-size: 13px; line-height: 1.6; }
-        .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-        .popup-info { color: rgba(255,255,255,0.5); font-size: 12px; }
+        .leaflet-popup-tip { background: rgba(10,20,30,0.95); border: 1px solid var(--glass-border); }
+        .leaflet-popup-content { margin: 12px 14px; font-size: 13px; }
+        .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+        .popup-info { color: var(--text-dim); font-size: 11px; }
         .popup-remove {
-            color: #e74c3c; cursor: pointer; font-size: 12px; font-weight: 600;
-            margin-top: 6px; display: inline-block; font-family: 'Cairo', sans-serif;
-            background: none; border: none; padding: 4px 0; min-height: 44px;
+            color: var(--red); cursor: pointer; font-size: 11px; font-weight: 600;
+            margin-top: 5px; display: inline-block;
+            font-family: 'Cairo'; background: none; border: none; padding: 0;
         }
-        .popup-remove:hover { text-decoration: underline; }
-        .leaflet-control-zoom a {
-            background: rgba(15, 25, 20, 0.9) !important; color: #fff !important;
-            border-color: rgba(255,255,255,0.1) !important; backdrop-filter: blur(10px);
+
+        /* ===== SEARCH (on map) ===== */
+        .search-float {
+            position: fixed;
+            top: 56px; left: 12px; right: 12px;
+            z-index: 800;
         }
-        .leaflet-control-zoom a:hover { background: rgba(16, 185, 129, 0.3) !important; }
-        .leaflet-control-attribution { background: rgba(15, 25, 20, 0.7) !important; color: rgba(255,255,255,0.4) !important; font-size: 10px !important; }
-        .leaflet-control-attribution a { color: rgba(255,255,255,0.5) !important; }
+        .search-input {
+            width: 100%; padding: 13px 16px 13px 42px;
+            background: rgba(10,20,35,0.88);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; color: #fff;
+            font-family: 'Cairo'; font-size: 14px; font-weight: 600;
+            outline: none; transition: all 0.3s;
+        }
+        [dir="rtl"] .search-input { padding: 13px 42px 13px 16px; }
+        .search-input:focus {
+            border-color: var(--green);
+            background: rgba(10,20,35,0.95);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .search-input::placeholder { color: var(--text-dimmer); }
+        .search-icon {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            left: 14px; color: var(--text-dimmer); font-size: 16px; pointer-events: none;
+        }
+        [dir="rtl"] .search-icon { left: auto; right: 14px; }
+
+        .search-results {
+            position: absolute; top: calc(100% + 6px);
+            left: 0; right: 0;
+            background: rgba(10,20,30,0.97);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; overflow: hidden;
+            display: none;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+        .search-results.show { display: block; }
+        .search-result-item {
+            padding: 12px 14px; cursor: pointer; transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:active { background: rgba(16,185,129,0.15); }
+        .search-result-icon { font-size: 14px; opacity: 0.4; }
+        .search-result-text { font-size: 13px; color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .search-loading { padding: 14px; text-align: center; color: var(--text-dimmer); font-size: 13px; }
 
         /* ===== TOAST ===== */
         .toast {
-            position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: rgba(10, 22, 15, 0.95); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 24px;
-            border-radius: 14px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
-            opacity: 0; transition: all 0.3s ease; z-index: 3000; pointer-events: none;
-            display: flex; align-items: center; gap: 8px;
+            position: fixed;
+            top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            z-index: 9999;
+            background: rgba(10,20,30,0.92);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px; border-radius: 50px;
+            font-family: 'Cairo'; font-size: 13px; font-weight: 600; color: #fff;
+            opacity: 0; transition: all 0.3s; pointer-events: none;
+            white-space: nowrap;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* ===== HOW IT WORKS ===== */
-        .how-it-works {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px; padding: 16px;
-        }
-        .how-it-works-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
-        .how-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
-        .how-step-num {
-            width: 24px; height: 24px; background: rgba(16, 185, 129, 0.2);
-            color: var(--green-light); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 800; flex-shrink: 0;
-        }
-        .how-step-text { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-
-        /* ===== BROKER SECTION ===== */
-        .broker-section { display: none; animation: resultReveal 0.5s ease; }
-        .broker-section.show { display: block; }
-        .broker-cta {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
-            border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 18px;
-            padding: 24px; text-align: center; margin-bottom: 16px;
-        }
-        .broker-cta-icon { font-size: 40px; margin-bottom: 10px; }
-        .broker-cta-title { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
-        .broker-cta-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 16px; }
-        .broker-form { display: none; animation: fadeIn 0.3s ease; }
-        .broker-form.show { display: block; }
-        .broker-form-card {
-            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 20px;
-        }
-        .broker-form-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-        .broker-step-label {
-            font-size: 11px; font-weight: 700; color: var(--amber);
-            background: rgba(245, 158, 11, 0.15); padding: 2px 10px; border-radius: 50px;
-        }
-        .property-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .property-type-btn {
-            padding: 12px 8px; background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
-            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-            display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 64px;
-        }
-        .property-type-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .property-type-btn.selected { background: rgba(245, 158, 11, 0.15); border-color: var(--amber); color: #fbbf24; }
-        .property-type-btn:active { transform: scale(0.95); }
-        .property-type-icon { font-size: 22px; }
-        .phone-input-wrapper { display: flex; align-items: center; gap: 8px; }
-        .phone-prefix {
-            padding: 12px 14px; background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
-            font-size: 16px; font-weight: 700; direction: ltr; flex-shrink: 0;
-        }
-        .phone-input {
-            flex: 1; padding: 12px 14px; background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            color: #fff; font-family: 'Cairo', sans-serif; font-size: 16px;
-            outline: none; transition: all 0.3s; direction: ltr; text-align: left;
-        }
-        .phone-input:focus { border-color: var(--amber); background: rgba(245, 158, 11, 0.08); }
-        .phone-input::placeholder { color: rgba(255,255,255,0.3); text-align: right; }
-        [dir="ltr"] .phone-input::placeholder { text-align: left; }
-        .btn-broker {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--amber), var(--amber-dark));
-            border: none; border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px;
-        }
-        .btn-broker:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); }
-        .btn-broker:active { transform: translateY(0) scale(0.98); }
-        .btn-broker:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-        .btn-broker-outline {
-            width: 100%; padding: 14px; background: transparent;
-            border: 2px solid rgba(245, 158, 11, 0.4); border-radius: 14px;
-            color: var(--amber); font-family: 'Cairo', sans-serif;
-            font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px;
-        }
-        .btn-broker-outline:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--amber); }
-        .btn-broker-outline:active { transform: scale(0.97); }
-        .broker-success { display: none; text-align: center; padding: 30px 20px; animation: resultReveal 0.5s ease; }
-        .broker-success.show { display: block; }
-        .broker-success-icon { font-size: 50px; margin-bottom: 12px; }
-        .broker-success-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--green); }
-        .broker-success-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7; }
-
         /* ===== CONFETTI ===== */
-        .confetti-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 2500; overflow: hidden;
-        }
         .confetti-piece {
-            position: absolute; width: 10px; height: 10px;
-            top: -10px; opacity: 0;
-            animation: confettiFall 3s ease-in forwards;
-        }
-        @keyframes confettiFall {
-            0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-            100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(0.5); }
+            position: fixed; z-index: 9998;
+            width: 8px; height: 8px; border-radius: 2px;
+            pointer-events: none;
         }
 
-        /* ===== MOBILE BOTTOM SHEET ===== */
-        .mobile-bottom-sheet {
-            display: none; position: fixed; bottom: 0; left: 0; right: 0;
-            z-index: 1000; background: linear-gradient(180deg, #0f1923 0%, #0a1628 100%);
-            border-radius: 20px 20px 0 0; box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
-            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-            max-height: calc(100vh - 40vh + 20px);
-            padding-bottom: var(--safe-bottom);
+        /* ===== AD SLOT ===== */
+        .ad-slot {
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 20px;
+            text-align: center; color: var(--text-dimmer);
+            font-size: 11px; margin: 12px 0;
         }
-        .sheet-drag-handle {
-            width: 100%; padding: 12px 0 8px; display: flex; justify-content: center; cursor: grab;
-        }
-        .sheet-drag-handle-bar {
-            width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2);
-        }
-        .sheet-summary {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 4px 20px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        .sheet-summary-info { display: flex; align-items: center; gap: 8px; }
-        .sheet-summary-count {
-            font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.7);
-        }
-        .sheet-summary-btn {
-            padding: 10px 20px; border-radius: 50px;
-            background: linear-gradient(135deg, var(--green), var(--green-dark));
-            border: none; color: #fff; font-family: 'Cairo', sans-serif;
-            font-size: 13px; font-weight: 700; cursor: pointer; min-height: 44px;
-            transition: all 0.3s;
-        }
-        .sheet-summary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .sheet-summary-btn:active { transform: scale(0.95); }
-        .sheet-content {
-            overflow-y: auto; padding: 16px 20px;
-            max-height: calc(100vh - 40vh - 80px);
-            -webkit-overflow-scrolling: touch;
-        }
-        .sheet-content::-webkit-scrollbar { width: 3px; }
-        .sheet-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        .sheet-content > * + * { margin-top: 16px; }
 
-        /* ===== MOBILE RESPONSIVE ===== */
-        @media (max-width: 767px) {
-            body { overflow: hidden; }
-            .nav { padding: 10px 16px; }
-            .nav-title { font-size: 16px; }
-            .progress-bar { padding: 6px 16px; }
-            .progress-step.active::after { font-size: 9px; }
-
-            .app-layout { flex-direction: column; height: calc(100vh - 54px - 30px); }
-            [dir="rtl"] .app-layout { flex-direction: column; }
-
-            .sidebar { display: none; }
-
-            .map-container {
-                height: 40vh; min-height: 200px; order: 1;
-                position: relative; flex: none;
+        /* ===== DESKTOP ===== */
+        @media (min-width: 769px) {
+            .sidebar-toggle { display: none !important; }
+            .sidebar-drawer {
+                position: fixed; top: 0; right: 0; bottom: 0;
+                width: 380px; transform: translateX(0);
+                border-inline-start: 1px solid var(--glass-border);
             }
-
-            .quick-add-bar { display: flex; }
-
-            .mobile-bottom-sheet { display: block; }
-            .mobile-bottom-sheet.collapsed { transform: translateY(calc(100% - 90px)); }
-            .mobile-bottom-sheet.expanded { transform: translateY(0); }
-
-            .map-overlay { padding: 16px 24px; }
-            .map-overlay-icon { font-size: 28px; }
-            .map-overlay p { font-size: 12px; }
-
-            .chips-container { gap: 6px; }
-            .chip { flex: 1; justify-content: center; min-width: calc(50% - 4px); }
-
-            .toast { top: 12px; font-size: 12px; padding: 10px 18px; max-width: 90vw; }
+            [dir="ltr"] .sidebar-drawer { transform: translateX(0); }
+            .sidebar-backdrop { display: none !important; }
+            .result-fab { left: auto; right: 400px; }
+            [dir="ltr"] .result-fab { right: auto; left: 400px; }
+            .add-overlay { right: 400px; }
+            [dir="ltr"] .add-overlay { left: 400px; right: 12px; }
+            .map-hint { right: 400px; left: auto; transform: none; margin-right: 16px; }
+            .search-float { right: 400px; }
+            [dir="ltr"] .search-float { left: 400px; right: 12px; }
+            .leaflet-control-zoom { margin-right: 10px !important; }
         }
-
-        @media (min-width: 768px) {
-            .mobile-bottom-sheet { display: none !important; }
-            .quick-add-bar { display: none !important; }
-            .sidebar { display: flex !important; }
-        }
-
-        @media (max-width: 480px) {
-            .property-types { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-            .property-type-btn { padding: 10px 6px; font-size: 11px; }
-        }
-
-        /* ===== SKELETON LOADING ===== */
-        .skeleton {
-            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: 8px;
-        }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body>
 
-    <!-- NAV -->
-    <nav class="nav">
-        <div class="nav-brand">
-            <div class="nav-logo">🏠</div>
-            <span class="nav-title" data-ar="وين أسكن" data-en="Where to Live">وين أسكن</span>
+    <!-- MAP -->
+    <div id="map"></div>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="top-brand">
+            <div class="top-logo">🏠</div>
+            <span class="top-title" data-ar="وين أسكن" data-en="Wain Askan">وين أسكن</span>
         </div>
-        <div class="nav-actions">
+        <div class="top-actions">
             <button class="lang-btn active" onclick="setLang('ar')">عربي</button>
             <button class="lang-btn" onclick="setLang('en')">EN</button>
         </div>
-    </nav>
-
-    <!-- PROGRESS BAR -->
-    <div class="progress-bar" id="progressBar">
-        <div class="progress-step-dot" id="progDot1">1</div>
-        <div class="progress-step" id="progStep1" data-label=""></div>
-        <div class="progress-step-dot" id="progDot2">2</div>
-        <div class="progress-step" id="progStep2" data-label=""></div>
-        <div class="progress-step-dot" id="progDot3">3</div>
     </div>
 
-    <!-- APP LAYOUT -->
-    <div class="app-layout">
+    <!-- SEARCH (floating on map) -->
+    <div class="search-float">
+        <div style="position:relative;">
+            <input type="text" class="search-input" id="searchInput"
+                placeholder="ابحث عن حي أو مكان..."
+                data-ar-ph="ابحث عن حي أو مكان..."
+                data-en-ph="Search neighborhood or place..."
+                autocomplete="off">
+            <span class="search-icon">🔍</span>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
 
-        <!-- MAP -->
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="map-overlay" id="mapOverlay">
-                <div class="map-overlay-icon">📍</div>
-                <p data-ar="اضغط على الخريطة لإضافة موقع" data-en="Click on the map to add a location">اضغط على الخريطة لإضافة موقع</p>
+    <!-- MAP HINT -->
+    <div class="map-hint" id="mapHint">
+        <span class="map-hint-icon">👆</span>
+        <span data-ar="اضغط على الخريطة لتحديد مكان" data-en="Tap on map to add a place">اضغط على الخريطة لتحديد مكان</span>
+    </div>
+
+    <!-- ADD FORM OVERLAY (appears on map click) -->
+    <div class="add-overlay" id="addOverlay">
+        <div class="add-overlay-header">
+            <div class="add-overlay-neighborhood" id="addNeighborhood">
+                <span>📍</span>
+                <span id="addNeighborhoodText">جاري التحديد...</span>
             </div>
-            <!-- Quick Add Bar (mobile) -->
-            <div class="quick-add-bar" id="quickAddBar">
-                <button class="quick-add-btn" onclick="quickSearch('العمل','Work')">💼 <span data-ar="العمل" data-en="Work">العمل</span></button>
-                <button class="quick-add-btn" onclick="quickSearch('بيت الأهل','Family Home')">🏡 <span data-ar="بيت الأهل" data-en="Family Home">بيت الأهل</span></button>
-                <button class="quick-add-btn" onclick="quickSearch('الاستراحة','Rest House')">🌴 <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span></button>
-                <button class="quick-add-btn" onclick="quickSearch('الجامعة','University')">🎓 <span data-ar="الجامعة" data-en="University">الجامعة</span></button>
-            </div>
+            <button class="add-overlay-close" onclick="closeAddForm()">✕</button>
         </div>
 
-        <!-- SIDEBAR (desktop only) -->
-        <div class="sidebar" id="desktopSidebar">
+        <input type="text" class="add-name-input" id="locationName"
+            placeholder="سمّ هذا المكان..."
+            data-ar-ph="سمّ هذا المكان..."
+            data-en-ph="Name this place...">
 
-            <!-- HEADER -->
-            <div class="sidebar-header">
-                <h2 data-ar="اكتشف منطقتك المثالية" data-en="Find Your Optimal Area">اكتشف منطقتك المثالية</h2>
-                <p data-ar="حدد الأماكن اللي تزورها بشكل متكرر وراح نحسب لك أفضل منطقة للسكن في الرياض" data-en="Mark the places you frequently visit and we'll calculate the best area for you to live in Riyadh">حدد الأماكن اللي تزورها بشكل متكرر وراح نحسب لك أفضل منطقة للسكن في الرياض</p>
-            </div>
-
-            <!-- SEARCH -->
-            <div class="search-container" id="desktopSearchContainer">
-                <input type="text" class="search-input" id="searchInput"
-                    placeholder="ابحث عن موقع في الرياض..."
-                    data-ar-ph="ابحث عن موقع في الرياض..."
-                    data-en-ph="Search for a location in Riyadh..."
-                    autocomplete="off">
-                <span class="search-icon">🔍</span>
-                <div class="search-results" id="searchResults"></div>
-            </div>
-
-            <!-- LOCATIONS LIST -->
-            <div>
-                <div class="locations-section-title">
-                    <span data-ar="المواقع المحددة" data-en="Selected Locations">المواقع المحددة</span>
-                    <span class="locations-count" id="locationsCount">0</span>
-                </div>
-                <div class="locations-list" id="locationsList">
-                    <div class="empty-state" id="emptyState">
-                        <div class="empty-state-icon empty-state-animated">📍</div>
-                        <p data-ar="ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة" data-en="Search or click on the map to add your frequent places">ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة</p>
-                        <div class="empty-state-dots"><span></span><span></span><span></span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ADD LOCATION FORM -->
-            <div class="add-form" id="addForm">
-                <div class="add-form-title">
-                    <span data-ar="إضافة موقع" data-en="Add Location">إضافة موقع</span>
-                    <button class="add-form-close" onclick="closeAddForm()">✕</button>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-ar="📍 الحي" data-en="📍 Neighborhood">📍 الحي</label>
-                    <input type="text" class="form-input readonly-subtle" id="locationNeighborhood" readonly
-                        placeholder="يتم تحديده تلقائيًا..."
-                        data-ar-ph="يتم تحديده تلقائيًا..."
-                        data-en-ph="Detected automatically...">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-ar="✏️ سمّ هذا المكان" data-en="✏️ Name this place">✏️ سمّ هذا المكان</label>
-                    <input type="text" class="form-input" id="locationName"
-                        placeholder="مثال: بيت الأهل، الجامعة، المكتب..."
-                        data-ar-ph="مثال: بيت الأهل، الجامعة، المكتب..."
-                        data-en-ph="e.g. Family home, University, Office...">
-                    <div class="quick-names" id="quickNames">
-                        <button class="quick-name" onclick="setQuickName('💼','العمل','Work')"><span>💼</span> <span data-ar="العمل" data-en="Work">العمل</span></button>
-                        <button class="quick-name" onclick="setQuickName('🏡','بيت الأهل','Family Home')"><span>🏡</span> <span data-ar="بيت الأهل" data-en="Family Home">بيت الأهل</span></button>
-                        <button class="quick-name" onclick="setQuickName('🏠','المنزل','Home')"><span>🏠</span> <span data-ar="المنزل" data-en="Home">المنزل</span></button>
-                        <button class="quick-name" onclick="setQuickName('🌴','الاستراحة','Rest House')"><span>🌴</span> <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span></button>
-                        <button class="quick-name" onclick="setQuickName('🎓','الجامعة','University')"><span>🎓</span> <span data-ar="الجامعة" data-en="University">الجامعة</span></button>
-                        <button class="quick-name" onclick="setQuickName('🏋️','النادي','Gym')"><span>🏋️</span> <span data-ar="النادي" data-en="Gym">النادي</span></button>
-                        <button class="quick-name" onclick="setQuickName('🏢','المكتب','Office')"><span>🏢</span> <span data-ar="المكتب" data-en="Office">المكتب</span></button>
-                        <button class="quick-name" onclick="setQuickName('🛒','السوق','Market')"><span>🛒</span> <span data-ar="السوق" data-en="Market">السوق</span></button>
-                        <button class="quick-name" onclick="setQuickName('🏫','المدرسة','School')"><span>🏫</span> <span data-ar="المدرسة" data-en="School">المدرسة</span></button>
-                        <button class="quick-name" onclick="setQuickName('🕌','المسجد','Mosque')"><span>🕌</span> <span data-ar="المسجد" data-en="Mosque">المسجد</span></button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" data-ar="🔄 عدد مرات الزيارة" data-en="🔄 Visit Frequency">🔄 عدد مرات الزيارة</label>
-                    <div class="chips-container" id="freqChips">
-                        <button class="chip selected" data-freq="daily" onclick="selectFreq(this)"><span data-ar="يوميًا" data-en="Daily">يوميًا</span></button>
-                        <button class="chip" data-freq="weekly" onclick="selectFreq(this)"><span data-ar="أسبوعيًا" data-en="Weekly">أسبوعيًا</span></button>
-                        <button class="chip" data-freq="monthly" onclick="selectFreq(this)"><span data-ar="شهريًا" data-en="Monthly">شهريًا</span></button>
-                    </div>
-                </div>
-                <button class="btn-add" onclick="confirmAddLocation()" data-ar="إضافة الموقع ➕" data-en="Add Location ➕">إضافة الموقع ➕</button>
-            </div>
-
-            <!-- CALCULATE BUTTON -->
-            <button class="btn-primary" id="calculateBtn" onclick="calculateOptimal()" disabled>
-                <span>✨</span>
-                <span data-ar="وين أسكن؟" data-en="Where should I live?">وين أسكن؟</span>
+        <div class="quick-row">
+            <button class="quick-btn" onclick="pickQuick(this,'🏡','بيت الأهل','Family Home')">
+                <span class="q-icon">🏡</span>
+                <span data-ar="بيت الأهل" data-en="Family">بيت الأهل</span>
             </button>
+            <button class="quick-btn" onclick="pickQuick(this,'💼','العمل','Work')">
+                <span class="q-icon">💼</span>
+                <span data-ar="العمل" data-en="Work">العمل</span>
+            </button>
+            <button class="quick-btn" onclick="pickQuick(this,'🌴','الاستراحة','Rest House')">
+                <span class="q-icon">🌴</span>
+                <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span>
+            </button>
+        </div>
 
-            <!-- RESULT CARD -->
-            <div class="result-card" id="resultCard">
+        <div class="freq-row">
+            <button class="freq-btn selected" data-freq="daily" onclick="pickFreq(this)">
+                <span data-ar="يومي 📅" data-en="Daily 📅">يومي 📅</span>
+            </button>
+            <button class="freq-btn" data-freq="weekly" onclick="pickFreq(this)">
+                <span data-ar="أسبوعي 🗓️" data-en="Weekly 🗓️">أسبوعي 🗓️</span>
+            </button>
+        </div>
+
+        <button class="add-confirm-btn" onclick="confirmAdd()">
+            <span data-ar="أضف الموقع" data-en="Add Location">أضف الموقع</span>
+            <span>✅</span>
+        </button>
+    </div>
+
+    <!-- RESULT FAB -->
+    <button class="result-fab" id="resultFab" onclick="calculateOptimal()">
+        <span class="fab-icon">✨</span>
+        <span data-ar="عطني النتيجة" data-en="Show Result">عطني النتيجة</span>
+        <span class="fab-count" id="fabCount">0</span>
+    </button>
+
+    <!-- SIDEBAR TOGGLE -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="openSidebar()">
+        <span class="toggle-count" id="toggleCount">0</span>
+        <span class="toggle-icon">📋</span>
+    </button>
+
+    <!-- SIDEBAR BACKDROP -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR DRAWER -->
+    <div class="sidebar-drawer" id="sidebarDrawer">
+        <div class="sidebar-header">
+            <span class="sidebar-title" data-ar="📍 أماكنك" data-en="📍 Your Places">📍 أماكنك</span>
+            <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+        </div>
+        <div class="sidebar-body" id="sidebarBody">
+            <div class="sidebar-locations" id="sidebarLocations">
+                <div class="sidebar-empty" id="sidebarEmpty">
+                    <div class="sidebar-empty-icon">📍</div>
+                    <p data-ar="اضغط على الخريطة لإضافة أماكنك" data-en="Tap the map to add your places">اضغط على الخريطة لإضافة أماكنك</p>
+                </div>
+            </div>
+            <div class="ad-slot" style="margin-top:20px;">
+                <div>إعلان - Ad</div>
+            </div>
+        </div>
+        <button class="sidebar-calc-btn" id="sidebarCalcBtn" onclick="calculateOptimal()" disabled>
+            <span>✨</span>
+            <span data-ar="عطني النتيجة" data-en="Show Result">عطني النتيجة</span>
+        </button>
+    </div>
+
+    <!-- RESULT OVERLAY -->
+    <div class="result-overlay" id="resultOverlay" onclick="if(event.target===this)closeResult()">
+        <div class="result-sheet" id="resultSheet">
+            <div class="result-sheet-handle"></div>
+            <div class="result-sheet-body">
                 <div class="result-badge">
                     <span>🎯</span>
                     <span data-ar="المنطقة المثالية" data-en="Optimal Area">المنطقة المثالية</span>
@@ -792,1022 +873,726 @@
                 <div class="result-desc" id="resultDesc"></div>
                 <div class="result-justification" id="resultJustification"></div>
                 <div class="result-distances" id="resultDistances"></div>
+
                 <div class="result-actions">
-                    <button class="btn-secondary" onclick="resetAll()">
+                    <button class="result-btn" onclick="resetAll()">
                         <span data-ar="🔄 من جديد" data-en="🔄 Reset">🔄 من جديد</span>
                     </button>
-                    <button class="btn-secondary" onclick="shareResult()">
-                        <span data-ar="📋 نسخ النتيجة" data-en="📋 Copy Result">📋 نسخ النتيجة</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- AD SLOT 2: After result -->
-            <div class="ad-slot" id="adSlot2" style="display:none;">
-                <span class="ad-slot-label">إعلان</span>
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-            </div>
-
-            <!-- BROKER SECTION -->
-            <div class="broker-section" id="brokerSection">
-                <div class="broker-cta" id="brokerCta">
-                    <div class="broker-cta-icon">🏡</div>
-                    <div class="broker-cta-title" data-ar="تبي وسطاء عقاريين يتواصلون معك؟" data-en="Want real estate agents to contact you?">تبي وسطاء عقاريين يتواصلون معك؟</div>
-                    <div class="broker-cta-desc" data-ar="حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة" data-en="Share your details and specialized agents will reach out">حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة</div>
-                    <button class="btn-broker-outline" onclick="showBrokerForm()">
-                        <span>📋</span>
-                        <span data-ar="نعم، أبي وسيط عقاري" data-en="Yes, I want a broker">نعم، أبي وسيط عقاري</span>
+                    <button class="result-btn" onclick="shareResult()">
+                        <span data-ar="📋 نسخ" data-en="📋 Copy">📋 نسخ</span>
                     </button>
                 </div>
 
-                <div class="broker-form" id="brokerForm">
-                    <div class="broker-form-card">
-                        <div class="broker-form-title">
-                            <span>📋</span>
-                            <span data-ar="بيانات الطلب" data-en="Request Details">بيانات الطلب</span>
-                        </div>
-                        <!-- Q1: Property Type -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="١" data-en="1">١</span>
-                                <span data-ar=" وش نوع العقار؟" data-en=" What property type?"> وش نوع العقار؟</span>
-                            </label>
-                            <div class="property-types" id="propertyTypes">
-                                <button class="property-type-btn" data-type="land" onclick="selectProperty(this)"><span class="property-type-icon">🏗️</span><span data-ar="أرض" data-en="Land">أرض</span></button>
-                                <button class="property-type-btn" data-type="villa" onclick="selectProperty(this)"><span class="property-type-icon">🏡</span><span data-ar="فيلا" data-en="Villa">فيلا</span></button>
-                                <button class="property-type-btn" data-type="apartment" onclick="selectProperty(this)"><span class="property-type-icon">🏢</span><span data-ar="شقة" data-en="Apartment">شقة</span></button>
-                                <button class="property-type-btn" data-type="duplex" onclick="selectProperty(this)"><span class="property-type-icon">🏘️</span><span data-ar="دبلكس" data-en="Duplex">دبلكس</span></button>
-                                <button class="property-type-btn" data-type="floor" onclick="selectProperty(this)"><span class="property-type-icon">🏠</span><span data-ar="دور" data-en="Floor">دور</span></button>
-                                <button class="property-type-btn" data-type="townhouse" onclick="selectProperty(this)"><span class="property-type-icon">🏚️</span><span data-ar="تاون هاوس" data-en="Townhouse">تاون هاوس</span></button>
-                            </div>
-                        </div>
-                        <!-- Q2: Buy or Rent -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٢" data-en="2">٢</span>
-                                <span data-ar=" شراء أو إيجار؟" data-en=" Buy or Rent?"> شراء أو إيجار؟</span>
-                            </label>
-                            <div class="chips-container" id="purposeChips">
-                                <button class="chip" data-purpose="buy" onclick="selectPurpose(this)"><span>🔑</span><span data-ar="شراء" data-en="Buy">شراء</span></button>
-                                <button class="chip" data-purpose="rent" onclick="selectPurpose(this)"><span>📝</span><span data-ar="إيجار" data-en="Rent">إيجار</span></button>
-                            </div>
-                        </div>
-                        <!-- Phone -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٣" data-en="3">٣</span>
-                                <span data-ar=" رقم الجوال للتواصل" data-en=" Your phone number"> رقم الجوال للتواصل</span>
-                            </label>
-                            <div class="phone-input-wrapper">
-                                <span class="phone-prefix">+966</span>
-                                <input type="tel" class="phone-input" id="brokerPhone"
-                                    placeholder="5XXXXXXXX" maxlength="9"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                            </div>
-                        </div>
-                        <button class="btn-broker" id="brokerSubmitBtn" onclick="submitBrokerForm()" disabled>
-                            <span>📤</span>
-                            <span data-ar="أرسل طلبي للوسطاء" data-en="Send to Brokers">أرسل طلبي للوسطاء</span>
+                <div class="ad-slot"><div>إعلان - Ad</div></div>
+
+                <!-- BROKER -->
+                <div class="broker-divider"></div>
+                <div id="brokerArea">
+                    <div class="broker-title" data-ar="🏡 تبي وسيط عقاري؟" data-en="🏡 Want a broker?">🏡 تبي وسيط عقاري؟</div>
+                    <div class="broker-desc" data-ar="سجّل بياناتك وبيتواصلون معك" data-en="Register and brokers will contact you">سجّل بياناتك وبيتواصلون معك</div>
+
+                    <div class="broker-q-label">
+                        <span class="broker-q-num">1</span>
+                        <span data-ar="وش نوع العقار؟" data-en="Property type?">وش نوع العقار؟</span>
+                    </div>
+                    <div class="prop-grid" id="propGrid">
+                        <button class="prop-btn" data-type="land" onclick="pickProp(this)">
+                            <span class="prop-icon">🏗️</span><span data-ar="أرض" data-en="Land">أرض</span>
+                        </button>
+                        <button class="prop-btn" data-type="villa" onclick="pickProp(this)">
+                            <span class="prop-icon">🏡</span><span data-ar="فيلا" data-en="Villa">فيلا</span>
+                        </button>
+                        <button class="prop-btn" data-type="apartment" onclick="pickProp(this)">
+                            <span class="prop-icon">🏢</span><span data-ar="شقة" data-en="Apt">شقة</span>
+                        </button>
+                        <button class="prop-btn" data-type="duplex" onclick="pickProp(this)">
+                            <span class="prop-icon">🏘️</span><span data-ar="دبلكس" data-en="Duplex">دبلكس</span>
+                        </button>
+                        <button class="prop-btn" data-type="floor" onclick="pickProp(this)">
+                            <span class="prop-icon">🏠</span><span data-ar="دور" data-en="Floor">دور</span>
+                        </button>
+                        <button class="prop-btn" data-type="townhouse" onclick="pickProp(this)">
+                            <span class="prop-icon">🏚️</span><span data-ar="تاون هاوس" data-en="Town H.">تاون هاوس</span>
                         </button>
                     </div>
+
+                    <div class="broker-q-label">
+                        <span class="broker-q-num">2</span>
+                        <span data-ar="شراء أو إيجار؟" data-en="Buy or Rent?">شراء أو إيجار؟</span>
+                    </div>
+                    <div class="purpose-row" id="purposeRow">
+                        <button class="purpose-btn" data-purpose="buy" onclick="pickPurpose(this)">
+                            <span>🔑</span><span data-ar="شراء" data-en="Buy">شراء</span>
+                        </button>
+                        <button class="purpose-btn" data-purpose="rent" onclick="pickPurpose(this)">
+                            <span>📝</span><span data-ar="إيجار" data-en="Rent">إيجار</span>
+                        </button>
+                    </div>
+
+                    <div class="broker-q-label">
+                        <span class="broker-q-num">3</span>
+                        <span data-ar="رقم الجوال" data-en="Phone number">رقم الجوال</span>
+                    </div>
+                    <div class="phone-wrapper">
+                        <span class="phone-prefix-box">+966</span>
+                        <input type="tel" class="phone-input" id="brokerPhone"
+                            placeholder="5XXXXXXXX"
+                            maxlength="9"
+                            oninput="onPhoneInput(this)">
+                    </div>
+
+                    <button class="broker-submit" id="brokerSubmitBtn" onclick="submitBroker()" disabled>
+                        <span>📤</span>
+                        <span data-ar="أرسل طلبي" data-en="Send Request">أرسل طلبي</span>
+                    </button>
                 </div>
 
                 <div class="broker-success" id="brokerSuccess">
                     <div class="broker-success-icon">🎉</div>
-                    <div class="broker-success-title" data-ar="تم إرسال طلبك بنجاح!" data-en="Request sent successfully!">تم إرسال طلبك بنجاح!</div>
-                    <div class="broker-success-desc" data-ar="راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!" data-en="Specialized real estate agents will contact you within 24-48 hours. Thanks for using Where to Live!">راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!</div>
+                    <div class="broker-success-title" data-ar="تم إرسال طلبك!" data-en="Request sent!">تم إرسال طلبك!</div>
+                    <div class="broker-success-desc" data-ar="راح يتواصلون معك خلال 24-48 ساعة" data-en="They'll contact you within 24-48 hours">راح يتواصلون معك خلال 24-48 ساعة</div>
                 </div>
             </div>
-
-            <!-- HOW IT WORKS -->
-            <div class="how-it-works" id="howItWorks">
-                <div class="how-it-works-title" data-ar="كيف يعمل؟" data-en="How it works?">كيف يعمل؟</div>
-                <div class="how-step">
-                    <div class="how-step-num">1</div>
-                    <div class="how-step-text" data-ar="أضف الأماكن اللي تروح لها بشكل متكرر وسمّها بنفسك" data-en="Add places you frequently visit and name them yourself">أضف الأماكن اللي تروح لها بشكل متكرر وسمّها بنفسك</div>
-                </div>
-                <div class="how-step">
-                    <div class="how-step-num">2</div>
-                    <div class="how-step-text" data-ar="حدد كم مرة تزور كل مكان (يوميًا، أسبوعيًا، شهريًا)" data-en="Set how often you visit each place">حدد كم مرة تزور كل مكان (يوميًا، أسبوعيًا، شهريًا)</div>
-                </div>
-                <div class="how-step">
-                    <div class="how-step-num">3</div>
-                    <div class="how-step-text" data-ar="اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة" data-en="Click 'Where should I live?' and we'll calculate the best spot">اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة</div>
-                </div>
-            </div>
-
-            <!-- AD SLOT 1: After how it works -->
-            <div class="ad-slot" id="adSlot1">
-                <span class="ad-slot-label">إعلان</span>
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-            </div>
-
         </div>
     </div>
-
-    <!-- MOBILE BOTTOM SHEET -->
-    <div class="mobile-bottom-sheet collapsed" id="bottomSheet">
-        <div class="sheet-drag-handle" id="sheetDragHandle">
-            <div class="sheet-drag-handle-bar"></div>
-        </div>
-        <div class="sheet-summary" id="sheetSummary">
-            <div class="sheet-summary-info">
-                <span id="sheetLocCount" class="sheet-summary-count" data-ar="0 مواقع" data-en="0 locations">0 مواقع</span>
-            </div>
-            <button class="sheet-summary-btn" id="sheetCalcBtn" onclick="calculateOptimal()" disabled>
-                <span data-ar="وين أسكن؟ ✨" data-en="Where to live? ✨">وين أسكن؟ ✨</span>
-            </button>
-        </div>
-        <div class="sheet-content" id="sheetContent">
-            <!-- Filled dynamically -->
-        </div>
-    </div>
-
-    <!-- CONFETTI CONTAINER -->
-    <div class="confetti-container" id="confettiContainer"></div>
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-    // ===== STATE =====
-    let lang = 'ar';
-    let locations = [];
-    let pendingLocation = null;
-    let isCalculated = false;
-    let selectedEmoji = '📌';
-    let isMobile = window.innerWidth < 768;
+        // ===== STATE =====
+        let lang = 'ar';
+        let locations = [];
+        let pendingLocation = null;
+        let isCalculated = false;
+        let selectedEmoji = '📌';
+        let selectedFreq = 'daily';
 
-    let map;
-    let markersGroup;
-    let centroidMarker = null;
-    let zoneRect = null;
-    let connectionLines = [];
-    let distanceLabels = [];
-    let tempMarker = null;
+        let map, markersGroup;
+        let centroidMarker = null, zoneRect = null;
+        let connectionLines = [], distanceLabels = [];
+        let tempMarker = null;
 
-    // ===== ICON MAP =====
-    const NAME_ICONS = {
-        'العمل': '💼', 'Work': '💼', 'بيت الأهل': '🏡', 'Family Home': '🏡',
-        'المنزل': '🏠', 'Home': '🏠', 'الاستراحة': '🌴', 'Rest House': '🌴',
-        'الجامعة': '🎓', 'University': '🎓', 'النادي': '🏋️', 'Gym': '🏋️',
-        'المكتب': '🏢', 'Office': '🏢', 'السوق': '🛒', 'Market': '🛒',
-        'المدرسة': '🏫', 'School': '🏫', 'المسجد': '🕌', 'Mosque': '🕌'
-    };
+        const LOCATION_COLORS = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+        const FREQ_WEIGHTS = { daily: 30, weekly: 4 };
+        const FREQ_LABELS = {
+            daily:  { ar: 'يومي',    en: 'Daily' },
+            weekly: { ar: 'أسبوعي', en: 'Weekly' }
+        };
+        const AVG_SPEED_NORMAL = 45;
+        const AVG_SPEED_RUSH   = 22;
 
-    const LOCATION_COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
-    const FREQ_WEIGHTS = { daily: 30, weekly: 4, monthly: 1 };
-    const FREQ_LABELS = {
-        daily:   { ar: 'يوميًا',    en: 'Daily' },
-        weekly:  { ar: 'أسبوعيًا', en: 'Weekly' },
-        monthly: { ar: 'شهريًا',   en: 'Monthly' }
-    };
+        let brokerData = { propertyType: null, purpose: null };
 
-    const AVG_SPEED_NORMAL = 45;
-    const AVG_SPEED_RUSH   = 22;
-
-    function estimateMinutes(distKm, speedKmh) {
-        return Math.max(1, Math.round((distKm / speedKmh) * 60));
-    }
-
-    // ===== PROGRESS =====
-    function updateProgress() {
-        const dot1 = document.getElementById('progDot1');
-        const dot2 = document.getElementById('progDot2');
-        const dot3 = document.getElementById('progDot3');
-        const step1 = document.getElementById('progStep1');
-        const step2 = document.getElementById('progStep2');
-
-        const hasLocs = locations.length > 0;
-        const hasEnough = locations.length >= 2;
-
-        dot1.classList.toggle('active', hasLocs);
-        step1.classList.toggle('active', hasLocs);
-        step1.dataset.label = hasLocs ? (lang === 'ar' ? 'أماكن ✓' : 'Places ✓') : '';
-
-        dot2.classList.toggle('active', hasEnough);
-        step2.classList.toggle('active', hasEnough);
-        step2.dataset.label = hasEnough ? (lang === 'ar' ? 'جاهز ✓' : 'Ready ✓') : '';
-
-        dot3.classList.toggle('active', isCalculated);
-    }
-
-    // ===== MAP INIT =====
-    function initMap() {
-        map = L.map('map', {
-            center: [24.7136, 46.6753], zoom: 11,
-            zoomControl: true, attributionControl: true,
-            dragging: true, touchZoom: true, scrollWheelZoom: true,
-            doubleClickZoom: false, boxZoom: true, keyboard: true
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap', maxZoom: 19
-        }).addTo(map);
-
-        markersGroup = L.layerGroup().addTo(map);
-
-        map.on('click', function(e) { onMapClick(e.latlng.lat, e.latlng.lng); });
-
-        setTimeout(() => map.invalidateSize(), 100);
-        window.addEventListener('resize', () => {
-            isMobile = window.innerWidth < 768;
-            setTimeout(() => map.invalidateSize(), 200);
-        });
-    }
-
-    // ===== MAP CLICK =====
-    function onMapClick(lat, lng) {
-        if (isCalculated) return;
-        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-
-        tempMarker = L.circleMarker([lat, lng], {
-            radius: 10, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.4, weight: 2
-        }).addTo(map);
-
-        document.getElementById('mapOverlay').classList.add('hidden');
-        pendingLocation = { lat, lng };
-
-        const nbField = document.getElementById('locationNeighborhood');
-        nbField.value = lang === 'ar' ? 'جاري التحديد...' : 'Detecting...';
-        reverseGeocode(lat, lng).then(name => { nbField.value = name; });
-
-        document.getElementById('locationName').value = '';
-        selectedEmoji = '📌';
-        resetFormSelections();
-
-        if (isMobile) {
-            expandSheet();
-            renderMobileSheetWithForm();
-        } else {
-            document.getElementById('addForm').classList.add('show');
-            document.getElementById('addForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            setTimeout(() => document.getElementById('locationName').focus(), 300);
+        // ===== ARABIC TO ENGLISH DIGITS =====
+        function toEnglishDigits(str) {
+            const arabicMap = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+            return str.replace(/[٠-٩]/g, d => arabicMap[d]);
         }
-    }
 
-    // ===== SEARCH =====
-    let searchTimeout = null;
-
-    function setupSearch(inputEl, resultsEl) {
-        inputEl.addEventListener('input', function() {
-            const query = this.value.trim();
-            if (query.length < 2) { resultsEl.classList.remove('show'); return; }
-            clearTimeout(searchTimeout);
-            resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'جاري البحث...' : 'Searching...') + '</div>';
-            resultsEl.classList.add('show');
-            searchTimeout = setTimeout(() => searchNominatim(query, resultsEl), 400);
-        });
-        inputEl.addEventListener('focus', function() {
-            if (this.value.trim().length >= 2) resultsEl.classList.add('show');
-        });
-    }
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-container')) {
-            document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show'));
+        function onPhoneInput(el) {
+            // Convert Arabic digits to English immediately
+            el.value = toEnglishDigits(el.value).replace(/[^0-9]/g, '');
+            checkBrokerValid();
         }
-    });
 
-    async function searchNominatim(query, resultsEl) {
-        try {
-            const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query + ' الرياض') + '&format=json&addressdetails=1&limit=5&viewbox=46.2,25.1,47.2,24.3&bounded=1&accept-language=' + lang;
-            const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
-            const data = await res.json();
+        // ===== HELPERS =====
+        function estimateMinutes(km, speed) { return Math.max(1, Math.round((km / speed) * 60)); }
 
-            if (data.length === 0) {
-                resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'لا توجد نتائج' : 'No results found') + '</div>';
+        function haversineDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML.replace(/'/g, "\\'");
+        }
+
+        // ===== MAP INIT =====
+        function initMap() {
+            map = L.map('map', {
+                center: [24.7136, 46.6753],
+                zoom: 11,
+                zoomControl: true,
+                dragging: true,
+                touchZoom: true,
+                scrollWheelZoom: true,
+                doubleClickZoom: false,
+                boxZoom: true,
+                keyboard: true
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+
+            map.on('click', function(e) {
+                if (isCalculated) return;
+                onMapClick(e.latlng.lat, e.latlng.lng);
+            });
+
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+        // ===== MAP CLICK =====
+        function onMapClick(lat, lng) {
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+
+            tempMarker = L.circleMarker([lat, lng], {
+                radius: 12, color: '#10b981', fillColor: '#10b981',
+                fillOpacity: 0.3, weight: 2
+            }).addTo(map);
+
+            document.getElementById('mapHint').classList.add('hidden');
+
+            pendingLocation = { lat, lng };
+            selectedEmoji = '📌';
+            selectedFreq = 'daily';
+
+            // Reset quick buttons
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelector('.freq-btn[data-freq="daily"]').classList.add('selected');
+            document.getElementById('locationName').value = '';
+
+            // Reverse geocode
+            document.getElementById('addNeighborhoodText').textContent = lang === 'ar' ? 'جاري التحديد...' : 'Detecting...';
+            reverseGeocode(lat, lng).then(name => {
+                document.getElementById('addNeighborhoodText').textContent = name;
+            });
+
+            // Show form
+            document.getElementById('addOverlay').classList.add('show');
+            setTimeout(() => document.getElementById('locationName').focus(), 350);
+        }
+
+        // ===== SEARCH =====
+        let searchTimeout = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            const si = document.getElementById('searchInput');
+            si.addEventListener('input', function() {
+                const q = this.value.trim();
+                const r = document.getElementById('searchResults');
+                if (q.length < 2) { r.classList.remove('show'); return; }
+                clearTimeout(searchTimeout);
+                r.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'جاري البحث...' : 'Searching...'}</div>`;
+                r.classList.add('show');
+                searchTimeout = setTimeout(() => searchNominatim(q), 400);
+            });
+            si.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2) document.getElementById('searchResults').classList.add('show');
+            });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-float')) document.getElementById('searchResults').classList.remove('show');
+            });
+        });
+
+        async function searchNominatim(query) {
+            const r = document.getElementById('searchResults');
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' الرياض')}&format=json&addressdetails=1&limit=5&viewbox=46.2,25.1,47.2,24.3&bounded=1&accept-language=${lang}`;
+                const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan/1.0' } });
+                const data = await res.json();
+                if (!data.length) { r.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'لا نتائج' : 'No results'}</div>`; return; }
+                r.innerHTML = data.map(i => `
+                    <div class="search-result-item" onclick="selectSearch(${i.lat},${i.lon},'${escapeHtml(i.display_name)}')">
+                        <span class="search-result-icon">📍</span>
+                        <span class="search-result-text">${i.display_name}</span>
+                    </div>`).join('');
+            } catch { r.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'خطأ' : 'Error'}</div>`; }
+        }
+
+        function selectSearch(lat, lng) {
+            document.getElementById('searchResults').classList.remove('show');
+            document.getElementById('searchInput').value = '';
+            map.flyTo([lat, lng], 14, { duration: 1 });
+            setTimeout(() => onMapClick(lat, lng), 300);
+        }
+
+        // ===== REVERSE GEOCODE =====
+        let lastGeoTime = 0;
+        async function reverseGeocode(lat, lng) {
+            const now = Date.now();
+            const wait = Math.max(0, 1100 - (now - lastGeoTime));
+            if (wait > 0) await new Promise(r => setTimeout(r, wait));
+            lastGeoTime = Date.now();
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=${lang}`;
+                const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan/1.0' } });
+                const d = await res.json();
+                if (d.address) return d.address.suburb || d.address.neighbourhood || d.address.city_district || d.address.road || d.display_name.split(',')[0];
+                return lang === 'ar' ? 'موقع محدد' : 'Location';
+            } catch { return lang === 'ar' ? 'موقع محدد' : 'Location'; }
+        }
+
+        // ===== ADD FORM CONTROLS =====
+        function pickQuick(el, emoji, arName, enName) {
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('locationName').value = lang === 'ar' ? arName : enName;
+            selectedEmoji = emoji;
+        }
+
+        function pickFreq(el) {
+            document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedFreq = el.dataset.freq;
+        }
+
+        function closeAddForm() {
+            document.getElementById('addOverlay').classList.remove('show');
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+            pendingLocation = null;
+        }
+
+        function confirmAdd() {
+            if (!pendingLocation) return;
+
+            const nameInput = document.getElementById('locationName').value.trim();
+            const name = nameInput || (lang === 'ar' ? 'مكان' : 'Place');
+            const neighborhood = document.getElementById('addNeighborhoodText').textContent;
+
+            const NAME_ICONS = { 'العمل':'💼','Work':'💼','بيت الأهل':'🏡','Family Home':'🏡','الاستراحة':'🌴','Rest House':'🌴',
+                'المنزل':'🏠','Home':'🏠','الجامعة':'🎓','University':'🎓','النادي':'🏋️','Gym':'🏋️',
+                'المكتب':'🏢','Office':'🏢','السوق':'🛒','Market':'🛒','المدرسة':'🏫','School':'🏫','المسجد':'🕌','Mosque':'🕌' };
+
+            let icon = selectedEmoji;
+            if (NAME_ICONS[name]) icon = NAME_ICONS[name];
+
+            const color = LOCATION_COLORS[locations.length % LOCATION_COLORS.length];
+
+            const loc = {
+                id: 'loc_' + Date.now(),
+                name, neighborhood, icon,
+                lat: pendingLocation.lat,
+                lng: pendingLocation.lng,
+                frequency: selectedFreq,
+                color, marker: null
+            };
+
+            const markerIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div class="marker-pin" style="background:${color}"><span class="marker-icon">${icon}</span></div>`,
+                iconSize: [40, 46], iconAnchor: [20, 46], popupAnchor: [0, -46]
+            });
+
+            const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon }).addTo(markersGroup);
+            marker.bindPopup(createPopup(loc));
+            loc.marker = marker;
+
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+
+            locations.push(loc);
+            closeAddForm();
+            updateUI();
+
+            showToast(lang === 'ar' ? `تمت إضافة "${name}" ✅` : `"${name}" added ✅`);
+        }
+
+        function createPopup(loc) {
+            const freq = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
+            return `<div class="popup-title">${loc.icon} ${loc.name}</div>
+                <div class="popup-info">${loc.neighborhood} · ${freq}</div>
+                <button class="popup-remove" onclick="removeLoc('${loc.id}')">${lang === 'ar' ? '🗑️ حذف' : '🗑️ Remove'}</button>`;
+        }
+
+        function removeLoc(id) {
+            const idx = locations.findIndex(l => l.id === id);
+            if (idx === -1) return;
+            if (locations[idx].marker) markersGroup.removeLayer(locations[idx].marker);
+            locations.splice(idx, 1);
+            map.closePopup();
+            if (isCalculated) clearResult();
+            updateUI();
+            showToast(lang === 'ar' ? 'تم الحذف' : 'Removed');
+        }
+
+        // ===== UPDATE UI =====
+        function updateUI() {
+            const count = locations.length;
+
+            // FAB button
+            const fab = document.getElementById('resultFab');
+            if (count >= 1 && !isCalculated) {
+                fab.classList.add('show');
+                document.getElementById('fabCount').textContent = count;
+            } else {
+                fab.classList.remove('show');
+            }
+
+            // Sidebar toggle
+            const toggle = document.getElementById('sidebarToggle');
+            if (count > 0) {
+                toggle.classList.add('show');
+                document.getElementById('toggleCount').textContent = count;
+            } else {
+                toggle.classList.remove('show');
+            }
+
+            // Sidebar content
+            renderSidebarLocations();
+
+            // Sidebar calc button
+            document.getElementById('sidebarCalcBtn').disabled = count < 1 || isCalculated;
+
+            // Hide hint
+            if (count > 0) document.getElementById('mapHint').classList.add('hidden');
+        }
+
+        function renderSidebarLocations() {
+            const container = document.getElementById('sidebarLocations');
+            const empty = document.getElementById('sidebarEmpty');
+
+            if (locations.length === 0) {
+                container.innerHTML = '';
+                container.appendChild(empty);
+                empty.style.display = '';
                 return;
             }
 
-            resultsEl.innerHTML = data.map(item =>
-                '<div class="search-result-item" onclick="selectSearchResult(' + item.lat + ', ' + item.lon + ', \'' + escapeHtml(item.display_name) + '\')">' +
-                '<span class="search-result-icon">📍</span>' +
-                '<span class="search-result-text">' + item.display_name + '</span></div>'
-            ).join('');
-        } catch (err) {
-            resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'حدث خطأ في البحث' : 'Search error') + '</div>';
-        }
-    }
+            empty.style.display = 'none';
+            const cards = locations.map(loc => {
+                const freq = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
+                return `<div class="sidebar-loc-card">
+                    <div class="sloc-icon" style="background:${loc.color}20;color:${loc.color}">${loc.icon}</div>
+                    <div class="sloc-info">
+                        <div class="sloc-name">${loc.name}</div>
+                        <div class="sloc-meta">
+                            <span class="sloc-freq-badge" style="background:${loc.color}20;color:${loc.color}">${freq}</span>
+                            · ${loc.neighborhood}
+                        </div>
+                    </div>
+                    <button class="sloc-delete" onclick="removeLoc('${loc.id}')">✕</button>
+                </div>`;
+            }).join('');
 
-    function selectSearchResult(lat, lng, name) {
-        document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show'));
-        document.querySelectorAll('.search-input').forEach(i => { i.value = ''; });
-        map.flyTo([lat, lng], 14, { duration: 1 });
-        setTimeout(() => onMapClick(lat, lng), 300);
-    }
-
-    // ===== QUICK SEARCH (mobile) =====
-    function quickSearch(arName, enName) {
-        const query = lang === 'ar' ? arName : enName;
-        if (isMobile) {
-            expandSheet();
-            renderMobileSheetSearch(query);
-        }
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.value = query;
-            searchInput.dispatchEvent(new Event('input'));
-        }
-    }
-
-    // ===== REVERSE GEOCODE =====
-    let lastGeocodeTime = 0;
-
-    async function reverseGeocode(lat, lng) {
-        const now = Date.now();
-        const wait = Math.max(0, 1100 - (now - lastGeocodeTime));
-        if (wait > 0) await new Promise(r => setTimeout(r, wait));
-        lastGeocodeTime = Date.now();
-
-        try {
-            const url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&addressdetails=1&accept-language=' + lang;
-            const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
-            const data = await res.json();
-            if (data.address) {
-                return data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.road || data.display_name.split(',')[0];
-            }
-            return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
-        } catch {
-            return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
-        }
-    }
-
-    // ===== FORM CONTROLS =====
-    let selectedFreq = 'daily';
-
-    function setQuickName(emoji, arName, enName) {
-        document.getElementById('locationName').value = lang === 'ar' ? arName : enName;
-        selectedEmoji = emoji;
-    }
-
-    function selectFreq(el) {
-        const container = el.closest('.chips-container') || document.getElementById('freqChips');
-        container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedFreq = el.dataset.freq;
-    }
-
-    function resetFormSelections() {
-        selectedFreq = 'daily'; selectedEmoji = '📌';
-        document.querySelectorAll('#freqChips .chip').forEach(c => c.classList.remove('selected'));
-        const dailyChip = document.querySelector('#freqChips .chip[data-freq="daily"]');
-        if (dailyChip) dailyChip.classList.add('selected');
-    }
-
-    function closeAddForm() {
-        document.getElementById('addForm').classList.remove('show');
-        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-        pendingLocation = null;
-        if (isMobile) { renderMobileSheet(); collapseSheet(); }
-    }
-
-    function getIconForName(name) {
-        if (NAME_ICONS[name]) return NAME_ICONS[name];
-        if (selectedEmoji !== '📌') return selectedEmoji;
-        for (const [key, icon] of Object.entries(NAME_ICONS)) {
-            if (name.includes(key) || key.includes(name)) return icon;
-        }
-        return '📌';
-    }
-
-    // ===== ADD LOCATION =====
-    function confirmAddLocation() {
-        if (!pendingLocation) return;
-
-        const name = document.getElementById('locationName').value.trim() || (lang === 'ar' ? 'موقع مخصص' : 'Custom Location');
-        const neighborhood = document.getElementById('locationNeighborhood').value.trim();
-        const icon = getIconForName(name);
-        const colorIdx = locations.length % LOCATION_COLORS.length;
-        const color = LOCATION_COLORS[colorIdx];
-
-        const location = {
-            id: 'loc_' + Date.now(), name: name, neighborhood: neighborhood,
-            icon: icon, lat: pendingLocation.lat, lng: pendingLocation.lng,
-            frequency: selectedFreq, color: color, marker: null
-        };
-
-        const markerIcon = L.divIcon({
-            className: 'custom-marker',
-            html: '<div class="marker-pin" style="background: ' + color + '"><span class="marker-icon">' + icon + '</span></div>',
-            iconSize: [42, 48], iconAnchor: [21, 48], popupAnchor: [0, -48]
-        });
-
-        const marker = L.marker([location.lat, location.lng], { icon: markerIcon }).addTo(markersGroup);
-        marker.bindPopup(createPopupContent(location));
-        location.marker = marker;
-
-        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-
-        locations.push(location);
-        renderLocationsList();
-        closeAddForm();
-        updateCalculateButton();
-        updateProgress();
-
-        showToast(lang === 'ar' ? 'تمت إضافة "' + name + '"' : '"' + name + '" added');
-    }
-
-    function createPopupContent(loc) {
-        const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
-        return '<div class="popup-title">' + loc.icon + ' ' + loc.name + '</div>' +
-            '<div class="popup-info">' + loc.neighborhood + ' · ' + freqLabel + '</div>' +
-            '<button class="popup-remove" onclick="removeLocation(\'' + loc.id + '\')">' + (lang === 'ar' ? '🗑️ حذف' : '🗑️ Remove') + '</button>';
-    }
-
-    function removeLocation(id) {
-        const idx = locations.findIndex(l => l.id === id);
-        if (idx === -1) return;
-        const loc = locations[idx];
-        if (loc.marker) markersGroup.removeLayer(loc.marker);
-        locations.splice(idx, 1);
-        map.closePopup();
-        renderLocationsList();
-        updateCalculateButton();
-        updateProgress();
-        if (isCalculated) clearResult();
-        showToast(lang === 'ar' ? 'تم حذف الموقع' : 'Location removed');
-    }
-
-    // ===== RENDER LOCATIONS =====
-    function renderLocationsList() {
-        // Desktop
-        const listEl = document.getElementById('locationsList');
-        const countEl = document.getElementById('locationsCount');
-        countEl.textContent = locations.length;
-
-        if (locations.length === 0) {
-            listEl.innerHTML = '';
-            listEl.appendChild(createEmptyState());
-        } else {
-            listEl.innerHTML = locations.map(loc => createLocationCardHtml(loc)).join('');
+            container.innerHTML = cards + `<div id="sidebarEmpty" class="sidebar-empty" style="display:none">
+                <div class="sidebar-empty-icon">📍</div>
+                <p>اضغط على الخريطة</p>
+            </div>`;
         }
 
-        // Mobile sheet
-        if (isMobile) renderMobileSheet();
-    }
-
-    function createLocationCardHtml(loc) {
-        const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
-        return '<div class="location-card" onclick="focusLocation(\'' + loc.id + '\')">' +
-            '<div class="location-card-icon" style="background: ' + loc.color + '20; color: ' + loc.color + '">' + loc.icon + '</div>' +
-            '<div class="location-card-info"><div class="location-card-name">' + loc.name + '</div>' +
-            '<div class="location-card-meta"><span class="location-card-freq" style="background: ' + loc.color + '20; color: ' + loc.color + '">' + freqLabel + '</span></div></div>' +
-            '<button class="location-card-delete" onclick="event.stopPropagation(); removeLocation(\'' + loc.id + '\')">✕</button></div>';
-    }
-
-    function createEmptyState() {
-        const div = document.createElement('div');
-        div.className = 'empty-state';
-        div.innerHTML = '<div class="empty-state-icon empty-state-animated">📍</div>' +
-            '<p>' + (lang === 'ar' ? 'ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة' : 'Search or click on the map to add your frequent places') + '</p>' +
-            '<div class="empty-state-dots"><span></span><span></span><span></span></div>';
-        return div;
-    }
-
-    function focusLocation(id) {
-        const loc = locations.find(l => l.id === id);
-        if (loc) { map.flyTo([loc.lat, loc.lng], 15, { duration: 0.8 }); loc.marker.openPopup(); }
-    }
-
-    function updateCalculateButton() {
-        const btn = document.getElementById('calculateBtn');
-        if (btn) btn.disabled = locations.length < 2;
-        const sheetBtn = document.getElementById('sheetCalcBtn');
-        if (sheetBtn) sheetBtn.disabled = locations.length < 2;
-    }
-
-    // ===== CONFETTI =====
-    function launchConfetti() {
-        const container = document.getElementById('confettiContainer');
-        container.innerHTML = '';
-        const colors = ['#10b981', '#6ee7b7', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#fff'];
-        for (let i = 0; i < 60; i++) {
-            const piece = document.createElement('div');
-            piece.className = 'confetti-piece';
-            piece.style.left = Math.random() * 100 + '%';
-            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-            piece.style.animationDelay = Math.random() * 1.5 + 's';
-            piece.style.animationDuration = (2 + Math.random() * 2) + 's';
-            const shapes = ['50%', '0'];
-            piece.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
-            piece.style.width = (6 + Math.random() * 8) + 'px';
-            piece.style.height = (6 + Math.random() * 8) + 'px';
-            container.appendChild(piece);
+        // ===== SIDEBAR =====
+        function openSidebar() {
+            document.getElementById('sidebarDrawer').classList.add('show');
+            document.getElementById('sidebarBackdrop').classList.add('show');
         }
-        setTimeout(() => { container.innerHTML = ''; }, 4000);
-    }
-
-    // ===== CALCULATE =====
-    async function calculateOptimal() {
-        if (locations.length < 2) return;
-
-        const btn = document.getElementById('calculateBtn');
-        if (btn) {
-            btn.classList.add('loading');
-            btn.innerHTML = '<span>⏳</span> <span>' + (lang === 'ar' ? 'جاري الحساب...' : 'Calculating...') + '</span>';
+        function closeSidebar() {
+            document.getElementById('sidebarDrawer').classList.remove('show');
+            document.getElementById('sidebarBackdrop').classList.remove('show');
         }
-        const sheetBtn = document.getElementById('sheetCalcBtn');
-        if (sheetBtn) { sheetBtn.disabled = true; sheetBtn.textContent = lang === 'ar' ? 'جاري الحساب...' : 'Calculating...'; }
 
-        clearResult();
-        await new Promise(r => setTimeout(r, 500));
+        // ===== CALCULATE =====
+        async function calculateOptimal() {
+            if (locations.length < 1) return;
+            closeSidebar();
 
-        let totalW = 0, wLat = 0, wLng = 0;
-        locations.forEach(loc => {
-            const w = FREQ_WEIGHTS[loc.frequency];
-            wLat += loc.lat * w; wLng += loc.lng * w; totalW += w;
-        });
-        const cLat = wLat / totalW;
-        const cLng = wLng / totalW;
+            // Weighted centroid
+            let totalW = 0, wLat = 0, wLng = 0;
+            locations.forEach(loc => {
+                const w = FREQ_WEIGHTS[loc.frequency];
+                wLat += loc.lat * w; wLng += loc.lng * w; totalW += w;
+            });
+            const cLat = wLat / totalW, cLng = wLng / totalW;
 
-        centroidMarker = L.marker([cLat, cLng], {
-            icon: L.divIcon({
-                className: 'custom-marker',
-                html: '<div class="centroid-marker-inner"></div>',
-                iconSize: [22, 22], iconAnchor: [11, 11]
-            }), zIndexOffset: 1000
-        }).addTo(map);
+            clearMapOverlays();
 
-        const latOff = 0.5 / 111.32;
-        const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
-        zoneRect = L.rectangle([
-            [cLat - latOff, cLng - lngOff], [cLat + latOff, cLng + lngOff]
-        ], { color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.12, dashArray: '8, 6' }).addTo(map);
-
-        const distData = locations.map(loc => {
-            const dist = haversineDistance(cLat, cLng, loc.lat, loc.lng);
-            const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
-            const rushMin = estimateMinutes(dist, AVG_SPEED_RUSH);
-            return { loc, dist, normalMin, rushMin };
-        });
-
-        distData.forEach(({ loc, dist, normalMin, rushMin }) => {
-            const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6, 8', opacity: 0.5 }).addTo(map);
-            connectionLines.push(line);
-
-            const dText = lang === 'ar' ? 'د' : 'min';
-            const labelHtml = '<div class="marker-info-label"><div class="marker-info-km">' + dist.toFixed(1) + ' km</div>' +
-                '<div class="marker-info-time">🚗 ' + normalMin + ' ' + dText + '</div>' +
-                '<div class="marker-info-rush">🔴 ' + rushMin + ' ' + dText + '</div></div>';
-
-            const offsetLat = (loc.lat - cLat) * 0.15;
-            const offsetLng = (loc.lng - cLng) * 0.15;
-
-            const label = L.marker([loc.lat + offsetLat, loc.lng + offsetLng], {
-                icon: L.divIcon({ className: '', html: labelHtml, iconSize: [100, 50], iconAnchor: [50, 25] }),
-                interactive: false
+            // Centroid marker
+            centroidMarker = L.marker([cLat, cLng], {
+                icon: L.divIcon({ className: 'custom-marker', html: '<div class="centroid-marker-inner"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
+                zIndexOffset: 1000
             }).addTo(map);
-            distanceLabels.push(label);
-        });
 
-        const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
-        bounds.extend([cLat, cLng]);
-        map.flyToBounds(bounds.pad(0.2), { duration: 1.2 });
+            // 1km zone
+            const latOff = 0.5 / 111.32;
+            const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
+            zoneRect = L.rectangle([[cLat - latOff, cLng - lngOff], [cLat + latOff, cLng + lngOff]], {
+                color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.1, dashArray: '8,6'
+            }).addTo(map);
 
-        const neighborhood = await reverseGeocode(cLat, cLng);
-        document.getElementById('resultNeighborhood').textContent = neighborhood;
+            // Distances
+            const distData = locations.map(loc => {
+                const dist = haversineDistance(cLat, cLng, loc.lat, loc.lng);
+                return { loc, dist, normalMin: estimateMinutes(dist, AVG_SPEED_NORMAL), rushMin: estimateMinutes(dist, AVG_SPEED_RUSH) };
+            });
 
-        const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
-        const avgNormal = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
-        const avgRush = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
+            // Lines + labels
+            distData.forEach(({ loc, dist, normalMin, rushMin }) => {
+                const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6,8', opacity: 0.5 }).addTo(map);
+                connectionLines.push(line);
 
-        const descText = lang === 'ar'
-            ? 'متوسط المسافة: ' + avgDist.toFixed(1) + ' كم · عادي ~' + avgNormal + ' د · ذروة ~' + avgRush + ' د'
-            : 'Avg distance: ' + avgDist.toFixed(1) + ' km · Normal ~' + avgNormal + ' min · Rush ~' + avgRush + ' min';
-        document.getElementById('resultDesc').textContent = descText;
+                const dText = lang === 'ar' ? 'د' : 'min';
+                const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🚗 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
+                        iconSize: [90, 40], iconAnchor: [45, 20]
+                    }), interactive: false
+                }).addTo(map);
+                distanceLabels.push(lbl);
+            });
 
-        buildJustification(distData, cLat, cLng, neighborhood);
+            // Fly to bounds
+            const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+            bounds.extend([cLat, cLng]);
+            map.flyToBounds(bounds.pad(0.2), { duration: 1 });
 
-        const distHtml = distData.map(({ loc, dist, normalMin, rushMin }) => {
+            // Get neighborhood
+            const neighborhood = await reverseGeocode(cLat, cLng);
+
+            // Populate result
+            document.getElementById('resultNeighborhood').textContent = neighborhood;
+
+            const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
+            const avgN = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
+            const avgR = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
+
+            document.getElementById('resultDesc').textContent = lang === 'ar'
+                ? `متوسط: ${avgDist.toFixed(1)} كم · عادي ~${avgN} د · ذروة ~${avgR} د`
+                : `Avg: ${avgDist.toFixed(1)} km · Normal ~${avgN} min · Rush ~${avgR} min`;
+
+            buildJustification(distData, cLat, cLng, neighborhood);
+
+            // Distance list
             const dLabel = lang === 'ar' ? 'د' : 'min';
-            const normalLabel = lang === 'ar' ? 'عادي' : 'Normal';
-            const rushLabel = lang === 'ar' ? 'ذروة' : 'Rush';
-            return '<div class="result-distance-item"><div class="result-distance-header">' +
-                '<div class="result-distance-name"><span>' + loc.icon + '</span><span>' + loc.name + '</span></div>' +
-                '<span class="result-distance-km">' + dist.toFixed(1) + ' km</span></div>' +
-                '<div class="result-distance-times">' +
-                '<span class="result-time-badge result-time-normal">🚗 ' + normalLabel + ': ' + normalMin + ' ' + dLabel + '</span>' +
-                '<span class="result-time-badge result-time-rush">🔴 ' + rushLabel + ': ' + rushMin + ' ' + dLabel + '</span></div></div>';
-        }).join('');
+            const nLabel = lang === 'ar' ? 'عادي' : 'Normal';
+            const rLabel = lang === 'ar' ? 'ذروة' : 'Rush';
+            document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, normalMin, rushMin }) => `
+                <div class="rdist-item">
+                    <div class="rdist-header">
+                        <div class="rdist-name"><span>${loc.icon}</span><span>${loc.name}</span></div>
+                        <span class="rdist-km">${dist.toFixed(1)} km</span>
+                    </div>
+                    <div class="rdist-times">
+                        <span class="rdist-time rdist-normal">🚗 ${nLabel}: ${normalMin} ${dLabel}</span>
+                        <span class="rdist-time rdist-rush">🔴 ${rLabel}: ${rushMin} ${dLabel}</span>
+                    </div>
+                </div>`).join('');
 
-        document.getElementById('resultDistances').innerHTML = distHtml;
-        document.getElementById('resultCard').classList.add('show');
-        document.getElementById('howItWorks').style.display = 'none';
+            isCalculated = true;
+            updateUI();
 
-        const adSlot2 = document.getElementById('adSlot2');
-        if (adSlot2) adSlot2.style.display = '';
+            // Reset broker
+            brokerData = { propertyType: null, purpose: null };
+            document.querySelectorAll('.prop-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('brokerPhone').value = '';
+            document.getElementById('brokerSubmitBtn').disabled = true;
+            document.getElementById('brokerArea').style.display = '';
+            document.getElementById('brokerSuccess').classList.remove('show');
 
-        if (btn) {
-            btn.classList.remove('loading');
-            btn.innerHTML = '<span>✨</span> <span data-ar="وين أسكن؟" data-en="Where should I live?">' + (lang === 'ar' ? 'وين أسكن؟' : 'Where should I live?') + '</span>';
-            btn.disabled = true;
+            // Show result
+            document.getElementById('resultOverlay').classList.add('show');
+            launchConfetti();
+
+            showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
         }
 
-        isCalculated = true;
-        updateProgress();
+        // ===== JUSTIFICATION =====
+        function buildJustification(distData, cLat, cLng, neighborhood) {
+            const el = document.getElementById('resultJustification');
+            const sorted = [...distData].sort((a, b) => FREQ_WEIGHTS[b.loc.frequency] - FREQ_WEIGHTS[a.loc.frequency]);
+            const most = sorted[0];
+            const far = [...distData].sort((a, b) => b.dist - a.dist)[0];
+            const near = [...distData].sort((a, b) => a.dist - b.dist)[0];
 
-        document.getElementById('brokerSection').classList.add('show');
-        document.getElementById('brokerCta').style.display = '';
-        document.getElementById('brokerForm').classList.remove('show');
-        document.getElementById('brokerSuccess').classList.remove('show');
+            const totalTrips = distData.reduce((s, d) => s + FREQ_WEIGHTS[d.loc.frequency], 0);
+            const totalKm = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency] * 2, 0);
 
-        launchConfetti();
-        showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
+            let pts;
+            if (lang === 'ar') {
+                pts = [
+                    `أقرب لمكانك الأكثر زيارة "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].ar}).`,
+                    `أقرب مكان: "${near.loc.name}" (${near.dist.toFixed(1)} كم). أبعد: "${far.loc.name}" (${far.dist.toFixed(1)} كم).`,
+                    `إجمالي: ${totalTrips} رحلة/شهر · ~${Math.round(totalKm)} كم/شهر.`
+                ];
+            } else {
+                pts = [
+                    `Closest to "${most.loc.name}" (${FREQ_LABELS[most.loc.frequency].en}).`,
+                    `Nearest: "${near.loc.name}" (${near.dist.toFixed(1)} km). Farthest: "${far.loc.name}" (${far.dist.toFixed(1)} km).`,
+                    `Total: ${totalTrips} trips/mo · ~${Math.round(totalKm)} km/mo.`
+                ];
+            }
 
-        if (isMobile) {
-            expandSheet();
-            renderMobileSheet();
-        } else {
-            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            el.innerHTML = `<div class="just-title">${lang === 'ar' ? '💡 لماذا هذه المنطقة؟' : '💡 Why this area?'}</div>
+                ${pts.map(p => `<div class="just-point"><span>•</span><span>${p}</span></div>`).join('')}`;
         }
 
-        if (sheetBtn) {
-            sheetBtn.disabled = true;
-            sheetBtn.innerHTML = '<span data-ar="وين أسكن؟ ✨" data-en="Where to live? ✨">' + (lang === 'ar' ? 'وين أسكن؟ ✨' : 'Where to live? ✨') + '</span>';
-        }
-    }
-
-    // ===== JUSTIFICATION =====
-    function buildJustification(distData, cLat, cLng, neighborhood) {
-        const justEl = document.getElementById('resultJustification');
-        const sorted = [...distData].sort((a, b) => FREQ_WEIGHTS[b.loc.frequency] - FREQ_WEIGHTS[a.loc.frequency]);
-        const mostVisited = sorted[0];
-        const farthest = [...distData].sort((a, b) => b.dist - a.dist)[0];
-        const nearest = [...distData].sort((a, b) => a.dist - b.dist)[0];
-
-        const totalTrips = distData.reduce((s, d) => s + FREQ_WEIGHTS[d.loc.frequency], 0);
-        const totalKm = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency] * 2, 0);
-        const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
-        const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
-        const dailyNormal = Math.round(totalNormalMin / 30);
-        const dailyRush = Math.round(totalRushMin / 30);
-
-        let points;
-        if (lang === 'ar') {
-            points = [
-                'المنطقة مختارة لأنها الأقرب لمكانك الأكثر زيارة "' + mostVisited.loc.name + '" (' + FREQ_LABELS[mostVisited.loc.frequency].ar + ') مع موازنة باقي الأماكن.',
-                'أقرب مكان: "' + nearest.loc.name + '" (' + nearest.dist.toFixed(1) + ' كم، ~' + nearest.normalMin + ' د عادي). أبعد مكان: "' + farthest.loc.name + '" (' + farthest.dist.toFixed(1) + ' كم، ~' + farthest.normalMin + ' د عادي).',
-                'إجمالي رحلاتك الشهرية: ' + totalTrips + ' رحلة ذهاب، ~' + Math.round(totalKm) + ' كم. وقت القيادة: ~' + totalNormalMin + ' دقيقة عادي / ~' + totalRushMin + ' دقيقة وقت الذروة.',
-                'معدل القيادة اليومي: ~' + dailyNormal + ' دقيقة (عادي) / ~' + dailyRush + ' دقيقة (وقت الزحمة).'
-            ];
-        } else {
-            points = [
-                'This area is closest to your most visited place "' + mostVisited.loc.name + '" (' + FREQ_LABELS[mostVisited.loc.frequency].en + ') while balancing all locations.',
-                'Nearest: "' + nearest.loc.name + '" (' + nearest.dist.toFixed(1) + ' km, ~' + nearest.normalMin + ' min). Farthest: "' + farthest.loc.name + '" (' + farthest.dist.toFixed(1) + ' km, ~' + farthest.normalMin + ' min).',
-                'Monthly trips: ' + totalTrips + ' one-way, ~' + Math.round(totalKm) + ' km. Drive time: ~' + totalNormalMin + ' min normal / ~' + totalRushMin + ' min rush hour.',
-                'Daily driving avg: ~' + dailyNormal + ' min (normal) / ~' + dailyRush + ' min (rush hour).'
-            ];
+        // ===== CLEAR / RESET =====
+        function clearMapOverlays() {
+            if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
+            if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
+            connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
+            distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
         }
 
-        const title = lang === 'ar' ? '💡 لماذا هذه المنطقة؟' : '💡 Why this area?';
-        justEl.innerHTML = '<div class="justification-title">' + title + '</div>' +
-            '<div class="justification-text">' +
-            points.map(p => '<div class="justification-point"><span>•</span><span>' + p + '</span></div>').join('') +
-            '</div>';
-    }
-
-    // ===== HAVERSINE =====
-    function haversineDistance(lat1, lng1, lat2, lng2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLng = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    // ===== CLEAR & RESET =====
-    function clearResult() {
-        if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
-        if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
-        connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
-        distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
-        document.getElementById('resultCard').classList.remove('show');
-        document.getElementById('brokerSection').classList.remove('show');
-        document.getElementById('howItWorks').style.display = '';
-        const adSlot2 = document.getElementById('adSlot2');
-        if (adSlot2) adSlot2.style.display = 'none';
-        isCalculated = false;
-        updateCalculateButton();
-        updateProgress();
-    }
-
-    function resetAll() {
-        clearResult();
-        locations.forEach(loc => { if (loc.marker) markersGroup.removeLayer(loc.marker); });
-        locations = [];
-        renderLocationsList();
-        updateCalculateButton();
-        updateProgress();
-        document.getElementById('mapOverlay').classList.remove('hidden');
-        map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
-        showToast(lang === 'ar' ? 'تم إعادة الضبط' : 'Reset complete');
-        if (isMobile) { renderMobileSheet(); collapseSheet(); }
-    }
-
-    // ===== SHARE =====
-    function shareResult() {
-        const neighborhood = document.getElementById('resultNeighborhood').textContent;
-        let totalW = 0, wLat = 0, wLng = 0;
-        locations.forEach(loc => { const w = FREQ_WEIGHTS[loc.frequency]; wLat += loc.lat*w; wLng += loc.lng*w; totalW += w; });
-        const cLat = wLat/totalW, cLng = wLng/totalW;
-
-        const lines = locations.map(loc => {
-            const d = haversineDistance(cLat, cLng, loc.lat, loc.lng);
-            const n = estimateMinutes(d, AVG_SPEED_NORMAL);
-            const r = estimateMinutes(d, AVG_SPEED_RUSH);
-            return lang === 'ar'
-                ? loc.icon + ' ' + loc.name + ': ' + d.toFixed(1) + ' كم (~' + n + ' د عادي / ~' + r + ' د ذروة)'
-                : loc.icon + ' ' + loc.name + ': ' + d.toFixed(1) + ' km (~' + n + ' min / ~' + r + ' min rush)';
-        }).join('\n');
-
-        const text = lang === 'ar'
-            ? '🏠 وين أسكن؟\nالمنطقة المثالية: ' + neighborhood + '\n\n' + lines + '\n\n📍 weeenaskn.com'
-            : '🏠 Where to Live?\nOptimal Area: ' + neighborhood + '\n\n' + lines + '\n\n📍 weeenaskn.com';
-
-        navigator.clipboard.writeText(text).then(() => {
-            showToast(lang === 'ar' ? '📋 تم نسخ النتيجة!' : '📋 Result copied!');
-        }).catch(() => showToast(lang === 'ar' ? '⚠️ لم يتم النسخ' : '⚠️ Copy failed'));
-    }
-
-    // ===== LANGUAGE =====
-    function setLang(newLang) {
-        lang = newLang;
-        document.documentElement.lang = newLang;
-        document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.lang-btn')[newLang === 'ar' ? 0 : 1].classList.add('active');
-
-        document.querySelectorAll('[data-ar]').forEach(el => {
-            el.textContent = newLang === 'ar' ? el.dataset.ar : el.dataset.en;
-        });
-        document.querySelectorAll('[data-ar-ph]').forEach(el => {
-            el.placeholder = newLang === 'ar' ? el.dataset.arPh : el.dataset.enPh;
-        });
-
-        renderLocationsList();
-        locations.forEach(loc => { if (loc.marker) loc.marker.setPopupContent(createPopupContent(loc)); });
-        updateProgress();
-        setTimeout(() => map.invalidateSize(), 100);
-    }
-
-    // ===== TOAST =====
-    let toastTimeout;
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
-    }
-
-    // ===== UTILS =====
-    function escapeHtml(str) {
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML.replace(/'/g, "\\'");
-    }
-
-    // ===== BROKER FORM =====
-    let brokerData = { propertyType: null, purpose: null };
-
-    function showBrokerForm() {
-        document.getElementById('brokerCta').style.display = 'none';
-        document.getElementById('brokerForm').classList.add('show');
-        document.getElementById('brokerForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function selectProperty(el) {
-        document.querySelectorAll('#propertyTypes .property-type-btn').forEach(b => b.classList.remove('selected'));
-        el.classList.add('selected');
-        brokerData.propertyType = el.dataset.type;
-        checkBrokerFormValid();
-    }
-
-    function selectPurpose(el) {
-        document.querySelectorAll('#purposeChips .chip').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        brokerData.purpose = el.dataset.purpose;
-        checkBrokerFormValid();
-    }
-
-    function checkBrokerFormValid() {
-        const phone = document.getElementById('brokerPhone').value.trim();
-        const isValid = brokerData.propertyType && brokerData.purpose && phone.length >= 9 && phone.startsWith('5');
-        document.getElementById('brokerSubmitBtn').disabled = !isValid;
-    }
-
-    // ===== GOOGLE SHEETS CONFIG =====
-    const GOOGLE_SHEETS_URL = '';
-
-    function submitBrokerForm() {
-        const phone = document.getElementById('brokerPhone').value.trim();
-        const neighborhood = document.getElementById('resultNeighborhood').textContent;
-
-        const requestData = {
-            id: 'req_' + Date.now(),
-            neighborhood: neighborhood,
-            propertyType: brokerData.propertyType,
-            purpose: brokerData.purpose,
-            budget: '',
-            rooms: '',
-            family: '',
-            timeline: '',
-            notes: '',
-            phone: '+966' + phone,
-            status: 'new',
-            timestamp: new Date().toISOString(),
-            date: new Date().toLocaleDateString('ar-SA'),
-            time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-        };
-
-        saveLeadToLocal(requestData);
-        if (GOOGLE_SHEETS_URL) sendToGoogleSheets(requestData);
-
-        document.getElementById('brokerForm').classList.remove('show');
-        document.getElementById('brokerSuccess').classList.add('show');
-        document.getElementById('brokerSuccess').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        showToast(lang === 'ar' ? '🎉 تم إرسال طلبك!' : '🎉 Request sent!');
-    }
-
-    function saveLeadToLocal(data) {
-        try {
-            const leads = JSON.parse(localStorage.getItem('wainaskan_leads') || '[]');
-            leads.unshift(data);
-            localStorage.setItem('wainaskan_leads', JSON.stringify(leads));
-        } catch (e) { console.error('Error saving lead:', e); }
-    }
-
-    function sendToGoogleSheets(data) {
-        try {
-            fetch(GOOGLE_SHEETS_URL, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).catch(err => console.log('Sheets sync pending:', err));
-        } catch (e) { console.log('Will sync later:', e); }
-    }
-
-    // ===== MOBILE BOTTOM SHEET =====
-    let sheetExpanded = false;
-    let sheetStartY = 0;
-    let sheetCurrentY = 0;
-    let sheetDragging = false;
-
-    function expandSheet() {
-        const sheet = document.getElementById('bottomSheet');
-        if (!sheet) return;
-        sheet.classList.remove('collapsed');
-        sheet.classList.add('expanded');
-        sheetExpanded = true;
-    }
-
-    function collapseSheet() {
-        const sheet = document.getElementById('bottomSheet');
-        if (!sheet) return;
-        sheet.classList.remove('expanded');
-        sheet.classList.add('collapsed');
-        sheetExpanded = false;
-    }
-
-    function toggleSheet() {
-        if (sheetExpanded) collapseSheet(); else expandSheet();
-    }
-
-    function setupBottomSheet() {
-        const handle = document.getElementById('sheetDragHandle');
-        const summary = document.getElementById('sheetSummary');
-        if (!handle) return;
-
-        const onStart = (y) => { sheetDragging = true; sheetStartY = y; };
-        const onMove = (y) => {
-            if (!sheetDragging) return;
-            sheetCurrentY = y - sheetStartY;
-        };
-        const onEnd = () => {
-            if (!sheetDragging) return;
-            sheetDragging = false;
-            if (sheetCurrentY > 50) collapseSheet();
-            else if (sheetCurrentY < -50) expandSheet();
-            sheetCurrentY = 0;
-        };
-
-        handle.addEventListener('touchstart', (e) => { onStart(e.touches[0].clientY); }, { passive: true });
-        handle.addEventListener('touchmove', (e) => { onMove(e.touches[0].clientY); }, { passive: true });
-        handle.addEventListener('touchend', onEnd);
-
-        handle.addEventListener('click', toggleSheet);
-        if (summary) summary.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON') toggleSheet();
-        });
-    }
-
-    function renderMobileSheet() {
-        const content = document.getElementById('sheetContent');
-        const countEl = document.getElementById('sheetLocCount');
-        if (!content) return;
-
-        const countText = lang === 'ar' ? locations.length + ' مواقع' : locations.length + ' locations';
-        if (countEl) countEl.textContent = countText;
-
-        let html = '';
-
-        // Search
-        html += '<div class="search-container" id="mobileSearchContainer">' +
-            '<input type="text" class="search-input" id="mobileSearchInput" ' +
-            'placeholder="' + (lang === 'ar' ? 'ابحث عن موقع في الرياض...' : 'Search for a location in Riyadh...') + '" ' +
-            'autocomplete="off" style="font-size:16px;">' +
-            '<span class="search-icon">🔍</span>' +
-            '<div class="search-results" id="mobileSearchResults"></div></div>';
-
-        // Locations
-        if (locations.length > 0) {
-            html += '<div><div class="locations-section-title"><span>' + (lang === 'ar' ? 'المواقع المحددة' : 'Selected Locations') + '</span>' +
-                '<span class="locations-count">' + locations.length + '</span></div>';
-            html += '<div class="locations-list" style="margin-top:8px;">';
-            html += locations.map(loc => createLocationCardHtml(loc)).join('');
-            html += '</div></div>';
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
         }
 
-        // Result (if calculated)
-        if (isCalculated) {
-            html += document.getElementById('resultCard').outerHTML.replace('id="resultCard"', 'id="mobileResultCard"').replace('display: none', 'display: block');
-            html += document.getElementById('brokerSection').outerHTML.replace('id="brokerSection"', 'id="mobileBrokerSection"');
+        function clearResult() {
+            clearMapOverlays();
+            document.getElementById('resultOverlay').classList.remove('show');
+            isCalculated = false;
+            updateUI();
         }
 
-        // How it works (if not calculated)
-        if (!isCalculated) {
-            html += document.getElementById('howItWorks').outerHTML;
+        function resetAll() {
+            clearResult();
+            locations.forEach(l => { if (l.marker) markersGroup.removeLayer(l.marker); });
+            locations = [];
+            updateUI();
+            document.getElementById('mapHint').classList.remove('hidden');
+            map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
+            showToast(lang === 'ar' ? '🔄 تم إعادة الضبط' : '🔄 Reset');
         }
 
-        content.innerHTML = html;
+        // ===== SHARE =====
+        function shareResult() {
+            const nb = document.getElementById('resultNeighborhood').textContent;
+            let totalW = 0, wLat = 0, wLng = 0;
+            locations.forEach(l => { const w = FREQ_WEIGHTS[l.frequency]; wLat += l.lat*w; wLng += l.lng*w; totalW += w; });
+            const cLat = wLat/totalW, cLng = wLng/totalW;
 
-        // Setup mobile search
-        const mobileInput = document.getElementById('mobileSearchInput');
-        const mobileResults = document.getElementById('mobileSearchResults');
-        if (mobileInput && mobileResults) {
-            setupSearch(mobileInput, mobileResults);
-        }
-    }
+            const lines = locations.map(l => {
+                const d = haversineDistance(cLat, cLng, l.lat, l.lng);
+                const n = estimateMinutes(d, AVG_SPEED_NORMAL);
+                const r = estimateMinutes(d, AVG_SPEED_RUSH);
+                return lang === 'ar'
+                    ? `${l.icon} ${l.name}: ${d.toFixed(1)} كم (~${n} د / ~${r} د ذروة)`
+                    : `${l.icon} ${l.name}: ${d.toFixed(1)} km (~${n}/${r} min)`;
+            }).join('\n');
 
-    function renderMobileSheetWithForm() {
-        const content = document.getElementById('sheetContent');
-        if (!content) return;
+            const text = lang === 'ar'
+                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n${lines}\n\n📍 weeenaskn.com`
+                : `🏠 Where to Live?\nOptimal: ${nb}\n\n${lines}\n\n📍 weeenaskn.com`;
 
-        const formEl = document.getElementById('addForm');
-        if (formEl) formEl.classList.add('show');
-
-        let html = '<div id="mobileAddFormWrapper">' + formEl.outerHTML + '</div>';
-        content.innerHTML = html;
-
-        // Rebind events for mobile form
-        const mobileForm = content.querySelector('.add-form');
-        if (mobileForm) mobileForm.classList.add('show');
-    }
-
-    function renderMobileSheetSearch(query) {
-        const content = document.getElementById('sheetContent');
-        if (!content) return;
-
-        let html = '<div class="search-container" id="mobileSearchContainer">' +
-            '<input type="text" class="search-input" id="mobileSearchInput" value="' + query + '" ' +
-            'autocomplete="off" style="font-size:16px;">' +
-            '<span class="search-icon">🔍</span>' +
-            '<div class="search-results" id="mobileSearchResults"></div></div>';
-        content.innerHTML = html;
-
-        const mobileInput = document.getElementById('mobileSearchInput');
-        const mobileResults = document.getElementById('mobileSearchResults');
-        if (mobileInput && mobileResults) {
-            setupSearch(mobileInput, mobileResults);
-            mobileInput.dispatchEvent(new Event('input'));
-            mobileInput.focus();
-        }
-    }
-
-    // ===== INIT =====
-    document.addEventListener('DOMContentLoaded', function() {
-        initMap();
-
-        // Desktop search setup
-        const desktopInput = document.getElementById('searchInput');
-        const desktopResults = document.getElementById('searchResults');
-        if (desktopInput && desktopResults) {
-            setupSearch(desktopInput, desktopResults);
+            navigator.clipboard.writeText(text).then(() => showToast(lang === 'ar' ? '📋 تم النسخ!' : '📋 Copied!'))
+                .catch(() => showToast('⚠️'));
         }
 
-        // Broker phone validation
-        const phoneEl = document.getElementById('brokerPhone');
-        if (phoneEl) phoneEl.addEventListener('input', checkBrokerFormValid);
+        // ===== BROKER =====
+        function pickProp(el) {
+            document.querySelectorAll('.prop-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            brokerData.propertyType = el.dataset.type;
+            checkBrokerValid();
+        }
+        function pickPurpose(el) {
+            document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            brokerData.purpose = el.dataset.purpose;
+            checkBrokerValid();
+        }
+        function checkBrokerValid() {
+            const phone = document.getElementById('brokerPhone').value.trim();
+            const valid = brokerData.propertyType && brokerData.purpose && phone.length >= 9 && phone.startsWith('5');
+            document.getElementById('brokerSubmitBtn').disabled = !valid;
+        }
 
-        // Bottom sheet
-        setupBottomSheet();
-        if (isMobile) renderMobileSheet();
+        const GOOGLE_SHEETS_URL = '';
 
-        updateProgress();
-    });
+        function submitBroker() {
+            const phone = document.getElementById('brokerPhone').value.trim();
+            const neighborhood = document.getElementById('resultNeighborhood').textContent;
+
+            const data = {
+                id: 'req_' + Date.now(),
+                neighborhood,
+                propertyType: brokerData.propertyType,
+                purpose: brokerData.purpose,
+                budget: '', rooms: '', family: '', timeline: '', notes: '',
+                phone: '+966' + phone,
+                status: 'new',
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('ar-SA'),
+                time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // Save locally
+            try {
+                const leads = JSON.parse(localStorage.getItem('wainaskan_leads') || '[]');
+                leads.unshift(data);
+                localStorage.setItem('wainaskan_leads', JSON.stringify(leads));
+            } catch (e) { console.error(e); }
+
+            // Google Sheets
+            if (GOOGLE_SHEETS_URL) {
+                fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(() => {});
+            }
+
+            document.getElementById('brokerArea').style.display = 'none';
+            document.getElementById('brokerSuccess').classList.add('show');
+            showToast(lang === 'ar' ? '🎉 تم إرسال طلبك!' : '🎉 Sent!');
+        }
+
+        // ===== LANGUAGE =====
+        function setLang(newLang) {
+            lang = newLang;
+            document.documentElement.lang = newLang;
+            document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.lang-btn')[newLang === 'ar' ? 0 : 1].classList.add('active');
+
+            document.querySelectorAll('[data-ar]').forEach(el => {
+                el.textContent = newLang === 'ar' ? el.dataset.ar : el.dataset.en;
+            });
+            document.querySelectorAll('[data-ar-ph]').forEach(el => {
+                el.placeholder = newLang === 'ar' ? el.dataset.arPh : el.dataset.enPh;
+            });
+
+            renderSidebarLocations();
+            locations.forEach(l => { if (l.marker) l.marker.setPopupContent(createPopup(l)); });
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+        // ===== TOAST =====
+        let toastTimer;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ===== CONFETTI =====
+        function launchConfetti() {
+            const colors = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#6ee7b7'];
+            for (let i = 0; i < 50; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.top = '-10px';
+                el.style.background = colors[Math.floor(Math.random() * colors.length)];
+                el.style.width = (4 + Math.random() * 6) + 'px';
+                el.style.height = (4 + Math.random() * 6) + 'px';
+                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(el);
+
+                const duration = 1500 + Math.random() * 2000;
+                const drift = (Math.random() - 0.5) * 200;
+                el.animate([
+                    { transform: `translateY(0) translateX(0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translateY(100vh) translateX(${drift}px) rotate(${360 + Math.random()*360}deg)`, opacity: 0 }
+                ], { duration, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
+
+                setTimeout(() => el.remove(), duration);
+            }
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
 </body>
 </html>
