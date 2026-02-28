@@ -1386,7 +1386,7 @@
             lastDistData = distData;
 
             // Lines + labels
-            distData.forEach(({ loc, dist, avgMin }) => {
+            distData.forEach(({ loc, dist, normalMin, rushMin }) => {
                 const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6,8', opacity: 0.5 }).addTo(map);
                 connectionLines.push(line);
 
@@ -1394,8 +1394,8 @@
                 const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
                     icon: L.divIcon({
                         className: '',
-                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🚗 ~${avgMin} ${dText}</div></div>`,
-                        iconSize: [90, 30], iconAnchor: [45, 15]
+                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🟢 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
+                        iconSize: [90, 40], iconAnchor: [45, 20]
                     }), interactive: false
                 }).addTo(map);
                 distanceLabels.push(lbl);
@@ -1413,24 +1413,28 @@
             document.getElementById('resultNeighborhood').textContent = neighborhood;
 
             const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
-            const avgTime = Math.round(distData.reduce((s, d) => s + d.avgMin, 0) / distData.length);
+            const avgN = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
+            const avgR = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
 
             document.getElementById('resultDesc').textContent = lang === 'ar'
-                ? `متوسط: ${avgDist.toFixed(1)} كم · ~${avgTime} دقيقة بالسيارة`
-                : `Avg: ${avgDist.toFixed(1)} km · ~${avgTime} min drive`;
+                ? `متوسط: ${avgDist.toFixed(1)} كم · الوضع الطبيعي ~${avgN} د · وقت الذروة ~${avgR} د`
+                : `Avg: ${avgDist.toFixed(1)} km · Normal ~${avgN} min · Rush hour ~${avgR} min`;
 
             buildJustification(distData, cLat, cLng, neighborhood);
 
             // Distance list
             const dLabel = lang === 'ar' ? 'د' : 'min';
-            document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, avgMin }) => `
+            const nLabel = lang === 'ar' ? 'الوضع الطبيعي' : 'Normal';
+            const rLabel = lang === 'ar' ? 'وقت الذروة' : 'Rush hour';
+            document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, normalMin, rushMin }) => `
                 <div class="rdist-item">
                     <div class="rdist-header">
                         <div class="rdist-name"><span>${loc.icon}</span><span>${loc.name}</span></div>
                         <span class="rdist-km">${dist.toFixed(1)} km</span>
                     </div>
                     <div class="rdist-times">
-                        <span class="rdist-time rdist-normal">🚗 ~${avgMin} ${dLabel}</span>
+                        <span class="rdist-time rdist-normal">🟢 ${nLabel}: ${normalMin} ${dLabel}</span>
+                        <span class="rdist-time rdist-rush">🔴 ${rLabel}: ${rushMin} ${dLabel}</span>
                     </div>
                 </div>`).join('');
 
@@ -1528,10 +1532,10 @@
         function shareResult() {
             const nb = document.getElementById('resultNeighborhood').textContent;
 
-            const lines = (lastDistData || []).map(({ loc, dist, avgMin }) => {
+            const lines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
                 return lang === 'ar'
-                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (~${avgMin} د)`
-                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (~${avgMin} min)`;
+                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (~${normalMin} د / ~${rushMin} د ذروة)`
+                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (~${normalMin}/${rushMin} min)`;
             }).join('\n');
 
             const text = lang === 'ar'
