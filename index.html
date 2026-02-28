@@ -1484,12 +1484,11 @@
                 ];
             }
 
-            let noteHtml = '';
+            let noteHtml = `<div style="font-size:10px;color:var(--text-dimmer);margin-top:8px;text-align:center;">`;
             if (workNote) {
-                noteHtml = `<div style="font-size:10px;color:var(--text-dimmer);margin-top:8px;text-align:center;">
-                    ${lang === 'ar' ? '* تم احتساب الدوام ٥ أيام بالأسبوع' : '* Work calculated as 5 days/week'}
-                </div>`;
+                noteHtml += `${lang === 'ar' ? '* تم احتساب الدوام ٥ أيام بالأسبوع' : '* Work calculated as 5 days/week'}<br>`;
             }
+            noteHtml += `${lang === 'ar' ? '* جميع الأرقام تقديرية' : '* All figures are estimates'}</div>`;
 
             el.innerHTML = `<div class="just-title">${lang === 'ar' ? '💡 لماذا هذا الحي؟' : '💡 Why this area?'}</div>
                 ${pts.map(p => `<div class="just-point"><span>▸</span><span>${p}</span></div>`).join('')}${noteHtml}`;
