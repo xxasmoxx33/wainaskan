@@ -1012,10 +1012,6 @@
         let tempMarker = null;
         let lastDistData = null; // Store for share
 
-        // ===== GOOGLE MAPS API =====
-        const GOOGLE_MAPS_API_KEY = ''; // ضع مفتاح API هنا
-        let googleMapsLoaded = false;
-
         const LOCATION_COLORS = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
         const FREQ_WEIGHTS = { daily: 30, weekly: 4 };
         // العمل يومي = 5 أيام بالأسبوع = 22 يوم بالشهر
@@ -1033,6 +1029,7 @@
         };
         const AVG_SPEED_NORMAL = 45;
         const AVG_SPEED_RUSH   = 22;
+        const ROAD_FACTOR = 1.4; // معامل تصحيح الشوارع (الطريق الفعلي أطول من الخط المستقيم)
 
         let brokerData = { propertyType: null, purpose: null };
 
@@ -1057,75 +1054,6 @@
             const dLng = (lng2 - lng1) * Math.PI / 180;
             const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        // ===== GOOGLE MAPS HELPERS =====
-        function loadGoogleMapsAPI() {
-            return new Promise((resolve, reject) => {
-                if (googleMapsLoaded) { resolve(); return; }
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-                script.onload = () => { googleMapsLoaded = true; resolve(); };
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        function getNextRushHour() {
-            const now = new Date();
-            let target = new Date(now);
-            // 7:30 AM Riyadh time = 4:30 UTC
-            target.setUTCHours(4, 30, 0, 0);
-            if (target <= now) target.setDate(target.getDate() + 1);
-            // Skip Sat(6) & Sun(0)
-            while (target.getDay() === 0 || target.getDay() === 6) {
-                target.setDate(target.getDate() + 1);
-            }
-            return target;
-        }
-
-        async function getGoogleDistances(cLat, cLng, locs) {
-            try {
-                await loadGoogleMapsAPI();
-                const service = new google.maps.DistanceMatrixService();
-                const origin = new google.maps.LatLng(cLat, cLng);
-                const destinations = locs.map(l => new google.maps.LatLng(l.lat, l.lng));
-
-                return new Promise((resolve, reject) => {
-                    service.getDistanceMatrix({
-                        origins: [origin],
-                        destinations: destinations,
-                        travelMode: 'DRIVING',
-                        drivingOptions: {
-                            departureTime: getNextRushHour(),
-                            trafficModel: 'PESSIMISTIC'
-                        }
-                    }, (response, status) => {
-                        if (status === 'OK') {
-                            const results = response.rows[0].elements.map((el, i) => {
-                                if (el.status === 'OK') {
-                                    return {
-                                        loc: locs[i],
-                                        dist: el.distance.value / 1000,
-                                        normalMin: Math.round(el.duration.value / 60),
-                                        rushMin: Math.round((el.duration_in_traffic || el.duration).value / 60)
-                                    };
-                                } else {
-                                    // Fallback for this element
-                                    const d = haversineDistance(cLat, cLng, locs[i].lat, locs[i].lng);
-                                    return { loc: locs[i], dist: d, normalMin: estimateMinutes(d, AVG_SPEED_NORMAL), rushMin: estimateMinutes(d, AVG_SPEED_RUSH) };
-                                }
-                            });
-                            resolve(results);
-                        } else {
-                            reject(status);
-                        }
-                    });
-                });
-            } catch (e) {
-                console.warn('Google Maps API error:', e);
-                return null;
-            }
         }
 
         function escapeHtml(str) {
@@ -1446,27 +1374,19 @@
                 color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.1, dashArray: '8,6'
             }).addTo(map);
 
-            // Distances — Google Maps if available, else haversine fallback
-            let distData = null;
-            if (GOOGLE_MAPS_API_KEY) {
-                try {
-                    showToast(lang === 'ar' ? '🗺️ جاري حساب المسافات من خرائط قوقل...' : '🗺️ Getting real distances from Google Maps...');
-                    distData = await getGoogleDistances(cLat, cLng, locations);
-                } catch (e) {
-                    console.warn('Google Maps fallback to haversine:', e);
-                    distData = null;
-                }
-            }
-            if (!distData) {
-                distData = locations.map(loc => {
-                    const dist = haversineDistance(cLat, cLng, loc.lat, loc.lng);
-                    return { loc, dist, normalMin: estimateMinutes(dist, AVG_SPEED_NORMAL), rushMin: estimateMinutes(dist, AVG_SPEED_RUSH) };
-                });
-            }
+            // Distances — haversine × road factor (1.4) for realistic street distance
+            const distData = locations.map(loc => {
+                const straight = haversineDistance(cLat, cLng, loc.lat, loc.lng);
+                const dist = straight * ROAD_FACTOR; // مسافة الشوارع التقريبية
+                const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
+                const rushMin = estimateMinutes(dist, AVG_SPEED_RUSH);
+                const avgMin = Math.round((normalMin + rushMin) / 2); // المتوسط
+                return { loc, dist, normalMin, rushMin, avgMin };
+            });
             lastDistData = distData;
 
             // Lines + labels
-            distData.forEach(({ loc, dist, normalMin, rushMin }) => {
+            distData.forEach(({ loc, dist, avgMin }) => {
                 const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6,8', opacity: 0.5 }).addTo(map);
                 connectionLines.push(line);
 
@@ -1474,8 +1394,8 @@
                 const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
                     icon: L.divIcon({
                         className: '',
-                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🟢 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
-                        iconSize: [90, 40], iconAnchor: [45, 20]
+                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🚗 ~${avgMin} ${dText}</div></div>`,
+                        iconSize: [90, 30], iconAnchor: [45, 15]
                     }), interactive: false
                 }).addTo(map);
                 distanceLabels.push(lbl);
@@ -1493,28 +1413,24 @@
             document.getElementById('resultNeighborhood').textContent = neighborhood;
 
             const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
-            const avgN = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
-            const avgR = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
+            const avgTime = Math.round(distData.reduce((s, d) => s + d.avgMin, 0) / distData.length);
 
             document.getElementById('resultDesc').textContent = lang === 'ar'
-                ? `متوسط: ${avgDist.toFixed(1)} كم · الوضع الطبيعي ~${avgN} د · وقت الذروة ~${avgR} د`
-                : `Avg: ${avgDist.toFixed(1)} km · Normal ~${avgN} min · Rush hour ~${avgR} min`;
+                ? `متوسط: ${avgDist.toFixed(1)} كم · ~${avgTime} دقيقة بالسيارة`
+                : `Avg: ${avgDist.toFixed(1)} km · ~${avgTime} min drive`;
 
             buildJustification(distData, cLat, cLng, neighborhood);
 
             // Distance list
             const dLabel = lang === 'ar' ? 'د' : 'min';
-            const nLabel = lang === 'ar' ? 'الوضع الطبيعي' : 'Normal';
-            const rLabel = lang === 'ar' ? 'وقت الذروة' : 'Rush hour';
-            document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, normalMin, rushMin }) => `
+            document.getElementById('resultDistances').innerHTML = distData.map(({ loc, dist, avgMin }) => `
                 <div class="rdist-item">
                     <div class="rdist-header">
                         <div class="rdist-name"><span>${loc.icon}</span><span>${loc.name}</span></div>
                         <span class="rdist-km">${dist.toFixed(1)} km</span>
                     </div>
                     <div class="rdist-times">
-                        <span class="rdist-time rdist-normal">🟢 ${nLabel}: ${normalMin} ${dLabel}</span>
-                        <span class="rdist-time rdist-rush">🔴 ${rLabel}: ${rushMin} ${dLabel}</span>
+                        <span class="rdist-time rdist-normal">🚗 ~${avgMin} ${dLabel}</span>
                     </div>
                 </div>`).join('');
 
@@ -1542,10 +1458,8 @@
             const sorted = [...distData].sort((a, b) => getWeight(b.loc) - getWeight(a.loc));
             const most = sorted[0];
 
-            const totalTrips = distData.reduce((s, d) => s + getWeight(d.loc), 0);
             const totalKm = distData.reduce((s, d) => s + d.dist * getWeight(d.loc) * 2, 0);
-            const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * getWeight(d.loc) * 2, 0));
-            const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * getWeight(d.loc) * 2, 0));
+            const totalAvgMin = Math.round(distData.reduce((s, d) => s + d.avgMin * getWeight(d.loc) * 2, 0));
 
             // Fuel: 2.25 SAR/liter, avg 8km/liter
             const monthlyFuel = Math.round((totalKm / 8) * 2.25);
@@ -1556,7 +1470,7 @@
             if (lang === 'ar') {
                 pts = [
                     `📍 <strong>الأمثل:</strong> أقرب نقطة متوازنة لجميع أماكنك.`,
-                    `⏱️ <strong>الوقت:</strong> مجموع تنقلك الشهري ~${totalNormalMin} دقيقة عادي، ~${totalRushMin} دقيقة ذروة.`,
+                    `⏱️ <strong>الوقت:</strong> مجموع تنقلك الشهري ~${totalAvgMin} دقيقة تقريباً.`,
                     `📏 <strong>المسافة:</strong> إجمالي المسافة الشهرية ~${Math.round(totalKm)} كم (ذهاب وعودة).`,
                     `⛽ <strong>البنزين:</strong> تكلفة التنقل الشهرية ~${monthlyFuel} ريال تقريباً.`,
                     `✅ <strong>الخلاصة:</strong> ${neighborhood} أفضل حي يوازن بين أماكنك ويوفر لك وقت وبنزين كل شهر.`
@@ -1564,7 +1478,7 @@
             } else {
                 pts = [
                     `📍 <strong>Optimal:</strong> Best balanced point for all your places.`,
-                    `⏱️ <strong>Time:</strong> Total monthly commute ~${totalNormalMin} min normal, ~${totalRushMin} min rush.`,
+                    `⏱️ <strong>Time:</strong> Total monthly commute ~${totalAvgMin} min approximately.`,
                     `📏 <strong>Distance:</strong> Total monthly distance ~${Math.round(totalKm)} km (round-trip).`,
                     `⛽ <strong>Fuel:</strong> Estimated monthly fuel cost ~${monthlyFuel} SAR.`,
                     `✅ <strong>Conclusion:</strong> ${neighborhood} best balances all your places, saving you time and fuel monthly.`
@@ -1614,10 +1528,10 @@
         function shareResult() {
             const nb = document.getElementById('resultNeighborhood').textContent;
 
-            const lines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
+            const lines = (lastDistData || []).map(({ loc, dist, avgMin }) => {
                 return lang === 'ar'
-                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (~${normalMin} د / ~${rushMin} د ذروة)`
-                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (~${normalMin}/${rushMin} min)`;
+                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (~${avgMin} د)`
+                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (~${avgMin} min)`;
             }).join('\n');
 
             const text = lang === 'ar'
