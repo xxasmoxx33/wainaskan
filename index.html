@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>وين أسكن - اكتشف أفضل منطقة للسكن في الرياض</title>
     <meta name="description" content="أداة ذكية تساعدك على اكتشاف المنطقة المثالية للسكن في الرياض بناءً على أماكنك المتكررة. حدد مكان عملك وبيت أهلك واستراحتك ونحسب لك أفضل موقع!">
     <meta name="keywords" content="وين أسكن, سكن الرياض, أفضل حي للسكن, عقارات الرياض, شقق الرياض, فلل الرياض, بيوت الرياض, أفضل منطقة للسكن">
@@ -15,807 +15,408 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="وين أسكن - اكتشف أفضل منطقة للسكن في الرياض">
     <meta name="twitter:description" content="حدد أماكنك المتكررة ونحسب لك أفضل موقع للسكن في الرياض">
-    <link rel="canonical" href="https://wainaskan.sa/">
+    <link rel="canonical" href="https://weeenaskn.com/">
+    <!-- Google Ads - Replace with your publisher ID -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --green: #10b981;
+            --green-dark: #059669;
+            --green-light: #6ee7b7;
+            --amber: #f59e0b;
+            --amber-dark: #d97706;
+            --bg-dark: #0a1628;
+            --bg-mid: #132a13;
+            --bg-light: #1a2332;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0a1628, #132a13, #1a2332);
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
             color: #fff;
             min-height: 100vh;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* ===== NAV ===== */
         .nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 12px 24px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(20px);
+            background: rgba(255,255,255,0.03); backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.08);
-            z-index: 1000;
-            position: relative;
+            z-index: 1000; position: relative;
         }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .nav-brand { display: flex; align-items: center; gap: 10px; }
         .nav-logo {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
         }
-
         .nav-title {
-            font-size: 20px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #10b981, #6ee7b7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 20px; font-weight: 800;
+            background: linear-gradient(135deg, var(--green), var(--green-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .nav-actions { display: flex; align-items: center; gap: 8px; }
         .lang-btn {
-            padding: 6px 16px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.6);
-            font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 6px 16px; border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center;
         }
+        .lang-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .lang-btn.active { background: linear-gradient(135deg, var(--green), var(--green-dark)); border-color: transparent; color: #fff; }
 
-        .lang-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
+        /* ===== PROGRESS INDICATOR ===== */
+        .progress-bar {
+            display: flex; align-items: center; gap: 4px; padding: 8px 24px;
+            background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .lang-btn.active {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-color: transparent;
-            color: #fff;
+        .progress-step {
+            flex: 1; height: 4px; border-radius: 4px;
+            background: rgba(255,255,255,0.08); transition: all 0.5s ease; position: relative;
         }
-
-        /* ===== APP LAYOUT ===== */
-        .app-layout {
-            display: flex;
-            height: calc(100vh - 62px);
+        .progress-step.active { background: linear-gradient(135deg, var(--green), var(--green-light)); }
+        .progress-step.active::after {
+            content: attr(data-label); position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; color: var(--green-light); white-space: nowrap; font-weight: 600;
         }
-
-        [dir="rtl"] .app-layout {
-            flex-direction: row;
+        .progress-step-dot {
+            width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: rgba(255,255,255,0.3); transition: all 0.5s ease; font-weight: 700;
         }
+        .progress-step-dot.active { background: var(--green); color: #fff; transform: scale(1.1); }
 
-        /* ===== SIDEBAR ===== */
+        /* ===== DESKTOP LAYOUT ===== */
+        .app-layout { display: flex; height: calc(100vh - 62px - 36px); }
+        [dir="rtl"] .app-layout { flex-direction: row; }
+
+        /* ===== SIDEBAR (desktop) ===== */
         .sidebar {
-            width: 400px;
-            min-width: 400px;
-            overflow-y: auto;
-            padding: 24px;
+            width: 400px; min-width: 400px; overflow-y: auto; padding: 24px;
             background: rgba(255,255,255,0.02);
             border-inline-start: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            order: 2;
+            display: flex; flex-direction: column; gap: 20px; order: 2;
         }
-
         .sidebar::-webkit-scrollbar { width: 4px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-        .sidebar-header h2 {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .sidebar-header p {
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.6;
-        }
+        .sidebar-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .sidebar-header p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
 
         /* ===== SEARCH ===== */
         .search-container { position: relative; }
-
         .search-input {
-            width: 100%;
-            padding: 14px 48px 14px 16px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
+            width: 100%; padding: 14px 48px 14px 16px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 16px; outline: none; transition: all 0.3s;
         }
-
         [dir="rtl"] .search-input { padding: 14px 16px 14px 48px; }
         .search-input::placeholder { color: rgba(255,255,255,0.3); }
-
         .search-input:focus {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.08);
+            border-color: var(--green); background: rgba(16, 185, 129, 0.08);
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
-
         .search-icon {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0.3);
-            font-size: 18px;
-            pointer-events: none;
+            position: absolute; top: 50%; transform: translateY(-50%);
+            color: rgba(255,255,255,0.3); font-size: 18px; pointer-events: none;
         }
-
         [dir="rtl"] .search-icon { left: 16px; }
         [dir="ltr"] .search-icon { right: 16px; }
-
         .search-results {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0; right: 0;
-            background: rgba(15, 25, 20, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 14px;
-            overflow: hidden;
-            z-index: 100;
-            display: none;
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: rgba(15, 25, 20, 0.98); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+            overflow: hidden; z-index: 100; display: none;
             box-shadow: 0 12px 40px rgba(0,0,0,0.4);
         }
-
         .search-results.show { display: block; }
-
         .search-result-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: background 0.2s;
+            padding: 12px 16px; cursor: pointer; transition: background 0.2s;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px; min-height: 44px;
         }
-
         .search-result-item:last-child { border-bottom: none; }
         .search-result-item:hover { background: rgba(16, 185, 129, 0.15); }
-
         .search-result-icon { font-size: 16px; opacity: 0.5; }
-
         .search-result-text {
-            font-size: 13px;
-            color: rgba(255,255,255,0.8);
-            line-height: 1.4;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
-
-        .search-loading {
-            padding: 16px;
-            text-align: center;
-            color: rgba(255,255,255,0.4);
-            font-size: 13px;
-        }
+        .search-loading { padding: 16px; text-align: center; color: rgba(255,255,255,0.4); font-size: 13px; }
 
         /* ===== LOCATIONS LIST ===== */
         .locations-section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.5);
+            display: flex; align-items: center; justify-content: space-between;
         }
-
         .locations-count {
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-            padding: 2px 10px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2); color: var(--green-light);
+            padding: 2px 10px; border-radius: 50px; font-size: 12px; font-weight: 600;
         }
+        .locations-list { display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
 
-        .locations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 60px;
+        /* ===== EMPTY STATE ===== */
+        .empty-state { text-align: center; padding: 30px 16px; color: rgba(255,255,255,0.3); }
+        .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+        .empty-state-animated { animation: emptyFloat 3s ease-in-out infinite; }
+        @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
         }
-
-        .empty-state {
-            text-align: center;
-            padding: 30px 16px;
-            color: rgba(255,255,255,0.3);
-        }
-
-        .empty-state-icon {
-            font-size: 40px;
-            margin-bottom: 12px;
-            animation: bounce 2s ease-in-out infinite;
-        }
-
         .empty-state p { font-size: 13px; line-height: 1.6; }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+        .empty-state-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+        .empty-state-dots span {
+            width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15);
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+        .empty-state-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .empty-state-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
         }
 
         /* ===== LOCATION CARD ===== */
         .location-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-            transition: all 0.3s;
-            cursor: pointer;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px;
+            animation: slideIn 0.3s ease; transition: all 0.3s; cursor: pointer;
         }
-
-        .location-card:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        .location-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+        .location-card:active { transform: scale(0.98); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .location-card-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
         }
-
         .location-card-info { flex: 1; min-width: 0; }
-
-        .location-card-name {
-            font-size: 14px;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .location-card-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 3px;
-        }
-
-        .location-card-freq {
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 50px;
-            font-weight: 600;
-        }
-
+        .location-card-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .location-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+        .location-card-freq { font-size: 10px; padding: 2px 8px; border-radius: 50px; font-weight: 600; }
         .location-card-delete {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            border: none;
-            background: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.3);
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 44px; height: 44px; border-radius: 10px; border: none;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3);
+            font-size: 16px; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+        .location-card-delete:hover { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
 
-        .location-card-delete:hover {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-        }
-
-        /* ===== ADD LOCATION FORM ===== */
+        /* ===== ADD FORM ===== */
         .add-form {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 20px;
-            display: none;
-            animation: fadeIn 0.3s ease;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 20px; display: none; animation: fadeIn 0.3s ease;
         }
-
         .add-form.show { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .add-form-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .add-form-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
         .add-form-close {
-            width: 28px; height: 28px;
-            border-radius: 8px;
-            border: none;
-            background: rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.5);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 44px; height: 44px; border-radius: 8px; border: none;
+            background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
+            font-size: 14px; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
         }
-
         .add-form-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
-
         .form-group { margin-bottom: 16px; }
-
-        .form-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 8px;
-            display: block;
-        }
-
+        .form-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 8px; display: block; }
         .form-input {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
+            width: 100%; padding: 12px 14px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 16px; outline: none; transition: all 0.3s;
         }
+        .form-input:focus { border-color: var(--green); background: rgba(16, 185, 129, 0.08); }
+        .form-input.readonly-subtle { color: rgba(255,255,255,0.45); font-size: 14px; }
 
-        .form-input:focus {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.08);
-        }
-
-        .form-input.readonly-subtle {
-            color: rgba(255,255,255,0.45);
-            font-size: 13px;
-        }
-
-        /* ===== QUICK NAME TAGS ===== */
-        .quick-names {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
+        /* ===== QUICK NAMES ===== */
+        .quick-names { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
         .quick-name {
-            padding: 5px 12px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.55);
-            font-family: 'Cairo', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            padding: 5px 12px; border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.55); font-family: 'Cairo', sans-serif;
+            font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 4px; min-height: 44px;
         }
-
-        .quick-name:hover {
-            background: rgba(16, 185, 129, 0.12);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: #6ee7b7;
-        }
+        .quick-name:hover { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: var(--green-light); }
 
         /* ===== CHIPS ===== */
-        .chips-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .chip {
-            padding: 8px 14px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.6);
-            font-family: 'Cairo', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            padding: 10px 16px; border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 6px; min-height: 44px;
         }
-
         .chip:hover { background: rgba(255,255,255,0.08); color: #fff; }
-
-        .chip.selected {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: #10b981;
-            color: #6ee7b7;
-        }
+        .chip.selected { background: rgba(16, 185, 129, 0.2); border-color: var(--green); color: var(--green-light); }
+        .chip:active { transform: scale(0.95); }
 
         /* ===== BUTTONS ===== */
         .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: none; border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 52px; position: relative; overflow: hidden;
         }
-
+        .btn-primary::after {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-primary:active::after { opacity: 1; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
-        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:active { transform: translateY(0) scale(0.98); }
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
         .btn-primary.loading { pointer-events: none; }
 
         .btn-secondary {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: rgba(255,255,255,0.7);
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            width: 100%; padding: 12px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: rgba(255,255,255,0.7); font-family: 'Cairo', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; min-height: 44px;
         }
-
         .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-secondary:active { transform: scale(0.97); }
 
         .btn-add {
-            padding: 12px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s;
+            padding: 14px; background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: none; border-radius: 12px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.3s;
+            min-height: 48px;
         }
-
         .btn-add:hover { box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        .btn-add:active { transform: scale(0.97); }
 
         /* ===== RESULT CARD ===== */
         .result-card {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
             border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 18px;
-            padding: 24px;
-            display: none;
-            animation: resultReveal 0.5s ease;
+            border-radius: 18px; padding: 24px; display: none; animation: resultReveal 0.5s ease;
         }
-
         .result-card.show { display: block; }
-
-        @keyframes resultReveal {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
+        @keyframes resultReveal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .result-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.25);
-            color: #6ee7b7;
-            padding: 4px 14px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 14px;
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(16, 185, 129, 0.25); color: var(--green-light);
+            padding: 4px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; margin-bottom: 14px;
         }
-
-        .result-neighborhood {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .result-desc {
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.6;
-            margin-bottom: 18px;
-        }
+        .result-neighborhood { font-size: 22px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
+        .result-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 18px; }
 
         /* ===== JUSTIFICATION ===== */
         .result-justification {
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 18px;
+            background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 12px; padding: 14px; margin-bottom: 18px;
         }
-
-        .justification-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: #6ee7b7;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .justification-text {
-            font-size: 12px;
-            color: rgba(255,255,255,0.6);
-            line-height: 1.7;
-        }
-
-        .justification-point {
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-
-        .justification-point span:first-child {
-            color: #10b981;
-            flex-shrink: 0;
-        }
+        .justification-title { font-size: 12px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .justification-text { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+        .justification-point { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px; }
+        .justification-point span:first-child { color: var(--green); flex-shrink: 0; }
 
         /* ===== DISTANCES ===== */
-        .result-distances {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-
-        .result-distance-item {
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-size: 13px;
-        }
-
-        .result-distance-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-
-        .result-distance-name {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 0;
-            font-weight: 700;
-        }
-
-        .result-distance-name span:last-child {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .result-distance-km {
-            font-weight: 700;
-            color: #6ee7b7;
-            direction: ltr;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .result-distance-times {
-            display: flex;
-            gap: 8px;
-        }
-
-        .result-time-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 10px;
-            border-radius: 8px;
-            direction: ltr;
-        }
-
-        .result-time-normal {
-            background: rgba(16, 185, 129, 0.12);
-            color: #6ee7b7;
-        }
-
-        .result-time-rush {
-            background: rgba(239, 68, 68, 0.12);
-            color: #fca5a5;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 8px;
-        }
-
+        .result-distances { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .result-distance-item { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px 14px; font-size: 13px; }
+        .result-distance-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .result-distance-name { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 700; }
+        .result-distance-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .result-distance-km { font-weight: 700; color: var(--green-light); direction: ltr; font-size: 13px; flex-shrink: 0; }
+        .result-distance-times { display: flex; gap: 8px; flex-wrap: wrap; }
+        .result-time-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 8px; direction: ltr; }
+        .result-time-normal { background: rgba(16, 185, 129, 0.12); color: var(--green-light); }
+        .result-time-rush { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
+        .result-actions { display: flex; gap: 8px; }
         .result-actions button { flex: 1; }
 
+        /* ===== AD SLOTS ===== */
+        .ad-slot {
+            border: 1px dashed rgba(255,255,255,0.1); border-radius: 14px;
+            padding: 16px; text-align: center; min-height: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.02); position: relative;
+        }
+        .ad-slot-label {
+            position: absolute; top: 8px; right: 8px;
+            font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 600;
+        }
+        [dir="ltr"] .ad-slot-label { right: auto; left: 8px; }
+
         /* ===== MAP ===== */
-        .map-container {
-            flex: 1;
-            position: relative;
-            order: 1;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            cursor: crosshair;
-        }
-
+        .map-container { flex: 1; position: relative; order: 1; }
+        #map { width: 100%; height: 100%; z-index: 1; cursor: crosshair; }
         .map-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(10, 22, 40, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 24px 36px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            z-index: 500;
-            pointer-events: none;
-            transition: opacity 0.5s;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 22, 40, 0.85); backdrop-filter: blur(10px);
+            padding: 24px 36px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+            text-align: center; z-index: 500; pointer-events: none; transition: opacity 0.5s;
         }
-
         .map-overlay.hidden { opacity: 0; }
+        .map-overlay-icon { font-size: 36px; margin-bottom: 8px; animation: bounce 2s ease-in-out infinite; }
+        .map-overlay p { font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 600; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-        .map-overlay-icon {
-            font-size: 36px;
-            margin-bottom: 8px;
-            animation: bounce 2s ease-in-out infinite;
+        /* ===== QUICK ADD (mobile) ===== */
+        .quick-add-bar {
+            display: none; position: absolute; bottom: 12px; left: 12px; right: 12px;
+            z-index: 500; overflow-x: auto; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; gap: 8px; padding: 4px;
         }
-
-        .map-overlay p {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            font-weight: 600;
+        .quick-add-bar::-webkit-scrollbar { display: none; }
+        .quick-add-btn {
+            flex-shrink: 0; padding: 8px 16px; border-radius: 50px;
+            background: rgba(10, 22, 40, 0.9); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15); color: #fff;
+            font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
+            white-space: nowrap; min-height: 44px;
         }
+        .quick-add-btn:active { transform: scale(0.95); background: rgba(16, 185, 129, 0.3); }
 
         /* ===== CUSTOM MARKERS ===== */
         .custom-marker { background: none; border: none; }
-
         .marker-pin {
-            width: 42px;
-            height: 42px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 3px solid rgba(255,255,255,0.9);
-            animation: markerDrop 0.4s ease-out;
+            width: 42px; height: 42px; border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg); display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 20px rgba(16,185,129,0.15);
+            border: 3px solid rgba(255,255,255,0.9); animation: markerDrop 0.4s ease-out;
         }
-
-        .marker-pin .marker-icon {
-            transform: rotate(45deg);
-            font-size: 18px;
-            line-height: 1;
-        }
-
+        .marker-pin .marker-icon { transform: rotate(45deg); font-size: 18px; line-height: 1; }
         @keyframes markerDrop {
             0% { transform: rotate(-45deg) translateY(-30px); opacity: 0; }
             60% { transform: rotate(-45deg) translateY(3px); }
             100% { transform: rotate(-45deg) translateY(0); opacity: 1; }
         }
-
-        /* ===== MARKER TOOLTIP (distance label near marker) ===== */
         .marker-info-label {
-            background: rgba(10, 22, 15, 0.92);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 10px;
-            padding: 5px 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            white-space: nowrap;
-            text-align: center;
-            line-height: 1.5;
-            color: #fff;
-            min-width: 80px;
+            background: rgba(10, 22, 15, 0.92); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+            padding: 5px 10px; font-family: 'Cairo', sans-serif; font-size: 11px;
+            font-weight: 700; white-space: nowrap; text-align: center;
+            line-height: 1.5; color: #fff; min-width: 80px;
         }
-
-        .marker-info-km {
-            color: #6ee7b7;
-        }
-
-        .marker-info-time {
-            color: rgba(255,255,255,0.5);
-            font-size: 10px;
-        }
-
-        .marker-info-rush {
-            color: #fca5a5;
-            font-size: 10px;
-        }
-
+        .marker-info-km { color: var(--green-light); }
+        .marker-info-time { color: rgba(255,255,255,0.5); font-size: 10px; }
+        .marker-info-rush { color: #fca5a5; font-size: 10px; }
         .centroid-marker-inner {
-            width: 22px;
-            height: 22px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: 3px solid #fff;
-            border-radius: 50%;
+            width: 22px; height: 22px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: 3px solid #fff; border-radius: 50%;
             box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4), 0 4px 15px rgba(0,0,0,0.3);
             animation: centroidPulse 2s infinite;
         }
-
         @keyframes centroidPulse {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 4px 15px rgba(0,0,0,0.3); }
             70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0), 0 4px 15px rgba(0,0,0,0.3); }
@@ -824,460 +425,235 @@
 
         /* ===== LEAFLET OVERRIDES ===== */
         .leaflet-popup-content-wrapper {
-            background: rgba(15, 25, 20, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 14px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            background: rgba(15, 25, 20, 0.95); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 14px;
+            color: #fff; font-family: 'Cairo', sans-serif; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
-
-        .leaflet-popup-tip {
-            background: rgba(15, 25, 20, 0.95);
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-
+        .leaflet-popup-tip { background: rgba(15, 25, 20, 0.95); border: 1px solid rgba(255,255,255,0.12); }
         .leaflet-popup-content { margin: 14px 16px; font-size: 13px; line-height: 1.6; }
         .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
         .popup-info { color: rgba(255,255,255,0.5); font-size: 12px; }
-
         .popup-remove {
-            color: #e74c3c;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 6px;
-            display: inline-block;
-            font-family: 'Cairo', sans-serif;
-            background: none;
-            border: none;
-            padding: 0;
+            color: #e74c3c; cursor: pointer; font-size: 12px; font-weight: 600;
+            margin-top: 6px; display: inline-block; font-family: 'Cairo', sans-serif;
+            background: none; border: none; padding: 4px 0; min-height: 44px;
         }
-
         .popup-remove:hover { text-decoration: underline; }
-
         .leaflet-control-zoom a {
-            background: rgba(15, 25, 20, 0.9) !important;
-            color: #fff !important;
-            border-color: rgba(255,255,255,0.1) !important;
-            backdrop-filter: blur(10px);
+            background: rgba(15, 25, 20, 0.9) !important; color: #fff !important;
+            border-color: rgba(255,255,255,0.1) !important; backdrop-filter: blur(10px);
         }
-
         .leaflet-control-zoom a:hover { background: rgba(16, 185, 129, 0.3) !important; }
-
-        .leaflet-control-attribution {
-            background: rgba(15, 25, 20, 0.7) !important;
-            color: rgba(255,255,255,0.4) !important;
-            font-size: 10px !important;
-        }
-
+        .leaflet-control-attribution { background: rgba(15, 25, 20, 0.7) !important; color: rgba(255,255,255,0.4) !important; font-size: 10px !important; }
         .leaflet-control-attribution a { color: rgba(255,255,255,0.5) !important; }
 
         /* ===== TOAST ===== */
         .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(10, 22, 15, 0.95);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 14px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 2000;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(10, 22, 15, 0.95); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 24px;
+            border-radius: 14px; font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
+            opacity: 0; transition: all 0.3s ease; z-index: 3000; pointer-events: none;
+            display: flex; align-items: center; gap: 8px;
         }
-
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         /* ===== HOW IT WORKS ===== */
         .how-it-works {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px;
-            padding: 16px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px; padding: 16px;
         }
-
-        .how-it-works-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 12px;
-        }
-
-        .how-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 8px 0;
-        }
-
+        .how-it-works-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.5); margin-bottom: 12px; }
+        .how-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
         .how-step-num {
-            width: 24px; height: 24px;
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 800;
-            flex-shrink: 0;
+            width: 24px; height: 24px; background: rgba(16, 185, 129, 0.2);
+            color: var(--green-light); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; flex-shrink: 0;
         }
+        .how-step-text { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
 
-        .how-step-text {
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.5;
-        }
-
-        /* ===== BROKER FORM ===== */
-        .broker-section {
-            display: none;
-            animation: resultReveal 0.5s ease;
-        }
-
-        .broker-section.show {
-            display: block;
-        }
-
+        /* ===== BROKER SECTION ===== */
+        .broker-section { display: none; animation: resultReveal 0.5s ease; }
+        .broker-section.show { display: block; }
         .broker-cta {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 18px;
-            padding: 24px;
-            text-align: center;
-            margin-bottom: 16px;
+            border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 18px;
+            padding: 24px; text-align: center; margin-bottom: 16px;
         }
-
-        .broker-cta-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .broker-cta-title {
-            font-size: 17px;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .broker-cta-desc {
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .broker-form {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .broker-form.show {
-            display: block;
-        }
-
+        .broker-cta-icon { font-size: 40px; margin-bottom: 10px; }
+        .broker-cta-title { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+        .broker-cta-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 16px; }
+        .broker-form { display: none; animation: fadeIn 0.3s ease; }
+        .broker-form.show { display: block; }
         .broker-form-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 20px;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; padding: 20px;
         }
-
-        .broker-form-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .broker-form-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
         .broker-step-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #f59e0b;
-            background: rgba(245, 158, 11, 0.15);
-            padding: 2px 10px;
-            border-radius: 50px;
+            font-size: 11px; font-weight: 700; color: var(--amber);
+            background: rgba(245, 158, 11, 0.15); padding: 2px 10px; border-radius: 50px;
         }
-
-        .form-select {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
-            appearance: none;
-            -webkit-appearance: none;
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff50' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 14px center;
-        }
-
-        [dir="ltr"] .form-select {
-            background-position: right 14px center;
-        }
-
-        .form-select:focus {
-            border-color: #f59e0b;
-            background-color: rgba(245, 158, 11, 0.08);
-        }
-
-        .form-select option {
-            background: #1a2332;
-            color: #fff;
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
-            resize: vertical;
-            min-height: 70px;
-        }
-
-        .form-textarea:focus {
-            border-color: #f59e0b;
-            background: rgba(245, 158, 11, 0.08);
-        }
-
-        .form-textarea::placeholder {
-            color: rgba(255,255,255,0.3);
-        }
-
-        .phone-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .phone-prefix {
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: rgba(255,255,255,0.6);
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            direction: ltr;
-            flex-shrink: 0;
-        }
-
-        .phone-input {
-            flex: 1;
-            padding: 12px 14px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s;
-            direction: ltr;
-            text-align: left;
-        }
-
-        .phone-input:focus {
-            border-color: #f59e0b;
-            background: rgba(245, 158, 11, 0.08);
-        }
-
-        .phone-input::placeholder {
-            color: rgba(255,255,255,0.3);
-            text-align: right;
-        }
-
-        [dir="ltr"] .phone-input::placeholder {
-            text-align: left;
-        }
-
-        .btn-broker {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-broker:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-        }
-
-        .btn-broker:active { transform: translateY(0); }
-
-        .btn-broker:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-broker-outline {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
-            border: 2px solid rgba(245, 158, 11, 0.4);
-            border-radius: 14px;
-            color: #f59e0b;
-            font-family: 'Cairo', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-broker-outline:hover {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: #f59e0b;
-        }
-
-        /* Success state */
-        .broker-success {
-            display: none;
-            text-align: center;
-            padding: 30px 20px;
-            animation: resultReveal 0.5s ease;
-        }
-
-        .broker-success.show {
-            display: block;
-        }
-
-        .broker-success-icon {
-            font-size: 50px;
-            margin-bottom: 12px;
-        }
-
-        .broker-success-title {
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            color: #10b981;
-        }
-
-        .broker-success-desc {
-            font-size: 13px;
-            color: rgba(255,255,255,0.5);
-            line-height: 1.7;
-        }
-
-        /* Property type cards */
-        .property-types {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
+        .property-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .property-type-btn {
-            padding: 12px 8px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: rgba(255,255,255,0.6);
-            font-family: 'Cairo', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
+            padding: 12px 8px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 64px;
+        }
+        .property-type-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .property-type-btn.selected { background: rgba(245, 158, 11, 0.15); border-color: var(--amber); color: #fbbf24; }
+        .property-type-btn:active { transform: scale(0.95); }
+        .property-type-icon { font-size: 22px; }
+        .phone-input-wrapper { display: flex; align-items: center; gap: 8px; }
+        .phone-prefix {
+            padding: 12px 14px; background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif;
+            font-size: 16px; font-weight: 700; direction: ltr; flex-shrink: 0;
+        }
+        .phone-input {
+            flex: 1; padding: 12px 14px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: #fff; font-family: 'Cairo', sans-serif; font-size: 16px;
+            outline: none; transition: all 0.3s; direction: ltr; text-align: left;
+        }
+        .phone-input:focus { border-color: var(--amber); background: rgba(245, 158, 11, 0.08); }
+        .phone-input::placeholder { color: rgba(255,255,255,0.3); text-align: right; }
+        [dir="ltr"] .phone-input::placeholder { text-align: left; }
+        .btn-broker {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+            border: none; border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px;
+        }
+        .btn-broker:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); }
+        .btn-broker:active { transform: translateY(0) scale(0.98); }
+        .btn-broker:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-broker-outline {
+            width: 100%; padding: 14px; background: transparent;
+            border: 2px solid rgba(245, 158, 11, 0.4); border-radius: 14px;
+            color: var(--amber); font-family: 'Cairo', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px;
+        }
+        .btn-broker-outline:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--amber); }
+        .btn-broker-outline:active { transform: scale(0.97); }
+        .broker-success { display: none; text-align: center; padding: 30px 20px; animation: resultReveal 0.5s ease; }
+        .broker-success.show { display: block; }
+        .broker-success-icon { font-size: 50px; margin-bottom: 12px; }
+        .broker-success-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--green); }
+        .broker-success-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+
+        /* ===== CONFETTI ===== */
+        .confetti-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 2500; overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute; width: 10px; height: 10px;
+            top: -10px; opacity: 0;
+            animation: confettiFall 3s ease-in forwards;
+        }
+        @keyframes confettiFall {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(0.5); }
+        }
+
+        /* ===== MOBILE BOTTOM SHEET ===== */
+        .mobile-bottom-sheet {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0;
+            z-index: 1000; background: linear-gradient(180deg, #0f1923 0%, #0a1628 100%);
+            border-radius: 20px 20px 0 0; box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            max-height: calc(100vh - 40vh + 20px);
+            padding-bottom: var(--safe-bottom);
+        }
+        .sheet-drag-handle {
+            width: 100%; padding: 12px 0 8px; display: flex; justify-content: center; cursor: grab;
+        }
+        .sheet-drag-handle-bar {
+            width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.2);
+        }
+        .sheet-summary {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 4px 20px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .sheet-summary-info { display: flex; align-items: center; gap: 8px; }
+        .sheet-summary-count {
+            font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.7);
+        }
+        .sheet-summary-btn {
+            padding: 10px 20px; border-radius: 50px;
+            background: linear-gradient(135deg, var(--green), var(--green-dark));
+            border: none; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer; min-height: 44px;
             transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
         }
-
-        .property-type-btn:hover {
-            background: rgba(255,255,255,0.08);
-            color: #fff;
+        .sheet-summary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sheet-summary-btn:active { transform: scale(0.95); }
+        .sheet-content {
+            overflow-y: auto; padding: 16px 20px;
+            max-height: calc(100vh - 40vh - 80px);
+            -webkit-overflow-scrolling: touch;
         }
+        .sheet-content::-webkit-scrollbar { width: 3px; }
+        .sheet-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        .sheet-content > * + * { margin-top: 16px; }
 
-        .property-type-btn.selected {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: #f59e0b;
-            color: #fbbf24;
-        }
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 767px) {
+            body { overflow: hidden; }
+            .nav { padding: 10px 16px; }
+            .nav-title { font-size: 16px; }
+            .progress-bar { padding: 6px 16px; }
+            .progress-step.active::after { font-size: 9px; }
 
-        .property-type-icon {
-            font-size: 22px;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            body { overflow: auto; }
-
-            .app-layout {
-                flex-direction: column;
-                height: auto;
-                min-height: calc(100vh - 62px);
-            }
-
+            .app-layout { flex-direction: column; height: calc(100vh - 54px - 30px); }
             [dir="rtl"] .app-layout { flex-direction: column; }
 
-            .sidebar {
-                width: 100%;
-                min-width: unset;
-                order: 2;
-                border: none;
-                border-top: 1px solid rgba(255,255,255,0.08);
-                min-height: auto;
-            }
+            .sidebar { display: none; }
 
             .map-container {
-                height: 50vh;
-                min-height: 300px;
-                order: 1;
+                height: 40vh; min-height: 200px; order: 1;
+                position: relative; flex: none;
             }
 
-            .nav-title { font-size: 16px; }
+            .quick-add-bar { display: flex; }
+
+            .mobile-bottom-sheet { display: block; }
+            .mobile-bottom-sheet.collapsed { transform: translateY(calc(100% - 90px)); }
+            .mobile-bottom-sheet.expanded { transform: translateY(0); }
+
+            .map-overlay { padding: 16px 24px; }
+            .map-overlay-icon { font-size: 28px; }
+            .map-overlay p { font-size: 12px; }
+
+            .chips-container { gap: 6px; }
+            .chip { flex: 1; justify-content: center; min-width: calc(50% - 4px); }
+
+            .toast { top: 12px; font-size: 12px; padding: 10px 18px; max-width: 90vw; }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-bottom-sheet { display: none !important; }
+            .quick-add-bar { display: none !important; }
+            .sidebar { display: flex !important; }
         }
 
         @media (max-width: 480px) {
-            .sidebar { padding: 16px; }
-            .nav { padding: 10px 16px; }
-            .chips-container { gap: 6px; }
-            .chip { padding: 6px 10px; font-size: 11px; }
-            .result-distance-times { flex-wrap: wrap; }
+            .property-types { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            .property-type-btn { padding: 10px 6px; font-size: 11px; }
         }
+
+        /* ===== SKELETON LOADING ===== */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: 8px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
 <body>
@@ -1294,6 +670,15 @@
         </div>
     </nav>
 
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-step-dot" id="progDot1">1</div>
+        <div class="progress-step" id="progStep1" data-label=""></div>
+        <div class="progress-step-dot" id="progDot2">2</div>
+        <div class="progress-step" id="progStep2" data-label=""></div>
+        <div class="progress-step-dot" id="progDot3">3</div>
+    </div>
+
     <!-- APP LAYOUT -->
     <div class="app-layout">
 
@@ -1304,10 +689,17 @@
                 <div class="map-overlay-icon">📍</div>
                 <p data-ar="اضغط على الخريطة لإضافة موقع" data-en="Click on the map to add a location">اضغط على الخريطة لإضافة موقع</p>
             </div>
+            <!-- Quick Add Bar (mobile) -->
+            <div class="quick-add-bar" id="quickAddBar">
+                <button class="quick-add-btn" onclick="quickSearch('العمل','Work')">💼 <span data-ar="العمل" data-en="Work">العمل</span></button>
+                <button class="quick-add-btn" onclick="quickSearch('بيت الأهل','Family Home')">🏡 <span data-ar="بيت الأهل" data-en="Family Home">بيت الأهل</span></button>
+                <button class="quick-add-btn" onclick="quickSearch('الاستراحة','Rest House')">🌴 <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span></button>
+                <button class="quick-add-btn" onclick="quickSearch('الجامعة','University')">🎓 <span data-ar="الجامعة" data-en="University">الجامعة</span></button>
+            </div>
         </div>
 
-        <!-- SIDEBAR -->
-        <div class="sidebar">
+        <!-- SIDEBAR (desktop only) -->
+        <div class="sidebar" id="desktopSidebar">
 
             <!-- HEADER -->
             <div class="sidebar-header">
@@ -1316,7 +708,7 @@
             </div>
 
             <!-- SEARCH -->
-            <div class="search-container">
+            <div class="search-container" id="desktopSearchContainer">
                 <input type="text" class="search-input" id="searchInput"
                     placeholder="ابحث عن موقع في الرياض..."
                     data-ar-ph="ابحث عن موقع في الرياض..."
@@ -1334,8 +726,9 @@
                 </div>
                 <div class="locations-list" id="locationsList">
                     <div class="empty-state" id="emptyState">
-                        <div class="empty-state-icon">📍</div>
+                        <div class="empty-state-icon empty-state-animated">📍</div>
                         <p data-ar="ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة" data-en="Search or click on the map to add your frequent places">ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة</p>
+                        <div class="empty-state-dots"><span></span><span></span><span></span></div>
                     </div>
                 </div>
             </div>
@@ -1346,8 +739,6 @@
                     <span data-ar="إضافة موقع" data-en="Add Location">إضافة موقع</span>
                     <button class="add-form-close" onclick="closeAddForm()">✕</button>
                 </div>
-
-                <!-- NEIGHBORHOOD NAME (auto from map) -->
                 <div class="form-group">
                     <label class="form-label" data-ar="📍 الحي" data-en="📍 Neighborhood">📍 الحي</label>
                     <input type="text" class="form-input readonly-subtle" id="locationNeighborhood" readonly
@@ -1355,63 +746,33 @@
                         data-ar-ph="يتم تحديده تلقائيًا..."
                         data-en-ph="Detected automatically...">
                 </div>
-
-                <!-- USER'S CUSTOM NAME -->
                 <div class="form-group">
                     <label class="form-label" data-ar="✏️ سمّ هذا المكان" data-en="✏️ Name this place">✏️ سمّ هذا المكان</label>
                     <input type="text" class="form-input" id="locationName"
-                        placeholder="مثال: بيت الأهل، جامعة البنات، المكتب..."
-                        data-ar-ph="مثال: بيت الأهل، جامعة البنات، المكتب..."
+                        placeholder="مثال: بيت الأهل، الجامعة، المكتب..."
+                        data-ar-ph="مثال: بيت الأهل، الجامعة، المكتب..."
                         data-en-ph="e.g. Family home, University, Office...">
                     <div class="quick-names" id="quickNames">
-                        <button class="quick-name" onclick="setQuickName('💼', 'العمل', 'Work')">
-                            <span>💼</span> <span data-ar="العمل" data-en="Work">العمل</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🏡', 'بيت الأهل', 'Family Home')">
-                            <span>🏡</span> <span data-ar="بيت الأهل" data-en="Family Home">بيت الأهل</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🏠', 'المنزل', 'Home')">
-                            <span>🏠</span> <span data-ar="المنزل" data-en="Home">المنزل</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🌴', 'الاستراحة', 'Rest House')">
-                            <span>🌴</span> <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🎓', 'الجامعة', 'University')">
-                            <span>🎓</span> <span data-ar="الجامعة" data-en="University">الجامعة</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🏋️', 'النادي', 'Gym')">
-                            <span>🏋️</span> <span data-ar="النادي" data-en="Gym">النادي</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🏢', 'المكتب', 'Office')">
-                            <span>🏢</span> <span data-ar="المكتب" data-en="Office">المكتب</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🛒', 'السوق', 'Market')">
-                            <span>🛒</span> <span data-ar="السوق" data-en="Market">السوق</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🏫', 'المدرسة', 'School')">
-                            <span>🏫</span> <span data-ar="المدرسة" data-en="School">المدرسة</span>
-                        </button>
-                        <button class="quick-name" onclick="setQuickName('🕌', 'المسجد', 'Mosque')">
-                            <span>🕌</span> <span data-ar="المسجد" data-en="Mosque">المسجد</span>
-                        </button>
+                        <button class="quick-name" onclick="setQuickName('💼','العمل','Work')"><span>💼</span> <span data-ar="العمل" data-en="Work">العمل</span></button>
+                        <button class="quick-name" onclick="setQuickName('🏡','بيت الأهل','Family Home')"><span>🏡</span> <span data-ar="بيت الأهل" data-en="Family Home">بيت الأهل</span></button>
+                        <button class="quick-name" onclick="setQuickName('🏠','المنزل','Home')"><span>🏠</span> <span data-ar="المنزل" data-en="Home">المنزل</span></button>
+                        <button class="quick-name" onclick="setQuickName('🌴','الاستراحة','Rest House')"><span>🌴</span> <span data-ar="الاستراحة" data-en="Rest House">الاستراحة</span></button>
+                        <button class="quick-name" onclick="setQuickName('🎓','الجامعة','University')"><span>🎓</span> <span data-ar="الجامعة" data-en="University">الجامعة</span></button>
+                        <button class="quick-name" onclick="setQuickName('🏋️','النادي','Gym')"><span>🏋️</span> <span data-ar="النادي" data-en="Gym">النادي</span></button>
+                        <button class="quick-name" onclick="setQuickName('🏢','المكتب','Office')"><span>🏢</span> <span data-ar="المكتب" data-en="Office">المكتب</span></button>
+                        <button class="quick-name" onclick="setQuickName('🛒','السوق','Market')"><span>🛒</span> <span data-ar="السوق" data-en="Market">السوق</span></button>
+                        <button class="quick-name" onclick="setQuickName('🏫','المدرسة','School')"><span>🏫</span> <span data-ar="المدرسة" data-en="School">المدرسة</span></button>
+                        <button class="quick-name" onclick="setQuickName('🕌','المسجد','Mosque')"><span>🕌</span> <span data-ar="المسجد" data-en="Mosque">المسجد</span></button>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label" data-ar="🔄 عدد مرات الزيارة" data-en="🔄 Visit Frequency">🔄 عدد مرات الزيارة</label>
                     <div class="chips-container" id="freqChips">
-                        <button class="chip selected" data-freq="daily" onclick="selectFreq(this)">
-                            <span data-ar="يوميًا" data-en="Daily">يوميًا</span>
-                        </button>
-                        <button class="chip" data-freq="weekly" onclick="selectFreq(this)">
-                            <span data-ar="أسبوعيًا" data-en="Weekly">أسبوعيًا</span>
-                        </button>
-                        <button class="chip" data-freq="monthly" onclick="selectFreq(this)">
-                            <span data-ar="شهريًا" data-en="Monthly">شهريًا</span>
-                        </button>
+                        <button class="chip selected" data-freq="daily" onclick="selectFreq(this)"><span data-ar="يوميًا" data-en="Daily">يوميًا</span></button>
+                        <button class="chip" data-freq="weekly" onclick="selectFreq(this)"><span data-ar="أسبوعيًا" data-en="Weekly">أسبوعيًا</span></button>
+                        <button class="chip" data-freq="monthly" onclick="selectFreq(this)"><span data-ar="شهريًا" data-en="Monthly">شهريًا</span></button>
                     </div>
                 </div>
-
                 <button class="btn-add" onclick="confirmAddLocation()" data-ar="إضافة الموقع ➕" data-en="Add Location ➕">إضافة الموقع ➕</button>
             </div>
 
@@ -1429,9 +790,7 @@
                 </div>
                 <div class="result-neighborhood" id="resultNeighborhood">---</div>
                 <div class="result-desc" id="resultDesc"></div>
-
                 <div class="result-justification" id="resultJustification"></div>
-
                 <div class="result-distances" id="resultDistances"></div>
                 <div class="result-actions">
                     <button class="btn-secondary" onclick="resetAll()">
@@ -1443,12 +802,18 @@
                 </div>
             </div>
 
+            <!-- AD SLOT 2: After result -->
+            <div class="ad-slot" id="adSlot2" style="display:none;">
+                <span class="ad-slot-label">إعلان</span>
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            </div>
+
             <!-- BROKER SECTION -->
             <div class="broker-section" id="brokerSection">
                 <div class="broker-cta" id="brokerCta">
                     <div class="broker-cta-icon">🏡</div>
                     <div class="broker-cta-title" data-ar="تبي وسطاء عقاريين يتواصلون معك؟" data-en="Want real estate agents to contact you?">تبي وسطاء عقاريين يتواصلون معك؟</div>
-                    <div class="broker-cta-desc" data-ar="حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة" data-en="Share your details and specialized real estate agents in the suggested area will reach out to you">حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة</div>
+                    <div class="broker-cta-desc" data-ar="حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة" data-en="Share your details and specialized agents will reach out">حط بياناتك وبيتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة</div>
                     <button class="btn-broker-outline" onclick="showBrokerForm()">
                         <span>📋</span>
                         <span data-ar="نعم، أبي وسيط عقاري" data-en="Yes, I want a broker">نعم، أبي وسيط عقاري</span>
@@ -1461,162 +826,45 @@
                             <span>📋</span>
                             <span data-ar="بيانات الطلب" data-en="Request Details">بيانات الطلب</span>
                         </div>
-
-                        <!-- Property Type -->
+                        <!-- Q1: Property Type -->
                         <div class="form-group">
                             <label class="form-label">
                                 <span class="broker-step-label" data-ar="١" data-en="1">١</span>
-                                <span data-ar=" وش نوع العقار اللي تبيه؟" data-en=" What property type do you want?"> وش نوع العقار اللي تبيه؟</span>
+                                <span data-ar=" وش نوع العقار؟" data-en=" What property type?"> وش نوع العقار؟</span>
                             </label>
                             <div class="property-types" id="propertyTypes">
-                                <button class="property-type-btn" data-type="land" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏗️</span>
-                                    <span data-ar="أرض" data-en="Land">أرض</span>
-                                </button>
-                                <button class="property-type-btn" data-type="villa" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏡</span>
-                                    <span data-ar="فيلا" data-en="Villa">فيلا</span>
-                                </button>
-                                <button class="property-type-btn" data-type="apartment" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏢</span>
-                                    <span data-ar="شقة" data-en="Apartment">شقة</span>
-                                </button>
-                                <button class="property-type-btn" data-type="duplex" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏘️</span>
-                                    <span data-ar="دبلكس" data-en="Duplex">دبلكس</span>
-                                </button>
-                                <button class="property-type-btn" data-type="floor" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏠</span>
-                                    <span data-ar="دور" data-en="Floor">دور</span>
-                                </button>
-                                <button class="property-type-btn" data-type="townhouse" onclick="selectProperty(this)">
-                                    <span class="property-type-icon">🏚️</span>
-                                    <span data-ar="تاون هاوس" data-en="Townhouse">تاون هاوس</span>
-                                </button>
+                                <button class="property-type-btn" data-type="land" onclick="selectProperty(this)"><span class="property-type-icon">🏗️</span><span data-ar="أرض" data-en="Land">أرض</span></button>
+                                <button class="property-type-btn" data-type="villa" onclick="selectProperty(this)"><span class="property-type-icon">🏡</span><span data-ar="فيلا" data-en="Villa">فيلا</span></button>
+                                <button class="property-type-btn" data-type="apartment" onclick="selectProperty(this)"><span class="property-type-icon">🏢</span><span data-ar="شقة" data-en="Apartment">شقة</span></button>
+                                <button class="property-type-btn" data-type="duplex" onclick="selectProperty(this)"><span class="property-type-icon">🏘️</span><span data-ar="دبلكس" data-en="Duplex">دبلكس</span></button>
+                                <button class="property-type-btn" data-type="floor" onclick="selectProperty(this)"><span class="property-type-icon">🏠</span><span data-ar="دور" data-en="Floor">دور</span></button>
+                                <button class="property-type-btn" data-type="townhouse" onclick="selectProperty(this)"><span class="property-type-icon">🏚️</span><span data-ar="تاون هاوس" data-en="Townhouse">تاون هاوس</span></button>
                             </div>
                         </div>
-
-                        <!-- Buy or Rent -->
+                        <!-- Q2: Buy or Rent -->
                         <div class="form-group">
                             <label class="form-label">
                                 <span class="broker-step-label" data-ar="٢" data-en="2">٢</span>
                                 <span data-ar=" شراء أو إيجار؟" data-en=" Buy or Rent?"> شراء أو إيجار؟</span>
                             </label>
                             <div class="chips-container" id="purposeChips">
-                                <button class="chip" data-purpose="buy" onclick="selectPurpose(this)">
-                                    <span>🔑</span>
-                                    <span data-ar="شراء" data-en="Buy">شراء</span>
-                                </button>
-                                <button class="chip" data-purpose="rent" onclick="selectPurpose(this)">
-                                    <span>📝</span>
-                                    <span data-ar="إيجار" data-en="Rent">إيجار</span>
-                                </button>
+                                <button class="chip" data-purpose="buy" onclick="selectPurpose(this)"><span>🔑</span><span data-ar="شراء" data-en="Buy">شراء</span></button>
+                                <button class="chip" data-purpose="rent" onclick="selectPurpose(this)"><span>📝</span><span data-ar="إيجار" data-en="Rent">إيجار</span></button>
                             </div>
                         </div>
-
-                        <!-- Budget -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٣" data-en="3">٣</span>
-                                <span data-ar=" كم ميزانيتك؟" data-en=" What's your budget?"> كم ميزانيتك؟</span>
-                            </label>
-                            <select class="form-select" id="budgetSelect">
-                                <option value="" disabled selected data-ar="اختر الميزانية..." data-en="Choose budget...">اختر الميزانية...</option>
-                                <option value="under500k">أقل من 500 ألف</option>
-                                <option value="500k-1m">500 ألف - 1 مليون</option>
-                                <option value="1m-1.5m">1 مليون - 1.5 مليون</option>
-                                <option value="1.5m-2m">1.5 مليون - 2 مليون</option>
-                                <option value="2m-3m">2 مليون - 3 مليون</option>
-                                <option value="above3m">أكثر من 3 مليون</option>
-                            </select>
-                        </div>
-
-                        <!-- Rooms -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٤" data-en="4">٤</span>
-                                <span data-ar=" كم عدد الغرف؟" data-en=" How many rooms?"> كم عدد الغرف؟</span>
-                            </label>
-                            <div class="chips-container" id="roomsChips">
-                                <button class="chip" data-rooms="2" onclick="selectRooms(this)">2</button>
-                                <button class="chip" data-rooms="3" onclick="selectRooms(this)">3</button>
-                                <button class="chip" data-rooms="4" onclick="selectRooms(this)">4</button>
-                                <button class="chip" data-rooms="5" onclick="selectRooms(this)">5</button>
-                                <button class="chip" data-rooms="6+" onclick="selectRooms(this)">6+</button>
-                            </div>
-                        </div>
-
-                        <!-- Family Size -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٥" data-en="5">٥</span>
-                                <span data-ar=" كم عدد أفراد الأسرة؟" data-en=" Family size?"> كم عدد أفراد الأسرة؟</span>
-                            </label>
-                            <div class="chips-container" id="familyChips">
-                                <button class="chip" data-family="1-2" onclick="selectFamily(this)">
-                                    <span data-ar="1-2 أفراد" data-en="1-2">1-2 أفراد</span>
-                                </button>
-                                <button class="chip" data-family="3-4" onclick="selectFamily(this)">
-                                    <span data-ar="3-4 أفراد" data-en="3-4">3-4 أفراد</span>
-                                </button>
-                                <button class="chip" data-family="5-6" onclick="selectFamily(this)">
-                                    <span data-ar="5-6 أفراد" data-en="5-6">5-6 أفراد</span>
-                                </button>
-                                <button class="chip" data-family="7+" onclick="selectFamily(this)">
-                                    <span data-ar="7+ أفراد" data-en="7+">7+ أفراد</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Timeline -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٦" data-en="6">٦</span>
-                                <span data-ar=" متى تبي تنتقل؟" data-en=" When do you plan to move?"> متى تبي تنتقل؟</span>
-                            </label>
-                            <div class="chips-container" id="timelineChips">
-                                <button class="chip" data-timeline="asap" onclick="selectTimeline(this)">
-                                    <span data-ar="في أقرب وقت" data-en="ASAP">في أقرب وقت</span>
-                                </button>
-                                <button class="chip" data-timeline="1-3months" onclick="selectTimeline(this)">
-                                    <span data-ar="خلال 1-3 أشهر" data-en="1-3 months">خلال 1-3 أشهر</span>
-                                </button>
-                                <button class="chip" data-timeline="3-6months" onclick="selectTimeline(this)">
-                                    <span data-ar="خلال 3-6 أشهر" data-en="3-6 months">خلال 3-6 أشهر</span>
-                                </button>
-                                <button class="chip" data-timeline="exploring" onclick="selectTimeline(this)">
-                                    <span data-ar="أستكشف بس" data-en="Just exploring">أستكشف بس</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Notes -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <span class="broker-step-label" data-ar="٧" data-en="7">٧</span>
-                                <span data-ar=" ملاحظات إضافية (اختياري)" data-en=" Additional notes (optional)"> ملاحظات إضافية (اختياري)</span>
-                            </label>
-                            <textarea class="form-textarea" id="brokerNotes"
-                                placeholder="مثال: أبي بيت قريب من مدرسة، أو أبي جراج يسع سيارتين..."
-                                data-ar-ph="مثال: أبي بيت قريب من مدرسة، أو أبي جراج يسع سيارتين..."
-                                data-en-ph="e.g. I want a house near a school, or a garage for 2 cars..."></textarea>
-                        </div>
-
                         <!-- Phone -->
                         <div class="form-group">
                             <label class="form-label">
-                                <span class="broker-step-label" data-ar="٨" data-en="8">٨</span>
+                                <span class="broker-step-label" data-ar="٣" data-en="3">٣</span>
                                 <span data-ar=" رقم الجوال للتواصل" data-en=" Your phone number"> رقم الجوال للتواصل</span>
                             </label>
                             <div class="phone-input-wrapper">
                                 <span class="phone-prefix">+966</span>
                                 <input type="tel" class="phone-input" id="brokerPhone"
-                                    placeholder="5XXXXXXXX"
-                                    maxlength="9"
+                                    placeholder="5XXXXXXXX" maxlength="9"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                         </div>
-
                         <button class="btn-broker" id="brokerSubmitBtn" onclick="submitBrokerForm()" disabled>
                             <span>📤</span>
                             <span data-ar="أرسل طلبي للوسطاء" data-en="Send to Brokers">أرسل طلبي للوسطاء</span>
@@ -1624,11 +872,10 @@
                     </div>
                 </div>
 
-                <!-- Success -->
                 <div class="broker-success" id="brokerSuccess">
                     <div class="broker-success-icon">🎉</div>
                     <div class="broker-success-title" data-ar="تم إرسال طلبك بنجاح!" data-en="Request sent successfully!">تم إرسال طلبك بنجاح!</div>
-                    <div class="broker-success-desc" data-ar="راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!" data-en="Specialized real estate agents in the suggested area will contact you within 24-48 hours. Thanks for using Where to Live!">راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!</div>
+                    <div class="broker-success-desc" data-ar="راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!" data-en="Specialized real estate agents will contact you within 24-48 hours. Thanks for using Where to Live!">راح يتواصل معك وسطاء عقاريين متخصصين في المنطقة المقترحة خلال 24-48 ساعة. شكرًا لاستخدامك وين أسكن!</div>
                 </div>
             </div>
 
@@ -1645,862 +892,922 @@
                 </div>
                 <div class="how-step">
                     <div class="how-step-num">3</div>
-                    <div class="how-step-text" data-ar="اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة" data-en="Click 'Where should I live?' and we'll calculate the best spot with normal & rush hour times">اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة</div>
+                    <div class="how-step-text" data-ar="اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة" data-en="Click 'Where should I live?' and we'll calculate the best spot">اضغط 'وين أسكن؟' وراح نحسب لك أفضل موقع مع الوقت العادي ووقت الزحمة</div>
                 </div>
+            </div>
+
+            <!-- AD SLOT 1: After how it works -->
+            <div class="ad-slot" id="adSlot1">
+                <span class="ad-slot-label">إعلان</span>
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
 
         </div>
     </div>
+
+    <!-- MOBILE BOTTOM SHEET -->
+    <div class="mobile-bottom-sheet collapsed" id="bottomSheet">
+        <div class="sheet-drag-handle" id="sheetDragHandle">
+            <div class="sheet-drag-handle-bar"></div>
+        </div>
+        <div class="sheet-summary" id="sheetSummary">
+            <div class="sheet-summary-info">
+                <span id="sheetLocCount" class="sheet-summary-count" data-ar="0 مواقع" data-en="0 locations">0 مواقع</span>
+            </div>
+            <button class="sheet-summary-btn" id="sheetCalcBtn" onclick="calculateOptimal()" disabled>
+                <span data-ar="وين أسكن؟ ✨" data-en="Where to live? ✨">وين أسكن؟ ✨</span>
+            </button>
+        </div>
+        <div class="sheet-content" id="sheetContent">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+
+    <!-- CONFETTI CONTAINER -->
+    <div class="confetti-container" id="confettiContainer"></div>
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ===== STATE =====
-        let lang = 'ar';
-        let locations = [];
-        let pendingLocation = null;
-        let isCalculated = false;
-        let selectedEmoji = '📌';
+    // ===== STATE =====
+    let lang = 'ar';
+    let locations = [];
+    let pendingLocation = null;
+    let isCalculated = false;
+    let selectedEmoji = '📌';
+    let isMobile = window.innerWidth < 768;
 
-        let map;
-        let markersGroup;
-        let centroidMarker = null;
-        let zoneRect = null;
-        let connectionLines = [];
-        let distanceLabels = [];
-        let tempMarker = null;
+    let map;
+    let markersGroup;
+    let centroidMarker = null;
+    let zoneRect = null;
+    let connectionLines = [];
+    let distanceLabels = [];
+    let tempMarker = null;
 
-        // ===== ICON MAP =====
-        const NAME_ICONS = {
-            'العمل': '💼', 'Work': '💼',
-            'بيت الأهل': '🏡', 'Family Home': '🏡',
-            'المنزل': '🏠', 'Home': '🏠',
-            'الاستراحة': '🌴', 'Rest House': '🌴',
-            'الجامعة': '🎓', 'University': '🎓',
-            'النادي': '🏋️', 'Gym': '🏋️',
-            'المكتب': '🏢', 'Office': '🏢',
-            'السوق': '🛒', 'Market': '🛒',
-            'المدرسة': '🏫', 'School': '🏫',
-            'المسجد': '🕌', 'Mosque': '🕌'
-        };
+    // ===== ICON MAP =====
+    const NAME_ICONS = {
+        'العمل': '💼', 'Work': '💼', 'بيت الأهل': '🏡', 'Family Home': '🏡',
+        'المنزل': '🏠', 'Home': '🏠', 'الاستراحة': '🌴', 'Rest House': '🌴',
+        'الجامعة': '🎓', 'University': '🎓', 'النادي': '🏋️', 'Gym': '🏋️',
+        'المكتب': '🏢', 'Office': '🏢', 'السوق': '🛒', 'Market': '🛒',
+        'المدرسة': '🏫', 'School': '🏫', 'المسجد': '🕌', 'Mosque': '🕌'
+    };
 
-        const LOCATION_COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+    const LOCATION_COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+    const FREQ_WEIGHTS = { daily: 30, weekly: 4, monthly: 1 };
+    const FREQ_LABELS = {
+        daily:   { ar: 'يوميًا',    en: 'Daily' },
+        weekly:  { ar: 'أسبوعيًا', en: 'Weekly' },
+        monthly: { ar: 'شهريًا',   en: 'Monthly' }
+    };
 
-        const FREQ_WEIGHTS = { daily: 30, weekly: 4, monthly: 1 };
+    const AVG_SPEED_NORMAL = 45;
+    const AVG_SPEED_RUSH   = 22;
 
-        const FREQ_LABELS = {
-            daily:   { ar: 'يوميًا',    en: 'Daily' },
-            weekly:  { ar: 'أسبوعيًا', en: 'Weekly' },
-            monthly: { ar: 'شهريًا',   en: 'Monthly' }
-        };
+    function estimateMinutes(distKm, speedKmh) {
+        return Math.max(1, Math.round((distKm / speedKmh) * 60));
+    }
 
-        // ===== SPEED ESTIMATES =====
-        const AVG_SPEED_NORMAL = 45;   // km/h normal traffic
-        const AVG_SPEED_RUSH   = 22;   // km/h rush hour (peak 7-9 AM, 4-7 PM)
+    // ===== PROGRESS =====
+    function updateProgress() {
+        const dot1 = document.getElementById('progDot1');
+        const dot2 = document.getElementById('progDot2');
+        const dot3 = document.getElementById('progDot3');
+        const step1 = document.getElementById('progStep1');
+        const step2 = document.getElementById('progStep2');
 
-        function estimateMinutes(distKm, speedKmh) {
-            return Math.max(1, Math.round((distKm / speedKmh) * 60));
-        }
+        const hasLocs = locations.length > 0;
+        const hasEnough = locations.length >= 2;
 
-        // ===== MAP INIT =====
-        function initMap() {
-            map = L.map('map', {
-                center: [24.7136, 46.6753],
-                zoom: 11,
-                zoomControl: true,
-                attributionControl: true,
-                dragging: true,
-                touchZoom: true,
-                scrollWheelZoom: true,
-                doubleClickZoom: false,
-                boxZoom: true,
-                keyboard: true
-            });
+        dot1.classList.toggle('active', hasLocs);
+        step1.classList.toggle('active', hasLocs);
+        step1.dataset.label = hasLocs ? (lang === 'ar' ? 'أماكن ✓' : 'Places ✓') : '';
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap',
-                maxZoom: 19
-            }).addTo(map);
+        dot2.classList.toggle('active', hasEnough);
+        step2.classList.toggle('active', hasEnough);
+        step2.dataset.label = hasEnough ? (lang === 'ar' ? 'جاهز ✓' : 'Ready ✓') : '';
 
-            markersGroup = L.layerGroup().addTo(map);
+        dot3.classList.toggle('active', isCalculated);
+    }
 
-            map.on('click', function(e) {
-                onMapClick(e.latlng.lat, e.latlng.lng);
-            });
+    // ===== MAP INIT =====
+    function initMap() {
+        map = L.map('map', {
+            center: [24.7136, 46.6753], zoom: 11,
+            zoomControl: true, attributionControl: true,
+            dragging: true, touchZoom: true, scrollWheelZoom: true,
+            doubleClickZoom: false, boxZoom: true, keyboard: true
+        });
 
-            setTimeout(() => map.invalidateSize(), 100);
-        }
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap', maxZoom: 19
+        }).addTo(map);
 
-        // ===== MAP CLICK =====
-        function onMapClick(lat, lng) {
-            if (isCalculated) return;
+        markersGroup = L.layerGroup().addTo(map);
 
-            if (tempMarker) {
-                map.removeLayer(tempMarker);
-                tempMarker = null;
-            }
+        map.on('click', function(e) { onMapClick(e.latlng.lat, e.latlng.lng); });
 
-            tempMarker = L.circleMarker([lat, lng], {
-                radius: 10,
-                color: '#10b981',
-                fillColor: '#10b981',
-                fillOpacity: 0.4,
-                weight: 2
-            }).addTo(map);
+        setTimeout(() => map.invalidateSize(), 100);
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth < 768;
+            setTimeout(() => map.invalidateSize(), 200);
+        });
+    }
 
-            document.getElementById('mapOverlay').classList.add('hidden');
+    // ===== MAP CLICK =====
+    function onMapClick(lat, lng) {
+        if (isCalculated) return;
+        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
 
-            pendingLocation = { lat, lng };
+        tempMarker = L.circleMarker([lat, lng], {
+            radius: 10, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.4, weight: 2
+        }).addTo(map);
 
-            // Set neighborhood automatically
-            document.getElementById('locationNeighborhood').value = lang === 'ar' ? 'جاري التحديد...' : 'Detecting...';
-            reverseGeocode(lat, lng).then(name => {
-                document.getElementById('locationNeighborhood').value = name;
-            });
+        document.getElementById('mapOverlay').classList.add('hidden');
+        pendingLocation = { lat, lng };
 
-            // Clear name for user to type
-            document.getElementById('locationName').value = '';
-            selectedEmoji = '📌';
+        const nbField = document.getElementById('locationNeighborhood');
+        nbField.value = lang === 'ar' ? 'جاري التحديد...' : 'Detecting...';
+        reverseGeocode(lat, lng).then(name => { nbField.value = name; });
 
-            resetFormSelections();
+        document.getElementById('locationName').value = '';
+        selectedEmoji = '📌';
+        resetFormSelections();
 
+        if (isMobile) {
+            expandSheet();
+            renderMobileSheetWithForm();
+        } else {
             document.getElementById('addForm').classList.add('show');
             document.getElementById('addForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-            // Focus the name input so user can type immediately
             setTimeout(() => document.getElementById('locationName').focus(), 300);
         }
+    }
 
-        // ===== SEARCH =====
-        let searchTimeout = null;
+    // ===== SEARCH =====
+    let searchTimeout = null;
 
-        document.getElementById('searchInput').addEventListener('input', function() {
+    function setupSearch(inputEl, resultsEl) {
+        inputEl.addEventListener('input', function() {
             const query = this.value.trim();
-            const resultsEl = document.getElementById('searchResults');
-
             if (query.length < 2) { resultsEl.classList.remove('show'); return; }
-
             clearTimeout(searchTimeout);
-            resultsEl.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'جاري البحث...' : 'Searching...'}</div>`;
+            resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'جاري البحث...' : 'Searching...') + '</div>';
             resultsEl.classList.add('show');
-
-            searchTimeout = setTimeout(() => searchNominatim(query), 400);
+            searchTimeout = setTimeout(() => searchNominatim(query, resultsEl), 400);
         });
-
-        document.getElementById('searchInput').addEventListener('focus', function() {
-            if (this.value.trim().length >= 2) document.getElementById('searchResults').classList.add('show');
+        inputEl.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2) resultsEl.classList.add('show');
         });
+    }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) document.getElementById('searchResults').classList.remove('show');
-        });
-
-        async function searchNominatim(query) {
-            const resultsEl = document.getElementById('searchResults');
-            try {
-                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' الرياض')}&format=json&addressdetails=1&limit=5&viewbox=46.2,25.1,47.2,24.3&bounded=1&accept-language=${lang}`;
-                const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
-                const data = await res.json();
-
-                if (data.length === 0) {
-                    resultsEl.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'لا توجد نتائج' : 'No results found'}</div>`;
-                    return;
-                }
-
-                resultsEl.innerHTML = data.map(item => `
-                    <div class="search-result-item" onclick="selectSearchResult(${item.lat}, ${item.lon}, '${escapeHtml(item.display_name)}')">
-                        <span class="search-result-icon">📍</span>
-                        <span class="search-result-text">${item.display_name}</span>
-                    </div>
-                `).join('');
-            } catch (err) {
-                resultsEl.innerHTML = `<div class="search-loading">${lang === 'ar' ? 'حدث خطأ في البحث' : 'Search error'}</div>`;
-            }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show'));
         }
+    });
 
-        function selectSearchResult(lat, lng, name) {
-            document.getElementById('searchResults').classList.remove('show');
-            document.getElementById('searchInput').value = '';
-            map.flyTo([lat, lng], 14, { duration: 1 });
-            setTimeout(() => onMapClick(lat, lng), 300);
-        }
+    async function searchNominatim(query, resultsEl) {
+        try {
+            const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query + ' الرياض') + '&format=json&addressdetails=1&limit=5&viewbox=46.2,25.1,47.2,24.3&bounded=1&accept-language=' + lang;
+            const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
+            const data = await res.json();
 
-        // ===== REVERSE GEOCODE =====
-        let lastGeocodeTime = 0;
-
-        async function reverseGeocode(lat, lng) {
-            const now = Date.now();
-            const wait = Math.max(0, 1100 - (now - lastGeocodeTime));
-            if (wait > 0) await new Promise(r => setTimeout(r, wait));
-            lastGeocodeTime = Date.now();
-
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&accept-language=${lang}`;
-                const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
-                const data = await res.json();
-
-                if (data.address) {
-                    return data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.road || data.display_name.split(',')[0];
-                }
-                return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
-            } catch {
-                return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
-            }
-        }
-
-        // ===== FORM CONTROLS =====
-        let selectedFreq = 'daily';
-
-        function setQuickName(emoji, arName, enName) {
-            document.getElementById('locationName').value = lang === 'ar' ? arName : enName;
-            selectedEmoji = emoji;
-        }
-
-        function selectFreq(el) {
-            document.querySelectorAll('#freqChips .chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            selectedFreq = el.dataset.freq;
-        }
-
-        function resetFormSelections() {
-            selectedFreq = 'daily';
-            selectedEmoji = '📌';
-            document.querySelectorAll('#freqChips .chip').forEach(c => c.classList.remove('selected'));
-            document.querySelector('#freqChips .chip[data-freq="daily"]').classList.add('selected');
-        }
-
-        function closeAddForm() {
-            document.getElementById('addForm').classList.remove('show');
-            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-            pendingLocation = null;
-        }
-
-        function getIconForName(name) {
-            if (NAME_ICONS[name]) return NAME_ICONS[name];
-            if (selectedEmoji !== '📌') return selectedEmoji;
-            for (const [key, icon] of Object.entries(NAME_ICONS)) {
-                if (name.includes(key) || key.includes(name)) return icon;
-            }
-            return '📌';
-        }
-
-        // ===== ADD LOCATION =====
-        function confirmAddLocation() {
-            if (!pendingLocation) return;
-
-            const name = document.getElementById('locationName').value.trim() ||
-                (lang === 'ar' ? 'موقع مخصص' : 'Custom Location');
-
-            const neighborhood = document.getElementById('locationNeighborhood').value.trim();
-            const icon = getIconForName(name);
-            const colorIdx = locations.length % LOCATION_COLORS.length;
-            const color = LOCATION_COLORS[colorIdx];
-
-            const location = {
-                id: 'loc_' + Date.now(),
-                name: name,
-                neighborhood: neighborhood,
-                icon: icon,
-                lat: pendingLocation.lat,
-                lng: pendingLocation.lng,
-                frequency: selectedFreq,
-                color: color,
-                marker: null
-            };
-
-            const markerIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div class="marker-pin" style="background: ${color}">
-                           <span class="marker-icon">${icon}</span>
-                       </div>`,
-                iconSize: [42, 48],
-                iconAnchor: [21, 48],
-                popupAnchor: [0, -48]
-            });
-
-            const marker = L.marker([location.lat, location.lng], { icon: markerIcon }).addTo(markersGroup);
-            marker.bindPopup(createPopupContent(location));
-            location.marker = marker;
-
-            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
-
-            locations.push(location);
-            renderLocationsList();
-            closeAddForm();
-            updateCalculateButton();
-
-            showToast(lang === 'ar' ? `تمت إضافة "${name}"` : `"${name}" added`);
-        }
-
-        function createPopupContent(loc) {
-            const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
-            return `
-                <div class="popup-title">${loc.icon} ${loc.name}</div>
-                <div class="popup-info">${loc.neighborhood} · ${freqLabel}</div>
-                <button class="popup-remove" onclick="removeLocation('${loc.id}')">${lang === 'ar' ? '🗑️ حذف' : '🗑️ Remove'}</button>
-            `;
-        }
-
-        function removeLocation(id) {
-            const idx = locations.findIndex(l => l.id === id);
-            if (idx === -1) return;
-            const loc = locations[idx];
-            if (loc.marker) markersGroup.removeLayer(loc.marker);
-            locations.splice(idx, 1);
-            map.closePopup();
-            renderLocationsList();
-            updateCalculateButton();
-            if (isCalculated) clearResult();
-            showToast(lang === 'ar' ? 'تم حذف الموقع' : 'Location removed');
-        }
-
-        // ===== RENDER LOCATIONS =====
-        function renderLocationsList() {
-            const listEl = document.getElementById('locationsList');
-            const countEl = document.getElementById('locationsCount');
-            countEl.textContent = locations.length;
-
-            if (locations.length === 0) {
-                listEl.innerHTML = '';
-                listEl.appendChild(createEmptyState());
+            if (data.length === 0) {
+                resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'لا توجد نتائج' : 'No results found') + '</div>';
                 return;
             }
 
-            listEl.innerHTML = locations.map(loc => {
-                const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
-                return `
-                    <div class="location-card" onclick="focusLocation('${loc.id}')">
-                        <div class="location-card-icon" style="background: ${loc.color}20; color: ${loc.color}">${loc.icon}</div>
-                        <div class="location-card-info">
-                            <div class="location-card-name">${loc.name}</div>
-                            <div class="location-card-meta">
-                                <span class="location-card-freq" style="background: ${loc.color}20; color: ${loc.color}">${freqLabel}</span>
-                            </div>
-                        </div>
-                        <button class="location-card-delete" onclick="event.stopPropagation(); removeLocation('${loc.id}')">✕</button>
-                    </div>
-                `;
-            }).join('');
+            resultsEl.innerHTML = data.map(item =>
+                '<div class="search-result-item" onclick="selectSearchResult(' + item.lat + ', ' + item.lon + ', \'' + escapeHtml(item.display_name) + '\')">' +
+                '<span class="search-result-icon">📍</span>' +
+                '<span class="search-result-text">' + item.display_name + '</span></div>'
+            ).join('');
+        } catch (err) {
+            resultsEl.innerHTML = '<div class="search-loading">' + (lang === 'ar' ? 'حدث خطأ في البحث' : 'Search error') + '</div>';
         }
+    }
 
-        function createEmptyState() {
-            const div = document.createElement('div');
-            div.className = 'empty-state';
-            div.innerHTML = `
-                <div class="empty-state-icon">📍</div>
-                <p>${lang === 'ar' ? 'ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة' : 'Search or click on the map to add your frequent places'}</p>
-            `;
-            return div;
+    function selectSearchResult(lat, lng, name) {
+        document.querySelectorAll('.search-results').forEach(r => r.classList.remove('show'));
+        document.querySelectorAll('.search-input').forEach(i => { i.value = ''; });
+        map.flyTo([lat, lng], 14, { duration: 1 });
+        setTimeout(() => onMapClick(lat, lng), 300);
+    }
+
+    // ===== QUICK SEARCH (mobile) =====
+    function quickSearch(arName, enName) {
+        const query = lang === 'ar' ? arName : enName;
+        if (isMobile) {
+            expandSheet();
+            renderMobileSheetSearch(query);
         }
-
-        function focusLocation(id) {
-            const loc = locations.find(l => l.id === id);
-            if (loc) { map.flyTo([loc.lat, loc.lng], 15, { duration: 0.8 }); loc.marker.openPopup(); }
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = query;
+            searchInput.dispatchEvent(new Event('input'));
         }
+    }
 
-        function updateCalculateButton() {
-            document.getElementById('calculateBtn').disabled = locations.length < 2;
-        }
+    // ===== REVERSE GEOCODE =====
+    let lastGeocodeTime = 0;
 
-        // ===== CALCULATE =====
-        async function calculateOptimal() {
-            if (locations.length < 2) return;
+    async function reverseGeocode(lat, lng) {
+        const now = Date.now();
+        const wait = Math.max(0, 1100 - (now - lastGeocodeTime));
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+        lastGeocodeTime = Date.now();
 
-            const btn = document.getElementById('calculateBtn');
-            btn.classList.add('loading');
-            btn.innerHTML = `<span>⏳</span> <span>${lang === 'ar' ? 'جاري الحساب...' : 'Calculating...'}</span>`;
-
-            clearResult();
-            await new Promise(r => setTimeout(r, 500));
-
-            // Weighted centroid
-            let totalW = 0, wLat = 0, wLng = 0;
-            locations.forEach(loc => {
-                const w = FREQ_WEIGHTS[loc.frequency];
-                wLat += loc.lat * w;
-                wLng += loc.lng * w;
-                totalW += w;
-            });
-
-            const cLat = wLat / totalW;
-            const cLng = wLng / totalW;
-
-            // Centroid marker
-            centroidMarker = L.marker([cLat, cLng], {
-                icon: L.divIcon({
-                    className: 'custom-marker',
-                    html: '<div class="centroid-marker-inner"></div>',
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11]
-                }),
-                zIndexOffset: 1000
-            }).addTo(map);
-
-            // 1km x 1km zone
-            const latOff = 0.5 / 111.32;
-            const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
-
-            zoneRect = L.rectangle([
-                [cLat - latOff, cLng - lngOff],
-                [cLat + latOff, cLng + lngOff]
-            ], {
-                color: '#10b981',
-                weight: 2,
-                fillColor: '#10b981',
-                fillOpacity: 0.12,
-                dashArray: '8, 6'
-            }).addTo(map);
-
-            // Distances & times
-            const distData = locations.map(loc => {
-                const dist = haversineDistance(cLat, cLng, loc.lat, loc.lng);
-                const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
-                const rushMin = estimateMinutes(dist, AVG_SPEED_RUSH);
-                return { loc, dist, normalMin, rushMin };
-            });
-
-            // Draw lines + info labels near each marker
-            distData.forEach(({ loc, dist, normalMin, rushMin }) => {
-                const line = L.polyline(
-                    [[cLat, cLng], [loc.lat, loc.lng]],
-                    { color: loc.color, weight: 2, dashArray: '6, 8', opacity: 0.5 }
-                ).addTo(map);
-                connectionLines.push(line);
-
-                // Info label near the location marker (offset slightly)
-                const dText = lang === 'ar' ? 'د' : 'min';
-                const labelHtml = `<div class="marker-info-label">
-                    <div class="marker-info-km">${dist.toFixed(1)} km</div>
-                    <div class="marker-info-time">🚗 ${normalMin} ${dText}</div>
-                    <div class="marker-info-rush">🔴 ${rushMin} ${dText}</div>
-                </div>`;
-
-                // Place label near the marker with slight offset
-                const offsetLat = (loc.lat - cLat) * 0.15;
-                const offsetLng = (loc.lng - cLng) * 0.15;
-
-                const label = L.marker([loc.lat + offsetLat, loc.lng + offsetLng], {
-                    icon: L.divIcon({
-                        className: '',
-                        html: labelHtml,
-                        iconSize: [100, 50],
-                        iconAnchor: [50, 25]
-                    }),
-                    interactive: false
-                }).addTo(map);
-                distanceLabels.push(label);
-            });
-
-            // Fly to bounds
-            const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
-            bounds.extend([cLat, cLng]);
-            map.flyToBounds(bounds.pad(0.2), { duration: 1.2 });
-
-            // Reverse geocode centroid
-            const neighborhood = await reverseGeocode(cLat, cLng);
-
-            // Populate result
-            document.getElementById('resultNeighborhood').textContent = neighborhood;
-
-            const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
-            const avgNormal = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
-            const avgRush = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
-
-            const descText = lang === 'ar'
-                ? `متوسط المسافة: ${avgDist.toFixed(1)} كم · عادي ~${avgNormal} د · ذروة ~${avgRush} د`
-                : `Avg distance: ${avgDist.toFixed(1)} km · Normal ~${avgNormal} min · Rush ~${avgRush} min`;
-            document.getElementById('resultDesc').textContent = descText;
-
-            buildJustification(distData, cLat, cLng, neighborhood);
-
-            // Distance cards per location
-            const distHtml = distData.map(({ loc, dist, normalMin, rushMin }) => {
-                const dLabel = lang === 'ar' ? 'د' : 'min';
-                const normalLabel = lang === 'ar' ? 'عادي' : 'Normal';
-                const rushLabel = lang === 'ar' ? 'ذروة' : 'Rush';
-                return `
-                    <div class="result-distance-item">
-                        <div class="result-distance-header">
-                            <div class="result-distance-name">
-                                <span>${loc.icon}</span>
-                                <span>${loc.name}</span>
-                            </div>
-                            <span class="result-distance-km">${dist.toFixed(1)} km</span>
-                        </div>
-                        <div class="result-distance-times">
-                            <span class="result-time-badge result-time-normal">🚗 ${normalLabel}: ${normalMin} ${dLabel}</span>
-                            <span class="result-time-badge result-time-rush">🔴 ${rushLabel}: ${rushMin} ${dLabel}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('resultDistances').innerHTML = distHtml;
-            document.getElementById('resultCard').classList.add('show');
-            document.getElementById('howItWorks').style.display = 'none';
-
-            btn.classList.remove('loading');
-            btn.innerHTML = `<span>✨</span> <span data-ar="وين أسكن؟" data-en="Where should I live?">${lang === 'ar' ? 'وين أسكن؟' : 'Where should I live?'}</span>`;
-            btn.disabled = true;
-
-            isCalculated = true;
-
-            // Show broker section
-            document.getElementById('brokerSection').classList.add('show');
-            document.getElementById('brokerCta').style.display = '';
-            document.getElementById('brokerForm').classList.remove('show');
-            document.getElementById('brokerSuccess').classList.remove('show');
-
-            showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
-        }
-
-        // ===== JUSTIFICATION =====
-        function buildJustification(distData, cLat, cLng, neighborhood) {
-            const justEl = document.getElementById('resultJustification');
-
-            const sorted = [...distData].sort((a, b) => FREQ_WEIGHTS[b.loc.frequency] - FREQ_WEIGHTS[a.loc.frequency]);
-            const mostVisited = sorted[0];
-            const farthest = [...distData].sort((a, b) => b.dist - a.dist)[0];
-            const nearest = [...distData].sort((a, b) => a.dist - b.dist)[0];
-
-            const totalTrips = distData.reduce((s, d) => s + FREQ_WEIGHTS[d.loc.frequency], 0);
-            const totalKm = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency] * 2, 0);
-            const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
-            const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
-            const dailyNormal = Math.round(totalNormalMin / 30);
-            const dailyRush = Math.round(totalRushMin / 30);
-
-            let points;
-            if (lang === 'ar') {
-                points = [
-                    `المنطقة مختارة لأنها الأقرب لمكانك الأكثر زيارة "${mostVisited.loc.name}" (${FREQ_LABELS[mostVisited.loc.frequency].ar}) مع موازنة باقي الأماكن.`,
-                    `أقرب مكان: "${nearest.loc.name}" (${nearest.dist.toFixed(1)} كم، ~${nearest.normalMin} د عادي). أبعد مكان: "${farthest.loc.name}" (${farthest.dist.toFixed(1)} كم، ~${farthest.normalMin} د عادي).`,
-                    `إجمالي رحلاتك الشهرية: ${totalTrips} رحلة ذهاب، ~${Math.round(totalKm)} كم. وقت القيادة: ~${totalNormalMin} دقيقة عادي / ~${totalRushMin} دقيقة وقت الذروة.`,
-                    `معدل القيادة اليومي: ~${dailyNormal} دقيقة (عادي) / ~${dailyRush} دقيقة (وقت الزحمة).`
-                ];
-            } else {
-                points = [
-                    `This area is closest to your most visited place "${mostVisited.loc.name}" (${FREQ_LABELS[mostVisited.loc.frequency].en}) while balancing all locations.`,
-                    `Nearest: "${nearest.loc.name}" (${nearest.dist.toFixed(1)} km, ~${nearest.normalMin} min). Farthest: "${farthest.loc.name}" (${farthest.dist.toFixed(1)} km, ~${farthest.normalMin} min).`,
-                    `Monthly trips: ${totalTrips} one-way, ~${Math.round(totalKm)} km. Drive time: ~${totalNormalMin} min normal / ~${totalRushMin} min rush hour.`,
-                    `Daily driving avg: ~${dailyNormal} min (normal) / ~${dailyRush} min (rush hour).`
-                ];
+        try {
+            const url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&addressdetails=1&accept-language=' + lang;
+            const res = await fetch(url, { headers: { 'User-Agent': 'WainAskan-App/1.0' } });
+            const data = await res.json();
+            if (data.address) {
+                return data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.road || data.display_name.split(',')[0];
             }
-
-            const title = lang === 'ar' ? '💡 لماذا هذه المنطقة؟' : '💡 Why this area?';
-            justEl.innerHTML = `
-                <div class="justification-title">${title}</div>
-                <div class="justification-text">
-                    ${points.map(p => `<div class="justification-point"><span>•</span><span>${p}</span></div>`).join('')}
-                </div>
-            `;
+            return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
+        } catch {
+            return lang === 'ar' ? 'موقع محدد' : 'Selected Location';
         }
+    }
 
-        // ===== HAVERSINE =====
-        function haversineDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    // ===== FORM CONTROLS =====
+    let selectedFreq = 'daily';
+
+    function setQuickName(emoji, arName, enName) {
+        document.getElementById('locationName').value = lang === 'ar' ? arName : enName;
+        selectedEmoji = emoji;
+    }
+
+    function selectFreq(el) {
+        const container = el.closest('.chips-container') || document.getElementById('freqChips');
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedFreq = el.dataset.freq;
+    }
+
+    function resetFormSelections() {
+        selectedFreq = 'daily'; selectedEmoji = '📌';
+        document.querySelectorAll('#freqChips .chip').forEach(c => c.classList.remove('selected'));
+        const dailyChip = document.querySelector('#freqChips .chip[data-freq="daily"]');
+        if (dailyChip) dailyChip.classList.add('selected');
+    }
+
+    function closeAddForm() {
+        document.getElementById('addForm').classList.remove('show');
+        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
+        pendingLocation = null;
+        if (isMobile) { renderMobileSheet(); collapseSheet(); }
+    }
+
+    function getIconForName(name) {
+        if (NAME_ICONS[name]) return NAME_ICONS[name];
+        if (selectedEmoji !== '📌') return selectedEmoji;
+        for (const [key, icon] of Object.entries(NAME_ICONS)) {
+            if (name.includes(key) || key.includes(name)) return icon;
         }
+        return '📌';
+    }
 
-        // ===== CLEAR & RESET =====
-        function clearResult() {
-            if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
-            if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
-            connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
-            distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
-            document.getElementById('resultCard').classList.remove('show');
-            document.getElementById('brokerSection').classList.remove('show');
-            document.getElementById('howItWorks').style.display = '';
-            isCalculated = false;
-            updateCalculateButton();
-        }
+    // ===== ADD LOCATION =====
+    function confirmAddLocation() {
+        if (!pendingLocation) return;
 
-        function resetAll() {
-            clearResult();
-            locations.forEach(loc => { if (loc.marker) markersGroup.removeLayer(loc.marker); });
-            locations = [];
-            renderLocationsList();
-            updateCalculateButton();
-            document.getElementById('mapOverlay').classList.remove('hidden');
-            map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
-            showToast(lang === 'ar' ? 'تم إعادة الضبط' : 'Reset complete');
-        }
+        const name = document.getElementById('locationName').value.trim() || (lang === 'ar' ? 'موقع مخصص' : 'Custom Location');
+        const neighborhood = document.getElementById('locationNeighborhood').value.trim();
+        const icon = getIconForName(name);
+        const colorIdx = locations.length % LOCATION_COLORS.length;
+        const color = LOCATION_COLORS[colorIdx];
 
-        // ===== SHARE =====
-        function shareResult() {
-            const neighborhood = document.getElementById('resultNeighborhood').textContent;
-            let totalW = 0, wLat = 0, wLng = 0;
-            locations.forEach(loc => { const w = FREQ_WEIGHTS[loc.frequency]; wLat += loc.lat*w; wLng += loc.lng*w; totalW += w; });
-            const cLat = wLat/totalW, cLng = wLng/totalW;
-
-            const lines = locations.map(loc => {
-                const d = haversineDistance(cLat, cLng, loc.lat, loc.lng);
-                const n = estimateMinutes(d, AVG_SPEED_NORMAL);
-                const r = estimateMinutes(d, AVG_SPEED_RUSH);
-                return lang === 'ar'
-                    ? `${loc.icon} ${loc.name}: ${d.toFixed(1)} كم (~${n} د عادي / ~${r} د ذروة)`
-                    : `${loc.icon} ${loc.name}: ${d.toFixed(1)} km (~${n} min / ~${r} min rush)`;
-            }).join('\n');
-
-            const text = lang === 'ar'
-                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${neighborhood}\n\n${lines}\n\n📍 wainaskan.sa`
-                : `🏠 Where to Live?\nOptimal Area: ${neighborhood}\n\n${lines}\n\n📍 wainaskan.sa`;
-
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(lang === 'ar' ? '📋 تم نسخ النتيجة!' : '📋 Result copied!');
-            }).catch(() => showToast(lang === 'ar' ? '⚠️ لم يتم النسخ' : '⚠️ Copy failed'));
-        }
-
-        // ===== LANGUAGE =====
-        function setLang(newLang) {
-            lang = newLang;
-            document.documentElement.lang = newLang;
-            document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.lang-btn')[newLang === 'ar' ? 0 : 1].classList.add('active');
-
-            document.querySelectorAll('[data-ar]').forEach(el => {
-                el.textContent = newLang === 'ar' ? el.dataset.ar : el.dataset.en;
-            });
-
-            document.querySelectorAll('[data-ar-ph]').forEach(el => {
-                el.placeholder = newLang === 'ar' ? el.dataset.arPh : el.dataset.enPh;
-            });
-
-            renderLocationsList();
-            locations.forEach(loc => { if (loc.marker) loc.marker.setPopupContent(createPopupContent(loc)); });
-            setTimeout(() => map.invalidateSize(), 100);
-        }
-
-        // ===== TOAST =====
-        let toastTimeout;
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
-        }
-
-        // ===== UTILS =====
-        function escapeHtml(str) {
-            const d = document.createElement('div');
-            d.textContent = str;
-            return d.innerHTML.replace(/'/g, "\\'");
-        }
-
-        // ===== BROKER FORM =====
-        let brokerData = {
-            propertyType: null,
-            purpose: null,
-            rooms: null,
-            family: null,
-            timeline: null
+        const location = {
+            id: 'loc_' + Date.now(), name: name, neighborhood: neighborhood,
+            icon: icon, lat: pendingLocation.lat, lng: pendingLocation.lng,
+            frequency: selectedFreq, color: color, marker: null
         };
 
-        function showBrokerForm() {
-            document.getElementById('brokerCta').style.display = 'none';
-            document.getElementById('brokerForm').classList.add('show');
-            document.getElementById('brokerForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function selectProperty(el) {
-            document.querySelectorAll('#propertyTypes .property-type-btn').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.propertyType = el.dataset.type;
-            checkBrokerFormValid();
-        }
-
-        function selectPurpose(el) {
-            document.querySelectorAll('#purposeChips .chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.purpose = el.dataset.purpose;
-
-            // Update budget options based on buy/rent
-            updateBudgetOptions(brokerData.purpose);
-            checkBrokerFormValid();
-        }
-
-        function updateBudgetOptions(purpose) {
-            const sel = document.getElementById('budgetSelect');
-            sel.innerHTML = '';
-
-            const defaultOpt = document.createElement('option');
-            defaultOpt.value = '';
-            defaultOpt.disabled = true;
-            defaultOpt.selected = true;
-            defaultOpt.textContent = lang === 'ar' ? 'اختر الميزانية...' : 'Choose budget...';
-            sel.appendChild(defaultOpt);
-
-            let options;
-            if (purpose === 'rent') {
-                options = lang === 'ar'
-                    ? [
-                        { v: 'under15k', t: 'أقل من 15 ألف سنويًا' },
-                        { v: '15k-25k', t: '15 - 25 ألف سنويًا' },
-                        { v: '25k-40k', t: '25 - 40 ألف سنويًا' },
-                        { v: '40k-60k', t: '40 - 60 ألف سنويًا' },
-                        { v: '60k-100k', t: '60 - 100 ألف سنويًا' },
-                        { v: 'above100k', t: 'أكثر من 100 ألف سنويًا' }
-                    ]
-                    : [
-                        { v: 'under15k', t: 'Under 15K/year' },
-                        { v: '15k-25k', t: '15K - 25K/year' },
-                        { v: '25k-40k', t: '25K - 40K/year' },
-                        { v: '40k-60k', t: '40K - 60K/year' },
-                        { v: '60k-100k', t: '60K - 100K/year' },
-                        { v: 'above100k', t: 'Above 100K/year' }
-                    ];
-            } else {
-                options = lang === 'ar'
-                    ? [
-                        { v: 'under500k', t: 'أقل من 500 ألف' },
-                        { v: '500k-1m', t: '500 ألف - 1 مليون' },
-                        { v: '1m-1.5m', t: '1 مليون - 1.5 مليون' },
-                        { v: '1.5m-2m', t: '1.5 مليون - 2 مليون' },
-                        { v: '2m-3m', t: '2 مليون - 3 مليون' },
-                        { v: 'above3m', t: 'أكثر من 3 مليون' }
-                    ]
-                    : [
-                        { v: 'under500k', t: 'Under 500K' },
-                        { v: '500k-1m', t: '500K - 1M' },
-                        { v: '1m-1.5m', t: '1M - 1.5M' },
-                        { v: '1.5m-2m', t: '1.5M - 2M' },
-                        { v: '2m-3m', t: '2M - 3M' },
-                        { v: 'above3m', t: 'Above 3M' }
-                    ];
-            }
-
-            options.forEach(opt => {
-                const o = document.createElement('option');
-                o.value = opt.v;
-                o.textContent = opt.t;
-                sel.appendChild(o);
-            });
-        }
-
-        function selectRooms(el) {
-            document.querySelectorAll('#roomsChips .chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.rooms = el.dataset.rooms;
-            checkBrokerFormValid();
-        }
-
-        function selectFamily(el) {
-            document.querySelectorAll('#familyChips .chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.family = el.dataset.family;
-            checkBrokerFormValid();
-        }
-
-        function selectTimeline(el) {
-            document.querySelectorAll('#timelineChips .chip').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.timeline = el.dataset.timeline;
-            checkBrokerFormValid();
-        }
-
-        // Validate phone on input
-        document.addEventListener('DOMContentLoaded', function() {
-            const phoneEl = document.getElementById('brokerPhone');
-            if (phoneEl) {
-                phoneEl.addEventListener('input', checkBrokerFormValid);
-            }
-
-            const budgetEl = document.getElementById('budgetSelect');
-            if (budgetEl) {
-                budgetEl.addEventListener('change', checkBrokerFormValid);
-            }
+        const markerIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div class="marker-pin" style="background: ' + color + '"><span class="marker-icon">' + icon + '</span></div>',
+            iconSize: [42, 48], iconAnchor: [21, 48], popupAnchor: [0, -48]
         });
 
-        function checkBrokerFormValid() {
-            const phone = document.getElementById('brokerPhone').value.trim();
-            const budget = document.getElementById('budgetSelect').value;
+        const marker = L.marker([location.lat, location.lng], { icon: markerIcon }).addTo(markersGroup);
+        marker.bindPopup(createPopupContent(location));
+        location.marker = marker;
 
-            const isValid = brokerData.propertyType &&
-                            brokerData.purpose &&
-                            budget &&
-                            brokerData.rooms &&
-                            phone.length >= 9 &&
-                            phone.startsWith('5');
+        if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
 
-            document.getElementById('brokerSubmitBtn').disabled = !isValid;
+        locations.push(location);
+        renderLocationsList();
+        closeAddForm();
+        updateCalculateButton();
+        updateProgress();
+
+        showToast(lang === 'ar' ? 'تمت إضافة "' + name + '"' : '"' + name + '" added');
+    }
+
+    function createPopupContent(loc) {
+        const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
+        return '<div class="popup-title">' + loc.icon + ' ' + loc.name + '</div>' +
+            '<div class="popup-info">' + loc.neighborhood + ' · ' + freqLabel + '</div>' +
+            '<button class="popup-remove" onclick="removeLocation(\'' + loc.id + '\')">' + (lang === 'ar' ? '🗑️ حذف' : '🗑️ Remove') + '</button>';
+    }
+
+    function removeLocation(id) {
+        const idx = locations.findIndex(l => l.id === id);
+        if (idx === -1) return;
+        const loc = locations[idx];
+        if (loc.marker) markersGroup.removeLayer(loc.marker);
+        locations.splice(idx, 1);
+        map.closePopup();
+        renderLocationsList();
+        updateCalculateButton();
+        updateProgress();
+        if (isCalculated) clearResult();
+        showToast(lang === 'ar' ? 'تم حذف الموقع' : 'Location removed');
+    }
+
+    // ===== RENDER LOCATIONS =====
+    function renderLocationsList() {
+        // Desktop
+        const listEl = document.getElementById('locationsList');
+        const countEl = document.getElementById('locationsCount');
+        countEl.textContent = locations.length;
+
+        if (locations.length === 0) {
+            listEl.innerHTML = '';
+            listEl.appendChild(createEmptyState());
+        } else {
+            listEl.innerHTML = locations.map(loc => createLocationCardHtml(loc)).join('');
         }
 
-        // ===== GOOGLE SHEETS CONFIG =====
-        // ضع رابط Google Apps Script هنا بعد الإعداد:
-        const GOOGLE_SHEETS_URL = '';  // اتركه فاضي الآن، عبّيه بعد إعداد Google Sheets
+        // Mobile sheet
+        if (isMobile) renderMobileSheet();
+    }
 
-        function submitBrokerForm() {
-            const phone = document.getElementById('brokerPhone').value.trim();
-            const budget = document.getElementById('budgetSelect').value;
-            const notes = document.getElementById('brokerNotes').value.trim();
-            const neighborhood = document.getElementById('resultNeighborhood').textContent;
+    function createLocationCardHtml(loc) {
+        const freqLabel = lang === 'ar' ? FREQ_LABELS[loc.frequency].ar : FREQ_LABELS[loc.frequency].en;
+        return '<div class="location-card" onclick="focusLocation(\'' + loc.id + '\')">' +
+            '<div class="location-card-icon" style="background: ' + loc.color + '20; color: ' + loc.color + '">' + loc.icon + '</div>' +
+            '<div class="location-card-info"><div class="location-card-name">' + loc.name + '</div>' +
+            '<div class="location-card-meta"><span class="location-card-freq" style="background: ' + loc.color + '20; color: ' + loc.color + '">' + freqLabel + '</span></div></div>' +
+            '<button class="location-card-delete" onclick="event.stopPropagation(); removeLocation(\'' + loc.id + '\')">✕</button></div>';
+    }
 
-            const requestData = {
-                id: 'req_' + Date.now(),
-                neighborhood: neighborhood,
-                propertyType: brokerData.propertyType,
-                purpose: brokerData.purpose,
-                budget: budget,
-                rooms: brokerData.rooms,
-                family: brokerData.family || '',
-                timeline: brokerData.timeline || '',
-                notes: notes,
-                phone: '+966' + phone,
-                status: 'new',
-                timestamp: new Date().toISOString(),
-                date: new Date().toLocaleDateString('ar-SA'),
-                time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-            };
+    function createEmptyState() {
+        const div = document.createElement('div');
+        div.className = 'empty-state';
+        div.innerHTML = '<div class="empty-state-icon empty-state-animated">📍</div>' +
+            '<p>' + (lang === 'ar' ? 'ابحث أو اضغط على الخريطة لإضافة أماكنك المتكررة' : 'Search or click on the map to add your frequent places') + '</p>' +
+            '<div class="empty-state-dots"><span></span><span></span><span></span></div>';
+        return div;
+    }
 
-            // 1) Save to localStorage
-            saveLeadToLocal(requestData);
+    function focusLocation(id) {
+        const loc = locations.find(l => l.id === id);
+        if (loc) { map.flyTo([loc.lat, loc.lng], 15, { duration: 0.8 }); loc.marker.openPopup(); }
+    }
 
-            // 2) Send to Google Sheets (if configured)
-            if (GOOGLE_SHEETS_URL) {
-                sendToGoogleSheets(requestData);
-            }
+    function updateCalculateButton() {
+        const btn = document.getElementById('calculateBtn');
+        if (btn) btn.disabled = locations.length < 2;
+        const sheetBtn = document.getElementById('sheetCalcBtn');
+        if (sheetBtn) sheetBtn.disabled = locations.length < 2;
+    }
 
-            // Show success
-            document.getElementById('brokerForm').classList.remove('show');
-            document.getElementById('brokerSuccess').classList.add('show');
-            document.getElementById('brokerSuccess').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // ===== CONFETTI =====
+    function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        container.innerHTML = '';
+        const colors = ['#10b981', '#6ee7b7', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#fff'];
+        for (let i = 0; i < 60; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.animationDelay = Math.random() * 1.5 + 's';
+            piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+            const shapes = ['50%', '0'];
+            piece.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+            piece.style.width = (6 + Math.random() * 8) + 'px';
+            piece.style.height = (6 + Math.random() * 8) + 'px';
+            container.appendChild(piece);
+        }
+        setTimeout(() => { container.innerHTML = ''; }, 4000);
+    }
 
-            showToast(lang === 'ar' ? '🎉 تم إرسال طلبك!' : '🎉 Request sent!');
+    // ===== CALCULATE =====
+    async function calculateOptimal() {
+        if (locations.length < 2) return;
+
+        const btn = document.getElementById('calculateBtn');
+        if (btn) {
+            btn.classList.add('loading');
+            btn.innerHTML = '<span>⏳</span> <span>' + (lang === 'ar' ? 'جاري الحساب...' : 'Calculating...') + '</span>';
+        }
+        const sheetBtn = document.getElementById('sheetCalcBtn');
+        if (sheetBtn) { sheetBtn.disabled = true; sheetBtn.textContent = lang === 'ar' ? 'جاري الحساب...' : 'Calculating...'; }
+
+        clearResult();
+        await new Promise(r => setTimeout(r, 500));
+
+        let totalW = 0, wLat = 0, wLng = 0;
+        locations.forEach(loc => {
+            const w = FREQ_WEIGHTS[loc.frequency];
+            wLat += loc.lat * w; wLng += loc.lng * w; totalW += w;
+        });
+        const cLat = wLat / totalW;
+        const cLng = wLng / totalW;
+
+        centroidMarker = L.marker([cLat, cLng], {
+            icon: L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="centroid-marker-inner"></div>',
+                iconSize: [22, 22], iconAnchor: [11, 11]
+            }), zIndexOffset: 1000
+        }).addTo(map);
+
+        const latOff = 0.5 / 111.32;
+        const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
+        zoneRect = L.rectangle([
+            [cLat - latOff, cLng - lngOff], [cLat + latOff, cLng + lngOff]
+        ], { color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.12, dashArray: '8, 6' }).addTo(map);
+
+        const distData = locations.map(loc => {
+            const dist = haversineDistance(cLat, cLng, loc.lat, loc.lng);
+            const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
+            const rushMin = estimateMinutes(dist, AVG_SPEED_RUSH);
+            return { loc, dist, normalMin, rushMin };
+        });
+
+        distData.forEach(({ loc, dist, normalMin, rushMin }) => {
+            const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6, 8', opacity: 0.5 }).addTo(map);
+            connectionLines.push(line);
+
+            const dText = lang === 'ar' ? 'د' : 'min';
+            const labelHtml = '<div class="marker-info-label"><div class="marker-info-km">' + dist.toFixed(1) + ' km</div>' +
+                '<div class="marker-info-time">🚗 ' + normalMin + ' ' + dText + '</div>' +
+                '<div class="marker-info-rush">🔴 ' + rushMin + ' ' + dText + '</div></div>';
+
+            const offsetLat = (loc.lat - cLat) * 0.15;
+            const offsetLng = (loc.lng - cLng) * 0.15;
+
+            const label = L.marker([loc.lat + offsetLat, loc.lng + offsetLng], {
+                icon: L.divIcon({ className: '', html: labelHtml, iconSize: [100, 50], iconAnchor: [50, 25] }),
+                interactive: false
+            }).addTo(map);
+            distanceLabels.push(label);
+        });
+
+        const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+        bounds.extend([cLat, cLng]);
+        map.flyToBounds(bounds.pad(0.2), { duration: 1.2 });
+
+        const neighborhood = await reverseGeocode(cLat, cLng);
+        document.getElementById('resultNeighborhood').textContent = neighborhood;
+
+        const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
+        const avgNormal = Math.round(distData.reduce((s, d) => s + d.normalMin, 0) / distData.length);
+        const avgRush = Math.round(distData.reduce((s, d) => s + d.rushMin, 0) / distData.length);
+
+        const descText = lang === 'ar'
+            ? 'متوسط المسافة: ' + avgDist.toFixed(1) + ' كم · عادي ~' + avgNormal + ' د · ذروة ~' + avgRush + ' د'
+            : 'Avg distance: ' + avgDist.toFixed(1) + ' km · Normal ~' + avgNormal + ' min · Rush ~' + avgRush + ' min';
+        document.getElementById('resultDesc').textContent = descText;
+
+        buildJustification(distData, cLat, cLng, neighborhood);
+
+        const distHtml = distData.map(({ loc, dist, normalMin, rushMin }) => {
+            const dLabel = lang === 'ar' ? 'د' : 'min';
+            const normalLabel = lang === 'ar' ? 'عادي' : 'Normal';
+            const rushLabel = lang === 'ar' ? 'ذروة' : 'Rush';
+            return '<div class="result-distance-item"><div class="result-distance-header">' +
+                '<div class="result-distance-name"><span>' + loc.icon + '</span><span>' + loc.name + '</span></div>' +
+                '<span class="result-distance-km">' + dist.toFixed(1) + ' km</span></div>' +
+                '<div class="result-distance-times">' +
+                '<span class="result-time-badge result-time-normal">🚗 ' + normalLabel + ': ' + normalMin + ' ' + dLabel + '</span>' +
+                '<span class="result-time-badge result-time-rush">🔴 ' + rushLabel + ': ' + rushMin + ' ' + dLabel + '</span></div></div>';
+        }).join('');
+
+        document.getElementById('resultDistances').innerHTML = distHtml;
+        document.getElementById('resultCard').classList.add('show');
+        document.getElementById('howItWorks').style.display = 'none';
+
+        const adSlot2 = document.getElementById('adSlot2');
+        if (adSlot2) adSlot2.style.display = '';
+
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.innerHTML = '<span>✨</span> <span data-ar="وين أسكن؟" data-en="Where should I live?">' + (lang === 'ar' ? 'وين أسكن؟' : 'Where should I live?') + '</span>';
+            btn.disabled = true;
         }
 
-        function saveLeadToLocal(data) {
-            try {
-                const leads = JSON.parse(localStorage.getItem('wainaskan_leads') || '[]');
-                leads.unshift(data);
-                localStorage.setItem('wainaskan_leads', JSON.stringify(leads));
-            } catch (e) {
-                console.error('Error saving lead:', e);
-            }
+        isCalculated = true;
+        updateProgress();
+
+        document.getElementById('brokerSection').classList.add('show');
+        document.getElementById('brokerCta').style.display = '';
+        document.getElementById('brokerForm').classList.remove('show');
+        document.getElementById('brokerSuccess').classList.remove('show');
+
+        launchConfetti();
+        showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
+
+        if (isMobile) {
+            expandSheet();
+            renderMobileSheet();
+        } else {
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        function sendToGoogleSheets(data) {
-            try {
-                fetch(GOOGLE_SHEETS_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                }).catch(err => console.log('Sheets sync pending:', err));
-            } catch (e) {
-                console.log('Will sync later:', e);
-            }
+        if (sheetBtn) {
+            sheetBtn.disabled = true;
+            sheetBtn.innerHTML = '<span data-ar="وين أسكن؟ ✨" data-en="Where to live? ✨">' + (lang === 'ar' ? 'وين أسكن؟ ✨' : 'Where to live? ✨') + '</span>';
+        }
+    }
+
+    // ===== JUSTIFICATION =====
+    function buildJustification(distData, cLat, cLng, neighborhood) {
+        const justEl = document.getElementById('resultJustification');
+        const sorted = [...distData].sort((a, b) => FREQ_WEIGHTS[b.loc.frequency] - FREQ_WEIGHTS[a.loc.frequency]);
+        const mostVisited = sorted[0];
+        const farthest = [...distData].sort((a, b) => b.dist - a.dist)[0];
+        const nearest = [...distData].sort((a, b) => a.dist - b.dist)[0];
+
+        const totalTrips = distData.reduce((s, d) => s + FREQ_WEIGHTS[d.loc.frequency], 0);
+        const totalKm = distData.reduce((s, d) => s + d.dist * FREQ_WEIGHTS[d.loc.frequency] * 2, 0);
+        const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
+        const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * FREQ_WEIGHTS[d.loc.frequency] * 2, 0));
+        const dailyNormal = Math.round(totalNormalMin / 30);
+        const dailyRush = Math.round(totalRushMin / 30);
+
+        let points;
+        if (lang === 'ar') {
+            points = [
+                'المنطقة مختارة لأنها الأقرب لمكانك الأكثر زيارة "' + mostVisited.loc.name + '" (' + FREQ_LABELS[mostVisited.loc.frequency].ar + ') مع موازنة باقي الأماكن.',
+                'أقرب مكان: "' + nearest.loc.name + '" (' + nearest.dist.toFixed(1) + ' كم، ~' + nearest.normalMin + ' د عادي). أبعد مكان: "' + farthest.loc.name + '" (' + farthest.dist.toFixed(1) + ' كم، ~' + farthest.normalMin + ' د عادي).',
+                'إجمالي رحلاتك الشهرية: ' + totalTrips + ' رحلة ذهاب، ~' + Math.round(totalKm) + ' كم. وقت القيادة: ~' + totalNormalMin + ' دقيقة عادي / ~' + totalRushMin + ' دقيقة وقت الذروة.',
+                'معدل القيادة اليومي: ~' + dailyNormal + ' دقيقة (عادي) / ~' + dailyRush + ' دقيقة (وقت الزحمة).'
+            ];
+        } else {
+            points = [
+                'This area is closest to your most visited place "' + mostVisited.loc.name + '" (' + FREQ_LABELS[mostVisited.loc.frequency].en + ') while balancing all locations.',
+                'Nearest: "' + nearest.loc.name + '" (' + nearest.dist.toFixed(1) + ' km, ~' + nearest.normalMin + ' min). Farthest: "' + farthest.loc.name + '" (' + farthest.dist.toFixed(1) + ' km, ~' + farthest.normalMin + ' min).',
+                'Monthly trips: ' + totalTrips + ' one-way, ~' + Math.round(totalKm) + ' km. Drive time: ~' + totalNormalMin + ' min normal / ~' + totalRushMin + ' min rush hour.',
+                'Daily driving avg: ~' + dailyNormal + ' min (normal) / ~' + dailyRush + ' min (rush hour).'
+            ];
         }
 
-        // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', initMap);
+        const title = lang === 'ar' ? '💡 لماذا هذه المنطقة؟' : '💡 Why this area?';
+        justEl.innerHTML = '<div class="justification-title">' + title + '</div>' +
+            '<div class="justification-text">' +
+            points.map(p => '<div class="justification-point"><span>•</span><span>' + p + '</span></div>').join('') +
+            '</div>';
+    }
+
+    // ===== HAVERSINE =====
+    function haversineDistance(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // ===== CLEAR & RESET =====
+    function clearResult() {
+        if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
+        if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
+        connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
+        distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
+        document.getElementById('resultCard').classList.remove('show');
+        document.getElementById('brokerSection').classList.remove('show');
+        document.getElementById('howItWorks').style.display = '';
+        const adSlot2 = document.getElementById('adSlot2');
+        if (adSlot2) adSlot2.style.display = 'none';
+        isCalculated = false;
+        updateCalculateButton();
+        updateProgress();
+    }
+
+    function resetAll() {
+        clearResult();
+        locations.forEach(loc => { if (loc.marker) markersGroup.removeLayer(loc.marker); });
+        locations = [];
+        renderLocationsList();
+        updateCalculateButton();
+        updateProgress();
+        document.getElementById('mapOverlay').classList.remove('hidden');
+        map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
+        showToast(lang === 'ar' ? 'تم إعادة الضبط' : 'Reset complete');
+        if (isMobile) { renderMobileSheet(); collapseSheet(); }
+    }
+
+    // ===== SHARE =====
+    function shareResult() {
+        const neighborhood = document.getElementById('resultNeighborhood').textContent;
+        let totalW = 0, wLat = 0, wLng = 0;
+        locations.forEach(loc => { const w = FREQ_WEIGHTS[loc.frequency]; wLat += loc.lat*w; wLng += loc.lng*w; totalW += w; });
+        const cLat = wLat/totalW, cLng = wLng/totalW;
+
+        const lines = locations.map(loc => {
+            const d = haversineDistance(cLat, cLng, loc.lat, loc.lng);
+            const n = estimateMinutes(d, AVG_SPEED_NORMAL);
+            const r = estimateMinutes(d, AVG_SPEED_RUSH);
+            return lang === 'ar'
+                ? loc.icon + ' ' + loc.name + ': ' + d.toFixed(1) + ' كم (~' + n + ' د عادي / ~' + r + ' د ذروة)'
+                : loc.icon + ' ' + loc.name + ': ' + d.toFixed(1) + ' km (~' + n + ' min / ~' + r + ' min rush)';
+        }).join('\n');
+
+        const text = lang === 'ar'
+            ? '🏠 وين أسكن؟\nالمنطقة المثالية: ' + neighborhood + '\n\n' + lines + '\n\n📍 weeenaskn.com'
+            : '🏠 Where to Live?\nOptimal Area: ' + neighborhood + '\n\n' + lines + '\n\n📍 weeenaskn.com';
+
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(lang === 'ar' ? '📋 تم نسخ النتيجة!' : '📋 Result copied!');
+        }).catch(() => showToast(lang === 'ar' ? '⚠️ لم يتم النسخ' : '⚠️ Copy failed'));
+    }
+
+    // ===== LANGUAGE =====
+    function setLang(newLang) {
+        lang = newLang;
+        document.documentElement.lang = newLang;
+        document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.lang-btn')[newLang === 'ar' ? 0 : 1].classList.add('active');
+
+        document.querySelectorAll('[data-ar]').forEach(el => {
+            el.textContent = newLang === 'ar' ? el.dataset.ar : el.dataset.en;
+        });
+        document.querySelectorAll('[data-ar-ph]').forEach(el => {
+            el.placeholder = newLang === 'ar' ? el.dataset.arPh : el.dataset.enPh;
+        });
+
+        renderLocationsList();
+        locations.forEach(loc => { if (loc.marker) loc.marker.setPopupContent(createPopupContent(loc)); });
+        updateProgress();
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    // ===== TOAST =====
+    let toastTimeout;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ===== UTILS =====
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML.replace(/'/g, "\\'");
+    }
+
+    // ===== BROKER FORM =====
+    let brokerData = { propertyType: null, purpose: null };
+
+    function showBrokerForm() {
+        document.getElementById('brokerCta').style.display = 'none';
+        document.getElementById('brokerForm').classList.add('show');
+        document.getElementById('brokerForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function selectProperty(el) {
+        document.querySelectorAll('#propertyTypes .property-type-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        brokerData.propertyType = el.dataset.type;
+        checkBrokerFormValid();
+    }
+
+    function selectPurpose(el) {
+        document.querySelectorAll('#purposeChips .chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        brokerData.purpose = el.dataset.purpose;
+        checkBrokerFormValid();
+    }
+
+    function checkBrokerFormValid() {
+        const phone = document.getElementById('brokerPhone').value.trim();
+        const isValid = brokerData.propertyType && brokerData.purpose && phone.length >= 9 && phone.startsWith('5');
+        document.getElementById('brokerSubmitBtn').disabled = !isValid;
+    }
+
+    // ===== GOOGLE SHEETS CONFIG =====
+    const GOOGLE_SHEETS_URL = '';
+
+    function submitBrokerForm() {
+        const phone = document.getElementById('brokerPhone').value.trim();
+        const neighborhood = document.getElementById('resultNeighborhood').textContent;
+
+        const requestData = {
+            id: 'req_' + Date.now(),
+            neighborhood: neighborhood,
+            propertyType: brokerData.propertyType,
+            purpose: brokerData.purpose,
+            budget: '',
+            rooms: '',
+            family: '',
+            timeline: '',
+            notes: '',
+            phone: '+966' + phone,
+            status: 'new',
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleDateString('ar-SA'),
+            time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+        };
+
+        saveLeadToLocal(requestData);
+        if (GOOGLE_SHEETS_URL) sendToGoogleSheets(requestData);
+
+        document.getElementById('brokerForm').classList.remove('show');
+        document.getElementById('brokerSuccess').classList.add('show');
+        document.getElementById('brokerSuccess').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        showToast(lang === 'ar' ? '🎉 تم إرسال طلبك!' : '🎉 Request sent!');
+    }
+
+    function saveLeadToLocal(data) {
+        try {
+            const leads = JSON.parse(localStorage.getItem('wainaskan_leads') || '[]');
+            leads.unshift(data);
+            localStorage.setItem('wainaskan_leads', JSON.stringify(leads));
+        } catch (e) { console.error('Error saving lead:', e); }
+    }
+
+    function sendToGoogleSheets(data) {
+        try {
+            fetch(GOOGLE_SHEETS_URL, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).catch(err => console.log('Sheets sync pending:', err));
+        } catch (e) { console.log('Will sync later:', e); }
+    }
+
+    // ===== MOBILE BOTTOM SHEET =====
+    let sheetExpanded = false;
+    let sheetStartY = 0;
+    let sheetCurrentY = 0;
+    let sheetDragging = false;
+
+    function expandSheet() {
+        const sheet = document.getElementById('bottomSheet');
+        if (!sheet) return;
+        sheet.classList.remove('collapsed');
+        sheet.classList.add('expanded');
+        sheetExpanded = true;
+    }
+
+    function collapseSheet() {
+        const sheet = document.getElementById('bottomSheet');
+        if (!sheet) return;
+        sheet.classList.remove('expanded');
+        sheet.classList.add('collapsed');
+        sheetExpanded = false;
+    }
+
+    function toggleSheet() {
+        if (sheetExpanded) collapseSheet(); else expandSheet();
+    }
+
+    function setupBottomSheet() {
+        const handle = document.getElementById('sheetDragHandle');
+        const summary = document.getElementById('sheetSummary');
+        if (!handle) return;
+
+        const onStart = (y) => { sheetDragging = true; sheetStartY = y; };
+        const onMove = (y) => {
+            if (!sheetDragging) return;
+            sheetCurrentY = y - sheetStartY;
+        };
+        const onEnd = () => {
+            if (!sheetDragging) return;
+            sheetDragging = false;
+            if (sheetCurrentY > 50) collapseSheet();
+            else if (sheetCurrentY < -50) expandSheet();
+            sheetCurrentY = 0;
+        };
+
+        handle.addEventListener('touchstart', (e) => { onStart(e.touches[0].clientY); }, { passive: true });
+        handle.addEventListener('touchmove', (e) => { onMove(e.touches[0].clientY); }, { passive: true });
+        handle.addEventListener('touchend', onEnd);
+
+        handle.addEventListener('click', toggleSheet);
+        if (summary) summary.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') toggleSheet();
+        });
+    }
+
+    function renderMobileSheet() {
+        const content = document.getElementById('sheetContent');
+        const countEl = document.getElementById('sheetLocCount');
+        if (!content) return;
+
+        const countText = lang === 'ar' ? locations.length + ' مواقع' : locations.length + ' locations';
+        if (countEl) countEl.textContent = countText;
+
+        let html = '';
+
+        // Search
+        html += '<div class="search-container" id="mobileSearchContainer">' +
+            '<input type="text" class="search-input" id="mobileSearchInput" ' +
+            'placeholder="' + (lang === 'ar' ? 'ابحث عن موقع في الرياض...' : 'Search for a location in Riyadh...') + '" ' +
+            'autocomplete="off" style="font-size:16px;">' +
+            '<span class="search-icon">🔍</span>' +
+            '<div class="search-results" id="mobileSearchResults"></div></div>';
+
+        // Locations
+        if (locations.length > 0) {
+            html += '<div><div class="locations-section-title"><span>' + (lang === 'ar' ? 'المواقع المحددة' : 'Selected Locations') + '</span>' +
+                '<span class="locations-count">' + locations.length + '</span></div>';
+            html += '<div class="locations-list" style="margin-top:8px;">';
+            html += locations.map(loc => createLocationCardHtml(loc)).join('');
+            html += '</div></div>';
+        }
+
+        // Result (if calculated)
+        if (isCalculated) {
+            html += document.getElementById('resultCard').outerHTML.replace('id="resultCard"', 'id="mobileResultCard"').replace('display: none', 'display: block');
+            html += document.getElementById('brokerSection').outerHTML.replace('id="brokerSection"', 'id="mobileBrokerSection"');
+        }
+
+        // How it works (if not calculated)
+        if (!isCalculated) {
+            html += document.getElementById('howItWorks').outerHTML;
+        }
+
+        content.innerHTML = html;
+
+        // Setup mobile search
+        const mobileInput = document.getElementById('mobileSearchInput');
+        const mobileResults = document.getElementById('mobileSearchResults');
+        if (mobileInput && mobileResults) {
+            setupSearch(mobileInput, mobileResults);
+        }
+    }
+
+    function renderMobileSheetWithForm() {
+        const content = document.getElementById('sheetContent');
+        if (!content) return;
+
+        const formEl = document.getElementById('addForm');
+        if (formEl) formEl.classList.add('show');
+
+        let html = '<div id="mobileAddFormWrapper">' + formEl.outerHTML + '</div>';
+        content.innerHTML = html;
+
+        // Rebind events for mobile form
+        const mobileForm = content.querySelector('.add-form');
+        if (mobileForm) mobileForm.classList.add('show');
+    }
+
+    function renderMobileSheetSearch(query) {
+        const content = document.getElementById('sheetContent');
+        if (!content) return;
+
+        let html = '<div class="search-container" id="mobileSearchContainer">' +
+            '<input type="text" class="search-input" id="mobileSearchInput" value="' + query + '" ' +
+            'autocomplete="off" style="font-size:16px;">' +
+            '<span class="search-icon">🔍</span>' +
+            '<div class="search-results" id="mobileSearchResults"></div></div>';
+        content.innerHTML = html;
+
+        const mobileInput = document.getElementById('mobileSearchInput');
+        const mobileResults = document.getElementById('mobileSearchResults');
+        if (mobileInput && mobileResults) {
+            setupSearch(mobileInput, mobileResults);
+            mobileInput.dispatchEvent(new Event('input'));
+            mobileInput.focus();
+        }
+    }
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+
+        // Desktop search setup
+        const desktopInput = document.getElementById('searchInput');
+        const desktopResults = document.getElementById('searchResults');
+        if (desktopInput && desktopResults) {
+            setupSearch(desktopInput, desktopResults);
+        }
+
+        // Broker phone validation
+        const phoneEl = document.getElementById('brokerPhone');
+        if (phoneEl) phoneEl.addEventListener('input', checkBrokerFormValid);
+
+        // Bottom sheet
+        setupBottomSheet();
+        if (isMobile) renderMobileSheet();
+
+        updateProgress();
+    });
     </script>
 </body>
 </html>
