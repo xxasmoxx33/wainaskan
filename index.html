@@ -1460,8 +1460,8 @@
             const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * getWeight(d.loc) * 2, 0));
             const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * getWeight(d.loc) * 2, 0));
 
-            // Fuel: 2.25 SAR/liter, avg 12km/liter
-            const monthlyFuel = Math.round((totalKm / 12) * 2.25);
+            // Fuel: 2.25 SAR/liter, avg 8km/liter
+            const monthlyFuel = Math.round((totalKm / 8) * 2.25);
 
             const workNote = hasWorkLocation();
 
