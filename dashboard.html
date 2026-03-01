@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - وين أسكن</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0a1628, #132a13, #1a2332);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* ===== LOGIN ===== */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #0a1628, #132a13, #1a2332);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .login-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .login-card {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+            padding: 48px 40px; width: 100%; max-width: 420px; margin: 20px; text-align: center;
+            animation: fadeIn 0.6s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .login-logo { width: 64px; height: 64px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; box-shadow: 0 8px 30px rgba(16,185,129,0.3); }
+        .login-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; background: linear-gradient(135deg, #10b981, #6ee7b7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-subtitle { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 32px; }
+        .login-input-wrap { position: relative; margin-bottom: 20px; }
+        .login-input { width: 100%; padding: 16px 20px; padding-inline-start: 48px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif; font-size: 15px; outline: none; transition: all 0.3s; }
+        .login-input:focus { border-color: #10b981; background: rgba(16,185,129,0.08); }
+        .login-input::placeholder { color: rgba(255,255,255,0.3); }
+        .login-input-icon { position: absolute; top: 50%; transform: translateY(-50%); inset-inline-start: 16px; font-size: 18px; opacity: 0.4; }
+        .login-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 14px; color: #fff; font-family: 'Cairo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(16,185,129,0.4); }
+        .login-error { color: #f87171; font-size: 13px; margin-top: 12px; min-height: 20px; }
+
+        /* ===== NAV ===== */
+        .nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 28px; background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-logo { width: 38px; height: 38px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .nav-title { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, #10b981, #6ee7b7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-badge { background: rgba(16,185,129,0.15); color: #10b981; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 50px; border: 1px solid rgba(16,185,129,0.2); }
+        .nav-left { display: flex; align-items: center; gap: 8px; }
+        .nav-btn { padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .lang-btn { border-radius: 50px; }
+        .lang-btn.active { background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; color: #fff; }
+
+        /* ===== MAIN ===== */
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 24px 28px 60px; }
+
+        /* ===== STATS ROW ===== */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 20px 22px; transition: all 0.3s; position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; inset-inline-start: 0; width: 4px; height: 100%; border-radius: 0 4px 4px 0; }
+        .stat-card:nth-child(1)::before { background: linear-gradient(180deg, #10b981, #059669); }
+        .stat-card:nth-child(2)::before { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
+        .stat-card:nth-child(3)::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+        .stat-card:nth-child(4)::before { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }
+        .stat-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
+        .stat-icon { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; }
+        .stat-card:nth-child(1) .stat-icon { background: rgba(16,185,129,0.12); }
+        .stat-card:nth-child(2) .stat-icon { background: rgba(59,130,246,0.12); }
+        .stat-card:nth-child(3) .stat-icon { background: rgba(245,158,11,0.12); }
+        .stat-card:nth-child(4) .stat-icon { background: rgba(139,92,246,0.12); }
+        .stat-value { font-size: 28px; font-weight: 800; margin-bottom: 2px; line-height: 1.2; }
+        .stat-card:nth-child(1) .stat-value { color: #10b981; }
+        .stat-card:nth-child(2) .stat-value { color: #3b82f6; }
+        .stat-card:nth-child(3) .stat-value { color: #f59e0b; }
+        .stat-card:nth-child(4) .stat-value { color: #8b5cf6; }
+        .stat-label { font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 600; }
+
+        /* ===== TABS ===== */
+        .tabs-bar {
+            display: flex; gap: 4px; margin-bottom: 24px;
+            background: rgba(255,255,255,0.04); border-radius: 16px; padding: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .tab-btn {
+            flex: 1; padding: 14px 20px; border-radius: 12px; border: none;
+            background: transparent; color: rgba(255,255,255,0.5);
+            font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center;
+            justify-content: center; gap: 8px; position: relative;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.04); }
+        .tab-btn.active { background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.08)); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+        .tab-count {
+            background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 50px;
+            font-size: 11px; font-weight: 800; min-width: 24px; text-align: center;
+        }
+        .tab-btn.active .tab-count { background: rgba(16,185,129,0.2); color: #10b981; }
+
+        /* ===== SECTION PANEL ===== */
+        .section-panel { display: none; }
+        .section-panel.active { display: block; animation: fadeInUp 0.3s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== TABLE ===== */
+        .table-wrap {
+            background: rgba(255,255,255,0.03); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; overflow: hidden;
+        }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { padding: 14px 16px; text-align: start; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08); white-space: nowrap; }
+        tbody tr { transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tbody tr:hover { background: rgba(16,185,129,0.04); }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 14px 16px; font-size: 13px; color: rgba(255,255,255,0.8); }
+        .td-phone { direction: ltr; text-align: end; font-weight: 700; color: #10b981; letter-spacing: 0.5px; }
+        .td-neighborhood { font-weight: 700; color: #fff; }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .status-new { background: rgba(250,204,21,0.12); color: #facc15; border: 1px solid rgba(250,204,21,0.2); animation: pulse-yellow 2.5s ease infinite; }
+        .status-contacted { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+        .status-done { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+
+        @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 0 0 rgba(250,204,21,0.3); } 50% { box-shadow: 0 0 0 6px rgba(250,204,21,0); } }
+
+        .status-select {
+            -webkit-appearance: none; appearance: none; border: none; outline: none;
+            font-family: 'Cairo', sans-serif; font-size: 12px; font-weight: 700;
+            padding: 6px 28px 6px 14px; border-radius: 50px; cursor: pointer; transition: all 0.3s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: left 8px center;
+        }
+        [dir="ltr"] .status-select { background-position: right 8px center; padding: 6px 14px 6px 28px; }
+        .status-select option { background: #1a2332; color: #fff; }
+        .status-select.s-new { background-color: rgba(250,204,21,0.12); color: #facc15; border: 1px solid rgba(250,204,21,0.2); }
+        .status-select.s-contacted { background-color: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+        .status-select.s-done { background-color: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-btns { display: flex; gap: 4px; }
+        .action-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .action-btn.btn-call:hover { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .action-btn.btn-done-action:hover { background: rgba(16,185,129,0.2); color: #34d399; }
+
+        /* ===== SECTION TOOLBAR ===== */
+        .section-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+        .section-count { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 600; }
+        .section-count span { color: #10b981; font-weight: 800; }
+        .toolbar-actions { display: flex; gap: 8px; }
+        .btn-action {
+            padding: 9px 18px; border-radius: 10px; border: none;
+            font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-export { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .btn-export:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+        .btn-clear { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.15); }
+        .btn-clear:hover { background: rgba(239,68,68,0.2); }
+        .btn-demo { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .btn-demo:hover { background: rgba(245,158,11,0.25); }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state { text-align: center; padding: 80px 20px; }
+        .empty-icon { font-size: 64px; margin-bottom: 20px; animation: emptyBounce 2s ease infinite; }
+        @keyframes emptyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .empty-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
+        .empty-desc { font-size: 14px; color: rgba(255,255,255,0.4); max-width: 400px; margin: 0 auto; line-height: 1.7; }
+
+        /* ===== CARD VIEW (Results/Contact) ===== */
+        .data-card {
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 16px;
+            padding: 18px; margin-bottom: 12px; transition: all 0.3s;
+        }
+        .data-card:hover { border-color: rgba(16,185,129,0.2); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .card-title { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .card-date { font-size: 11px; color: rgba(255,255,255,0.35); }
+        .card-body { display: flex; flex-direction: column; gap: 8px; }
+        .card-row { display: flex; align-items: center; gap: 8px; }
+        .card-label { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 80px; }
+        .card-value { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 600; }
+        .card-value.highlight { color: #10b981; font-weight: 800; }
+        .card-places { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .place-tag { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .card-message { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-top: 4px; }
+
+        /* ===== TOAST ===== */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(10,22,15,0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 24px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; z-index: 999; display: flex; align-items: center; gap: 8px; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ===== PASSWORD MODAL ===== */
+        .modal-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card { background: rgba(20,30,50,0.95); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 36px 32px; width: 100%; max-width: 420px; margin: 20px; animation: fadeIn 0.3s ease; }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; background: linear-gradient(135deg, #10b981, #6ee7b7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        .modal-subtitle { font-size: 13px; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 24px; }
+        .modal-field { margin-bottom: 16px; }
+        .modal-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 6px; display: block; }
+        .modal-input { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-family: 'Cairo', sans-serif; font-size: 14px; outline: none; transition: border-color 0.3s; }
+        .modal-input:focus { border-color: #10b981; }
+        .modal-error { color: #f87171; font-size: 12px; min-height: 18px; margin-top: 4px; }
+        .modal-success { color: #6ee7b7; font-size: 12px; min-height: 18px; margin-top: 4px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btn { flex: 1; padding: 14px; border-radius: 14px; border: none; font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .modal-btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .modal-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.3); }
+        .modal-btn-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+        .modal-btn-cancel:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .nav { padding: 10px 16px; }
+            .main-content { padding: 16px; }
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 22px; }
+            .stat-icon { width: 36px; height: 36px; font-size: 18px; margin-bottom: 10px; }
+            .nav-badge { display: none; }
+            .tabs-bar { flex-direction: column; }
+            .tab-btn { padding: 12px; font-size: 13px; }
+            .table-wrap { border-radius: 12px; }
+            .section-toolbar { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 400px) {
+            .stats-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-logo">🔐</div>
+            <div class="login-title" data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</div>
+            <div class="login-subtitle" data-ar="أدخل كلمة المرور للوصول" data-en="Enter password to access">أدخل كلمة المرور للوصول</div>
+            <div class="login-input-wrap">
+                <span class="login-input-icon">🔑</span>
+                <input type="password" class="login-input" id="loginPassword" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter') attemptLogin()">
+            </div>
+            <button class="login-btn" onclick="attemptLogin()">
+                <span data-ar="دخول" data-en="Login">دخول</span> <span>←</span>
+            </button>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="appContent" style="display:none;">
+
+        <!-- NAV -->
+        <nav class="nav">
+            <div class="nav-right">
+                <div class="nav-logo">📊</div>
+                <span class="nav-title" data-ar="وين أسكن" data-en="weeenaskn">وين أسكن</span>
+                <span class="nav-badge" data-ar="لوحة التحكم" data-en="Dashboard">لوحة التحكم</span>
+            </div>
+            <div class="nav-left">
+                <button class="nav-btn lang-btn active" id="langAr" onclick="setLang('ar')">عربي</button>
+                <button class="nav-btn lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+                <button class="nav-btn" onclick="openPasswordModal()">⚙️ <span data-ar="كلمة المرور" data-en="Password">كلمة المرور</span></button>
+                <button class="nav-btn" onclick="refreshData()">🔄</button>
+                <button class="nav-btn" onclick="logout()">🚪 <span data-ar="خروج" data-en="Logout">خروج</span></button>
+            </div>
+        </nav>
+
+        <div class="main-content">
+
+            <!-- STATS -->
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="statResults">0</div>
+                    <div class="stat-label" data-ar="نتائج البحث" data-en="Search Results">نتائج البحث</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏠</div>
+                    <div class="stat-value" id="statInterests">0</div>
+                    <div class="stat-label" data-ar="طلبات الاهتمام" data-en="Interest Requests">طلبات الاهتمام</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✉️</div>
+                    <div class="stat-value" id="statContacts">0</div>
+                    <div class="stat-label" data-ar="رسائل التواصل" data-en="Contact Messages">رسائل التواصل</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div class="stat-value" id="statTopArea" style="font-size:18px;">—</div>
+                    <div class="stat-label" data-ar="أكثر حي مطلوب" data-en="Most Requested Area">أكثر حي مطلوب</div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs-bar">
+                <button class="tab-btn active" data-tab="results" onclick="switchTab('results')">
+                    <span>🎯</span>
+                    <span data-ar="عطني النتيجة" data-en="Results">عطني النتيجة</span>
+                    <span class="tab-count" id="tabCountResults">0</span>
+                </button>
+                <button class="tab-btn" data-tab="interests" onclick="switchTab('interests')">
+                    <span>🏠</span>
+                    <span data-ar="سجل اهتمامك" data-en="Interests">سجل اهتمامك</span>
+                    <span class="tab-count" id="tabCountInterests">0</span>
+                </button>
+                <button class="tab-btn" data-tab="contacts" onclick="switchTab('contacts')">
+                    <span>✉️</span>
+                    <span data-ar="تواصل معنا" data-en="Contact Us">تواصل معنا</span>
+                    <span class="tab-count" id="tabCountContacts">0</span>
+                </button>
+            </div>
+
+            <!-- ========== SECTION 1: RESULTS ========== -->
+            <div class="section-panel active" id="panelResults">
+                <div class="section-toolbar">
+                    <div class="section-count"><span id="resultsCount">0</span> <span data-ar="نتيجة بحث" data-en="search results">نتيجة بحث</span></div>
+                    <div class="toolbar-actions">
+                        <button class="btn-action btn-export" onclick="exportResults()">📥 <span data-ar="تصدير" data-en="Export">تصدير</span></button>
+                        <button class="btn-action btn-clear" onclick="clearData('results')">🗑️ <span data-ar="مسح الكل" data-en="Clear All">مسح الكل</span></button>
+                    </div>
+                </div>
+                <div id="resultsContainer"></div>
+                <div class="empty-state" id="emptyResults" style="display:none;">
+                    <div class="empty-icon">🎯</div>
+                    <div class="empty-title" data-ar="لا توجد نتائج" data-en="No Results Yet">لا توجد نتائج</div>
+                    <div class="empty-desc" data-ar="ستظهر نتائج البحث هنا عندما يستخدم الزوار أداة &quot;عطني النتيجة&quot;" data-en="Search results will appear here when visitors use the tool">ستظهر نتائج البحث هنا عندما يستخدم الزوار أداة "عطني النتيجة"</div>
+                </div>
+            </div>
+
+            <!-- ========== SECTION 2: INTERESTS ========== -->
+            <div class="section-panel" id="panelInterests">
+                <div class="section-toolbar">
+                    <div class="section-count"><span id="interestsCount">0</span> <span data-ar="طلب اهتمام" data-en="interest requests">طلب اهتمام</span></div>
+                    <div class="toolbar-actions">
+                        <button class="btn-action btn-export" onclick="exportInterests()">📥 <span data-ar="تصدير" data-en="Export">تصدير</span></button>
+                        <button class="btn-action btn-clear" onclick="clearData('interests')">🗑️ <span data-ar="مسح الكل" data-en="Clear All">مسح الكل</span></button>
+                    </div>
+                </div>
+                <div class="table-wrap" id="interestsTable" style="display:none;">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th data-ar="التاريخ" data-en="Date">التاريخ</th>
+                                    <th data-ar="الجوال" data-en="Phone">الجوال</th>
+                                    <th data-ar="الحي المطلوب" data-en="Neighborhood">الحي المطلوب</th>
+                                    <th data-ar="الحالة" data-en="Status">الحالة</th>
+                                    <th data-ar="إجراء" data-en="Actions">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interestsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="empty-state" id="emptyInterests" style="display:none;">
+                    <div class="empty-icon">🏠</div>
+                    <div class="empty-title" data-ar="لا توجد طلبات" data-en="No Requests Yet">لا توجد طلبات</div>
+                    <div class="empty-desc" data-ar="ستظهر طلبات الاهتمام هنا عندما يسجل الزوار اهتمامهم بالعقار" data-en="Interest requests will appear here when visitors register their interest">ستظهر طلبات الاهتمام هنا عندما يسجل الزوار اهتمامهم بالعقار</div>
+                </div>
+            </div>
+
+            <!-- ========== SECTION 3: CONTACTS ========== -->
+            <div class="section-panel" id="panelContacts">
+                <div class="section-toolbar">
+                    <div class="section-count"><span id="contactsCount">0</span> <span data-ar="رسالة" data-en="messages">رسالة</span></div>
+                    <div class="toolbar-actions">
+                        <button class="btn-action btn-export" onclick="exportContacts()">📥 <span data-ar="تصدير" data-en="Export">تصدير</span></button>
+                        <button class="btn-action btn-clear" onclick="clearData('contacts')">🗑️ <span data-ar="مسح الكل" data-en="Clear All">مسح الكل</span></button>
+                    </div>
+                </div>
+                <div id="contactsContainer"></div>
+                <div class="empty-state" id="emptyContacts" style="display:none;">
+                    <div class="empty-icon">✉️</div>
+                    <div class="empty-title" data-ar="لا توجد رسائل" data-en="No Messages Yet">لا توجد رسائل</div>
+                    <div class="empty-desc" data-ar="ستظهر الرسائل هنا عندما يتواصل الزوار معك" data-en="Messages will appear here when visitors contact you">ستظهر الرسائل هنا عندما يتواصل الزوار معك</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- PASSWORD MODAL -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-card">
+            <div class="modal-title" data-ar="تغيير كلمة المرور" data-en="Change Password">تغيير كلمة المرور</div>
+            <div class="modal-subtitle" data-ar="أدخل كلمة المرور الحالية والجديدة" data-en="Enter current and new password">أدخل كلمة المرور الحالية والجديدة</div>
+            <div class="modal-field">
+                <label class="modal-label" data-ar="كلمة المرور الحالية" data-en="Current Password">كلمة المرور الحالية</label>
+                <input type="password" class="modal-input" id="currentPass" autocomplete="off">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label" data-ar="كلمة المرور الجديدة" data-en="New Password">كلمة المرور الجديدة</label>
+                <input type="password" class="modal-input" id="newPass" autocomplete="off">
+            </div>
+            <div class="modal-field">
+                <label class="modal-label" data-ar="تأكيد كلمة المرور الجديدة" data-en="Confirm New Password">تأكيد كلمة المرور الجديدة</label>
+                <input type="password" class="modal-input" id="confirmPass" autocomplete="off">
+            </div>
+            <div class="modal-error" id="passError"></div>
+            <div class="modal-success" id="passSuccess"></div>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-save" onclick="saveNewPassword()" data-ar="حفظ" data-en="Save">حفظ</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closePasswordModal()" data-ar="إلغاء" data-en="Cancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lang = 'ar';
+        let allResults = [];
+        let allInterests = [];
+        let allContacts = [];
+        let currentTab = 'results';
+
+        // ===== AUTH =====
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function attemptLogin() {
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            if (!password) { errorEl.textContent = lang === 'ar' ? 'أدخل كلمة المرور' : 'Enter password'; return; }
+            const hash = await sha256(password);
+            const storedHash = localStorage.getItem('wainaskan_dash_pass');
+            const defaultHash = await sha256('admin123');
+            if (hash === storedHash || hash === defaultHash) {
+                if (!storedHash) localStorage.setItem('wainaskan_dash_pass', defaultHash);
+                sessionStorage.setItem('wainaskan_dash_auth', 'true');
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('appContent').style.display = 'block';
+                loadAllData();
+            } else {
+                errorEl.textContent = lang === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('wainaskan_dash_auth');
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function checkAuth() {
+            if (sessionStorage.getItem('wainaskan_dash_auth') === 'true') {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('appContent').style.display = 'block';
+                loadAllData();
+            }
+        }
+
+        // ===== PASSWORD =====
+        function openPasswordModal() {
+            ['currentPass','newPass','confirmPass'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('passError').textContent = '';
+            document.getElementById('passSuccess').textContent = '';
+            document.getElementById('passwordModal').classList.add('active');
+        }
+        function closePasswordModal() { document.getElementById('passwordModal').classList.remove('active'); }
+
+        async function saveNewPassword() {
+            const current = document.getElementById('currentPass').value;
+            const newP = document.getElementById('newPass').value;
+            const confirm = document.getElementById('confirmPass').value;
+            const err = document.getElementById('passError');
+            const suc = document.getElementById('passSuccess');
+            err.textContent = ''; suc.textContent = '';
+            if (!current) { err.textContent = lang === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'; return; }
+            const curHash = await sha256(current);
+            const stored = localStorage.getItem('wainaskan_dash_pass');
+            const defHash = await sha256('admin123');
+            if (curHash !== stored && curHash !== defHash) { err.textContent = lang === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect'; return; }
+            if (!newP) { err.textContent = lang === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'; return; }
+            if (newP.length < 4) { err.textContent = lang === 'ar' ? 'كلمة المرور قصيرة (4 أحرف على الأقل)' : 'Password too short (min 4)'; return; }
+            if (newP !== confirm) { err.textContent = lang === 'ar' ? 'كلمة المرور غير متطابقة' : 'Passwords do not match'; return; }
+            if (newP === current) { err.textContent = lang === 'ar' ? 'كلمة المرور الجديدة نفس القديمة' : 'Same as current'; return; }
+            localStorage.setItem('wainaskan_dash_pass', await sha256(newP));
+            suc.textContent = lang === 'ar' ? '✅ تم تغيير كلمة المرور' : '✅ Password changed';
+            showToast(lang === 'ar' ? '🔑 تم تغيير كلمة المرور' : '🔑 Password changed');
+            setTimeout(closePasswordModal, 1500);
+        }
+
+        document.addEventListener('click', e => { if (e.target.id === 'passwordModal') closePasswordModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('passwordModal').classList.contains('active')) closePasswordModal(); });
+
+        // ===== DATA LOADING =====
+        function loadAllData() {
+            try { allResults = JSON.parse(localStorage.getItem('wainaskan_results') || '[]'); } catch(e) { allResults = []; }
+            try { allInterests = JSON.parse(localStorage.getItem('wainaskan_leads') || '[]'); } catch(e) { allInterests = []; }
+            try { allContacts = JSON.parse(localStorage.getItem('wainaskan_contacts') || '[]'); } catch(e) { allContacts = []; }
+            updateStats();
+            renderCurrentTab();
+        }
+
+        function refreshData() {
+            loadAllData();
+            showToast(lang === 'ar' ? '🔄 تم تحديث البيانات' : '🔄 Data refreshed');
+        }
+
+        function clearData(type) {
+            const confirmMsg = lang === 'ar' ? 'هل أنت متأكد من مسح جميع البيانات؟' : 'Are you sure you want to clear all data?';
+            if (!window.confirm(confirmMsg)) return;
+            if (type === 'results') { allResults = []; localStorage.setItem('wainaskan_results', '[]'); }
+            else if (type === 'interests') { allInterests = []; localStorage.setItem('wainaskan_leads', '[]'); }
+            else if (type === 'contacts') { allContacts = []; localStorage.setItem('wainaskan_contacts', '[]'); }
+            updateStats();
+            renderCurrentTab();
+            showToast(lang === 'ar' ? '🗑️ تم مسح البيانات' : '🗑️ Data cleared');
+        }
+
+        // ===== STATS =====
+        function updateStats() {
+            document.getElementById('statResults').textContent = allResults.length;
+            document.getElementById('statInterests').textContent = allInterests.length;
+            document.getElementById('statContacts').textContent = allContacts.length;
+            document.getElementById('tabCountResults').textContent = allResults.length;
+            document.getElementById('tabCountInterests').textContent = allInterests.length;
+            document.getElementById('tabCountContacts').textContent = allContacts.length;
+
+            // Most requested area (from all sources)
+            const areaCounts = {};
+            allResults.forEach(r => { if (r.neighborhood) areaCounts[r.neighborhood] = (areaCounts[r.neighborhood] || 0) + 1; });
+            allInterests.forEach(r => { if (r.neighborhood) areaCounts[r.neighborhood] = (areaCounts[r.neighborhood] || 0) + 1; });
+            const topArea = Object.entries(areaCounts).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('statTopArea').textContent = topArea ? topArea[0] : '—';
+        }
+
+        // ===== TABS =====
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            renderCurrentTab();
+        }
+
+        function renderCurrentTab() {
+            if (currentTab === 'results') renderResults();
+            else if (currentTab === 'interests') renderInterests();
+            else if (currentTab === 'contacts') renderContacts();
+        }
+
+        // ===== RENDER: RESULTS =====
+        function renderResults() {
+            const container = document.getElementById('resultsContainer');
+            const empty = document.getElementById('emptyResults');
+            document.getElementById('resultsCount').textContent = allResults.length;
+
+            if (allResults.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            container.innerHTML = allResults.map((r, idx) => {
+                const date = formatDate(r.timestamp);
+                const placeTags = (r.locations || []).map(l => `<span class="place-tag">${l.icon || '📍'} ${l.name}</span>`).join('');
+                const distLines = (r.distances || []).map(d => `<div style="font-size:12px;color:rgba(255,255,255,0.5);padding:2px 0;">📍 ${d.name}: ${d.dist} كم (🟢${d.normalMin}د / 🔴${d.rushMin}د)</div>`).join('');
+
+                return `
+                <div class="data-card" style="animation-delay:${idx * 0.05}s">
+                    <div class="card-header">
+                        <div class="card-title">🎯 ${r.neighborhood || '—'}</div>
+                        <span class="card-date">${date}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-row">
+                            <span class="card-label" data-ar="📏 المسافة" data-en="📏 Distance">${lang === 'ar' ? '📏 المسافة' : '📏 Distance'}</span>
+                            <span class="card-value">${r.totalKm || 0} ${lang === 'ar' ? 'كم/شهر' : 'km/mo'}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label" data-ar="⏱️ الوقت" data-en="⏱️ Time">${lang === 'ar' ? '⏱️ الوقت' : '⏱️ Time'}</span>
+                            <span class="card-value">${r.totalMin || 0} ${lang === 'ar' ? 'د/شهر' : 'min/mo'}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label" data-ar="⛽ البنزين" data-en="⛽ Fuel">${lang === 'ar' ? '⛽ البنزين' : '⛽ Fuel'}</span>
+                            <span class="card-value highlight">${r.monthlyFuel || 0} ${lang === 'ar' ? 'ريال/شهر' : 'SAR/mo'}</span>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <span class="card-label" data-ar="📍 الأماكن" data-en="📍 Places">${lang === 'ar' ? '📍 الأماكن' : '📍 Places'}</span>
+                            <div class="card-places">${placeTags || '<span style="color:rgba(255,255,255,0.3)">—</span>'}</div>
+                        </div>
+                        ${distLines ? `<div style="margin-top:8px;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 12px;">${distLines}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ===== RENDER: INTERESTS =====
+        function renderInterests() {
+            const tbody = document.getElementById('interestsBody');
+            const table = document.getElementById('interestsTable');
+            const empty = document.getElementById('emptyInterests');
+            document.getElementById('interestsCount').textContent = allInterests.length;
+
+            if (allInterests.length === 0) {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+            table.style.display = 'block';
+            empty.style.display = 'none';
+
+            tbody.innerHTML = allInterests.map((lead, idx) => {
+                const date = formatDate(lead.timestamp);
+                const statusClass = 's-' + (lead.status || 'new');
+                const statusLabels = lang === 'ar'
+                    ? { new: 'جديد', contacted: 'تم التواصل', done: 'مكتمل' }
+                    : { new: 'New', contacted: 'Contacted', done: 'Done' };
+                return `
+                <tr style="animation: fadeInUp 0.3s ease ${idx * 0.03}s both;">
+                    <td style="color:rgba(255,255,255,0.3);font-size:12px;">${idx + 1}</td>
+                    <td style="font-size:12px;color:rgba(255,255,255,0.5);white-space:pre-line;">${date}</td>
+                    <td class="td-phone">${lead.phone || '—'}</td>
+                    <td class="td-neighborhood">${lead.neighborhood || '—'}</td>
+                    <td>
+                        <select class="status-select ${statusClass}" onchange="updateInterestStatus(${idx}, this.value)">
+                            <option value="new" ${lead.status === 'new' ? 'selected' : ''}>${statusLabels.new}</option>
+                            <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>${statusLabels.contacted}</option>
+                            <option value="done" ${lead.status === 'done' ? 'selected' : ''}>${statusLabels.done}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn btn-call" onclick="updateInterestStatus(${idx},'contacted')" title="${lang === 'ar' ? 'تم التواصل' : 'Contacted'}">📞</button>
+                            <button class="action-btn btn-done-action" onclick="updateInterestStatus(${idx},'done')" title="${lang === 'ar' ? 'مكتمل' : 'Done'}">✅</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateInterestStatus(idx, status) {
+            if (allInterests[idx]) {
+                allInterests[idx].status = status;
+                localStorage.setItem('wainaskan_leads', JSON.stringify(allInterests));
+                renderInterests();
+                const msgs = { new: '🆕', contacted: '📞', done: '✅' };
+                showToast((msgs[status] || '') + ' ' + (lang === 'ar' ? 'تم تحديث الحالة' : 'Status updated'));
+            }
+        }
+
+        // ===== RENDER: CONTACTS =====
+        function renderContacts() {
+            const container = document.getElementById('contactsContainer');
+            const empty = document.getElementById('emptyContacts');
+            document.getElementById('contactsCount').textContent = allContacts.length;
+
+            if (allContacts.length === 0) {
+                container.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            container.innerHTML = allContacts.map((c, idx) => {
+                const date = formatDate(c.timestamp);
+                return `
+                <div class="data-card" style="animation-delay:${idx * 0.05}s">
+                    <div class="card-header">
+                        <div class="card-title">✉️ <span style="direction:ltr;color:#10b981;font-weight:800;">${c.phone || '—'}</span></div>
+                        <span class="card-date">${date}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-message">${escapeHtml(c.message || '—')}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ===== EXPORT =====
+        function downloadCSV(filename, headers, rows) {
+            const BOM = '\uFEFF';
+            const csv = BOM + [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function exportResults() {
+            if (allResults.length === 0) { showToast(lang === 'ar' ? '⚠️ لا توجد بيانات' : '⚠️ No data'); return; }
+            const h = [lang === 'ar' ? 'التاريخ' : 'Date', lang === 'ar' ? 'الحي' : 'Neighborhood', lang === 'ar' ? 'المسافة الشهرية' : 'Monthly KM', lang === 'ar' ? 'الوقت الشهري' : 'Monthly Min', lang === 'ar' ? 'البنزين الشهري' : 'Monthly Fuel', lang === 'ar' ? 'الأماكن' : 'Places'];
+            const rows = allResults.map(r => [
+                r.timestamp ? new Date(r.timestamp).toLocaleString() : '',
+                r.neighborhood || '', r.totalKm || 0, r.totalMin || 0, r.monthlyFuel || 0,
+                (r.locations || []).map(l => l.name).join(' | ')
+            ]);
+            downloadCSV(`wainaskan_results_${new Date().toISOString().split('T')[0]}.csv`, h, rows);
+            showToast(lang === 'ar' ? `📥 تم تصدير ${allResults.length} نتيجة` : `📥 Exported ${allResults.length} results`);
+        }
+
+        function exportInterests() {
+            if (allInterests.length === 0) { showToast(lang === 'ar' ? '⚠️ لا توجد بيانات' : '⚠️ No data'); return; }
+            const statusL = lang === 'ar' ? { new: 'جديد', contacted: 'تم التواصل', done: 'مكتمل' } : { new: 'New', contacted: 'Contacted', done: 'Done' };
+            const h = [lang === 'ar' ? 'التاريخ' : 'Date', lang === 'ar' ? 'الجوال' : 'Phone', lang === 'ar' ? 'الحي' : 'Neighborhood', lang === 'ar' ? 'الحالة' : 'Status'];
+            const rows = allInterests.map(l => [
+                l.timestamp ? new Date(l.timestamp).toLocaleString() : '',
+                l.phone || '', l.neighborhood || '', statusL[l.status] || l.status || ''
+            ]);
+            downloadCSV(`wainaskan_interests_${new Date().toISOString().split('T')[0]}.csv`, h, rows);
+            showToast(lang === 'ar' ? `📥 تم تصدير ${allInterests.length} طلب` : `📥 Exported ${allInterests.length} requests`);
+        }
+
+        function exportContacts() {
+            if (allContacts.length === 0) { showToast(lang === 'ar' ? '⚠️ لا توجد بيانات' : '⚠️ No data'); return; }
+            const h = [lang === 'ar' ? 'التاريخ' : 'Date', lang === 'ar' ? 'الجوال' : 'Phone', lang === 'ar' ? 'الرسالة' : 'Message'];
+            const rows = allContacts.map(c => [
+                c.timestamp ? new Date(c.timestamp).toLocaleString() : '',
+                c.phone || '', (c.message || '').replace(/,/g, '،')
+            ]);
+            downloadCSV(`wainaskan_contacts_${new Date().toISOString().split('T')[0]}.csv`, h, rows);
+            showToast(lang === 'ar' ? `📥 تم تصدير ${allContacts.length} رسالة` : `📥 Exported ${allContacts.length} messages`);
+        }
+
+        // ===== HELPERS =====
+        function formatDate(ts) {
+            if (!ts) return '—';
+            try {
+                const d = new Date(ts);
+                const date = d.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                const time = d.toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                return `${date}\n${time}`;
+            } catch(e) { return ts; }
+        }
+
+        function escapeHtml(text) {
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+
+        // ===== LANGUAGE =====
+        function setLang(newLang) {
+            lang = newLang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('langAr').classList.toggle('active', lang === 'ar');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.querySelectorAll('[data-ar]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`) || el.textContent;
+            });
+            renderCurrentTab();
+            updateStats();
+        }
+
+        // ===== TOAST =====
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>
