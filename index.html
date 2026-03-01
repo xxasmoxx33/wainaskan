@@ -209,21 +209,8 @@
             color: #fff; font-family: 'Cairo'; font-size: 15px; font-weight: 700;
             cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            margin-bottom: 8px;
         }
         .add-confirm-btn:active { transform: scale(0.97); }
-
-        .overlay-calc-btn {
-            width: 100%; padding: 14px;
-            background: transparent;
-            border: 2px solid var(--amber);
-            border-radius: 12px;
-            color: var(--amber); font-family: 'Cairo'; font-size: 15px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .overlay-calc-btn:active { transform: scale(0.97); }
-        .overlay-calc-btn:hover { background: rgba(245,158,11,0.1); }
 
         /* ===== MAP HINT ===== */
         .map-hint {
@@ -568,7 +555,37 @@
             background: rgba(59,130,246,0.08);
         }
         .contact-message::placeholder { color: var(--text-dimmer); }
-        .contact-section { margin-bottom: 16px; }
+
+        /* ===== COLLAPSIBLE SECTIONS ===== */
+        .collapsible-section { margin-bottom: 4px; }
+        .collapsible-header {
+            width: 100%;
+            padding: 14px 0;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-family: 'Cairo';
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: color 0.2s;
+        }
+        .collapsible-header:hover { color: var(--text); }
+        .collapsible-arrow {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        .collapsible-arrow.open { transform: rotate(180deg); }
+        .collapsible-body {
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* ===== MARKER STYLES ===== */
         .custom-marker { background: none; border: none; }
@@ -604,36 +621,36 @@
         .loc-rect-marker {
             background: rgba(10,20,30,0.92);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            padding: 6px 10px;
+            border-left: 3px solid;
+            border-radius: 8px;
+            padding: 8px 12px;
             font-family: 'Cairo';
             white-space: nowrap;
             color: #fff;
-            min-width: 100px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .loc-rect-name {
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 3px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             gap: 4px;
         }
         .loc-rect-km {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             color: #6ee7b7;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
-        .loc-rect-time {
+        .loc-rect-times {
+            display: flex;
+            gap: 8px;
             font-size: 10px;
-            color: rgba(255,255,255,0.6);
+            font-weight: 600;
         }
-        .loc-rect-rush {
-            font-size: 10px;
-            color: #fca5a5;
-        }
+        .loc-rect-time { color: rgba(255,255,255,0.7); }
+        .loc-rect-rush { color: #fca5a5; }
 
         .centroid-marker-inner {
             width: 20px; height: 20px;
@@ -869,11 +886,6 @@
             <span data-ar="أضف الموقع" data-en="Add Location">أضف الموقع</span>
             <span>✅</span>
         </button>
-
-        <button class="overlay-calc-btn" id="overlayCalcBtn" onclick="calculateOptimal()" style="display:none;">
-            <span>✨</span>
-            <span data-ar="عطني النتيجة" data-en="Show Result">عطني النتيجة</span>
-        </button>
     </div>
 
     <!-- RESULT FAB -->
@@ -938,8 +950,8 @@
                 <!-- BROKER -->
                 <div class="broker-divider"></div>
                 <div id="brokerArea">
-                    <div class="broker-title" data-ar="🏠 سجل اهتمامك في العقار" data-en="🏠 Register Your Interest">🏠 سجل اهتمامك في العقار</div>
-                    <div class="broker-desc" data-ar="سجّل رقمك وبنتواصل معك" data-en="Leave your number and we'll contact you">سجّل رقمك وبنتواصل معك</div>
+                    <div class="broker-title" data-ar="🏠 سجل اهتمامك للحصول على العروض العقارية" data-en="🏠 Register to Get Property Offers">🏠 سجل اهتمامك للحصول على العروض العقارية</div>
+                    <div class="broker-desc" data-ar="سجّل رقمك وبنوصلك بأفضل العروض في الحي المناسب لك" data-en="Register and we'll connect you with the best offers in your ideal area">سجّل رقمك وبنوصلك بأفضل العروض في الحي المناسب لك</div>
 
                     <div class="phone-wrapper">
                         <span class="phone-prefix-box">+966</span>
@@ -948,6 +960,11 @@
                             maxlength="9"
                             oninput="onPhoneInput(this)">
                     </div>
+
+                    <label class="consent-label" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;cursor:pointer;">
+                        <input type="checkbox" id="brokerConsent" onchange="checkBrokerValid()" style="margin-top:4px;accent-color:var(--amber);width:18px;height:18px;flex-shrink:0;">
+                        <span style="font-size:11px;color:var(--text-dim);line-height:1.6;" data-ar="أوافق على مشاركة رقمي مع وكلاء عقاريين معتمدين للتواصل معي بخصوص العروض العقارية المتاحة في المنطقة المحددة. يمكنني إلغاء موافقتي في أي وقت." data-en="I agree to share my number with verified real estate agents to contact me about available property offers in the specified area. I can withdraw my consent at any time.">أوافق على مشاركة رقمي مع وكلاء عقاريين معتمدين للتواصل معي بخصوص العروض العقارية المتاحة في المنطقة المحددة. يمكنني إلغاء موافقتي في أي وقت.</span>
+                    </label>
 
                     <button class="broker-submit" id="brokerSubmitBtn" onclick="submitBroker()" disabled>
                         <span>📤</span>
@@ -961,32 +978,47 @@
                     <div class="broker-success-desc" data-ar="تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!" data-en="Your request has been registered. Thanks for using weeenaskn!">تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!</div>
                 </div>
 
-                <!-- CONTACT US -->
+                <!-- CONTACT US - Collapsible -->
                 <div class="broker-divider"></div>
-                <div class="contact-section">
-                    <div class="broker-title" data-ar="📞 تواصل معنا" data-en="📞 Contact Us">📞 تواصل معنا</div>
-                    <div class="broker-desc" data-ar="عندك سؤال أو اقتراح؟ راسلنا" data-en="Have a question? Message us">عندك سؤال أو اقتراح؟ راسلنا</div>
-
-                    <div class="phone-wrapper">
-                        <span class="phone-prefix-box">+966</span>
-                        <input type="tel" class="phone-input" id="contactPhone" placeholder="5XXXXXXXX" maxlength="9" oninput="this.value = toEnglishDigits(this.value).replace(/[^0-9]/g, '')">
-                    </div>
-
-                    <textarea class="contact-message" id="contactMessage"
-                        placeholder="اكتب رسالتك هنا..."
-                        data-ar-ph="اكتب رسالتك هنا..."
-                        data-en-ph="Write your message here..."
-                        rows="3"></textarea>
-
-                    <button class="broker-submit" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);" id="contactSubmitBtn" onclick="submitContact()">
-                        <span>📤</span>
-                        <span data-ar="أرسل الرسالة" data-en="Send Message">أرسل الرسالة</span>
+                <div class="collapsible-section">
+                    <button class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <span data-ar="📞 تواصل معنا" data-en="📞 Contact Us">📞 تواصل معنا</span>
+                        <span class="collapsible-arrow">▼</span>
                     </button>
+                    <div class="collapsible-body" style="display:none;">
+                        <div class="broker-desc" data-ar="عندك سؤال أو اقتراح؟ راسلنا" data-en="Have a question? Message us">عندك سؤال أو اقتراح؟ راسلنا</div>
+                        <div class="phone-wrapper">
+                            <span class="phone-prefix-box">+966</span>
+                            <input type="tel" class="phone-input" id="contactPhone" placeholder="5XXXXXXXX" maxlength="9" oninput="this.value = toEnglishDigits(this.value).replace(/[^0-9]/g, '')">
+                        </div>
+                        <textarea class="contact-message" id="contactMessage"
+                            placeholder="اكتب رسالتك هنا..."
+                            data-ar-ph="اكتب رسالتك هنا..."
+                            data-en-ph="Write your message here..."
+                            rows="3"></textarea>
+                        <button class="broker-submit" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);" id="contactSubmitBtn" onclick="submitContact()">
+                            <span>📤</span>
+                            <span data-ar="أرسل الرسالة" data-en="Send Message">أرسل الرسالة</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- PRIVACY LINK -->
-                <div style="text-align:center;padding:12px 0 8px;">
-                    <a href="privacy.html" target="_blank" style="color:var(--text-dimmer);font-size:11px;text-decoration:none;" data-ar="🔒 سياسة الخصوصية" data-en="🔒 Privacy Policy">🔒 سياسة الخصوصية</a>
+                <!-- PRIVACY - Collapsible -->
+                <div class="broker-divider"></div>
+                <div class="collapsible-section">
+                    <button class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <span data-ar="🔒 سياسة الخصوصية" data-en="🔒 Privacy Policy">🔒 سياسة الخصوصية</span>
+                        <span class="collapsible-arrow">▼</span>
+                    </button>
+                    <div class="collapsible-body" style="display:none;">
+                        <div style="font-size:11px;color:var(--text-dim);line-height:1.8;padding:8px 0;">
+                            <p style="margin-bottom:8px;"><strong>جمع البيانات:</strong> نجمع فقط رقم الجوال والمعلومات التي تقدمها طوعاً عند استخدام خدماتنا.</p>
+                            <p style="margin-bottom:8px;"><strong>استخدام البيانات:</strong> تُستخدم بياناتك حصرياً لربطك بعروض عقارية مناسبة ولن تُباع أو تُشارك مع أطراف غير معتمدة.</p>
+                            <p style="margin-bottom:8px;"><strong>حماية البيانات:</strong> نلتزم بحماية بياناتك الشخصية وفقاً لنظام حماية البيانات الشخصية في المملكة العربية السعودية.</p>
+                            <p style="margin-bottom:8px;"><strong>حقوقك:</strong> يحق لك طلب حذف بياناتك أو تعديلها أو إلغاء موافقتك في أي وقت بالتواصل معنا.</p>
+                            <p><strong>عدم البيع:</strong> نتعهد بعدم بيع بياناتك الشخصية لأي طرف ثالث تحت أي ظرف.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1013,6 +1045,7 @@
         let lastDistData = null; // Store for share
         let lastTotalAvgMin = 0; // Store for share
         let lastMonthlyFuel = 0; // Store for share
+        let lastTotalKm = 0; // Store for share
 
 
 
@@ -1057,7 +1090,7 @@
         }
 
         // ===== OSRM =====
-        const RUSH_MULTIPLIER = 1.7;
+        function getRushMultiplier() { return 1.7 + Math.random() * 0.5; }
 
         async function getOSRMDistances(cLat, cLng, locs) {
             try {
@@ -1070,7 +1103,7 @@
                     if (res.code === 'Ok' && res.routes && res.routes[0]) {
                         const dist = res.routes[0].distance / 1000;
                         const normalMin = Math.max(1, Math.round(res.routes[0].duration / 60));
-                        const rushMin = Math.max(1, Math.round(normalMin * RUSH_MULTIPLIER));
+                        const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier()));
                         const avgMin = Math.round((normalMin + rushMin) / 2);
                         return { loc: locs[i], dist, normalMin, rushMin, avgMin };
                     }
@@ -1153,11 +1186,6 @@
 
             // Show form
             document.getElementById('addOverlay').classList.add('show');
-            // Update overlay calc button visibility
-            const overlayCalcBtn = document.getElementById('overlayCalcBtn');
-            if (overlayCalcBtn) {
-                overlayCalcBtn.style.display = (locations.length >= 1 && !isCalculated) ? '' : 'none';
-            }
             setTimeout(() => document.getElementById('locationName').focus(), 350);
         }
 
@@ -1330,12 +1358,6 @@
                 fab.classList.remove('show');
             }
 
-            // Overlay calc button
-            const overlayCalcBtn = document.getElementById('overlayCalcBtn');
-            if (overlayCalcBtn) {
-                overlayCalcBtn.style.display = (count >= 1 && !isCalculated) ? '' : 'none';
-            }
-
             // Sidebar toggle
             const toggle = document.getElementById('sidebarToggle');
             if (count > 0) {
@@ -1420,11 +1442,10 @@
                 zIndexOffset: 1000
             }).addTo(map);
 
-            // 1km zone
-            const latOff = 0.5 / 111.32;
-            const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
-            zoneRect = L.rectangle([[cLat - latOff, cLng - lngOff], [cLat + latOff, cLng + lngOff]], {
-                color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.1, dashArray: '8,6'
+            // 500m radius circle (equivalent to 1km x 1km area)
+            zoneRect = L.circle([cLat, cLng], {
+                radius: 500,
+                color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.08, dashArray: '8,6'
             }).addTo(map);
 
             // Distances
@@ -1442,7 +1463,7 @@
                     const straight = haversineDistance(cLat, cLng, loc.lat, loc.lng);
                     const dist = straight * ROAD_FACTOR;
                     const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
-                    const rushMin = estimateMinutes(dist, AVG_SPEED_RUSH);
+                    const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier()));
                     const avgMin = Math.round((normalMin + rushMin) / 2);
                     return { loc, dist, normalMin, rushMin, avgMin };
                 });
@@ -1460,14 +1481,16 @@
                 const dText = lang === 'ar' ? 'د' : 'min';
                 const rectIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div class="loc-rect-marker" style="border-color:${loc.color}40;">
+                    html: `<div class="loc-rect-marker" style="border-left-color:${loc.color};">
                         <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
                         <div class="loc-rect-km">${dist.toFixed(1)} km</div>
-                        <div class="loc-rect-time">🟢 ${normalMin} ${dText}</div>
-                        <div class="loc-rect-rush">🔴 ${rushMin} ${dText}</div>
+                        <div class="loc-rect-times">
+                            <span class="loc-rect-time">🟢 ${normalMin} ${dText}</span>
+                            <span class="loc-rect-rush">🔴 ${rushMin} ${dText}</span>
+                        </div>
                     </div>`,
-                    iconSize: [120, 70],
-                    iconAnchor: [60, 70]
+                    iconSize: [140, 75],
+                    iconAnchor: [70, 75]
                 });
 
                 const newMarker = L.marker([loc.lat, loc.lng], { icon: rectIcon }).addTo(markersGroup);
@@ -1517,12 +1540,36 @@
 
             // Reset broker
             document.getElementById('brokerPhone').value = '';
+            document.getElementById('brokerConsent').checked = false;
             document.getElementById('brokerSubmitBtn').disabled = true;
             document.getElementById('brokerArea').style.display = '';
             document.getElementById('brokerSuccess').classList.remove('show');
 
             // Show result
             document.getElementById('resultOverlay').classList.add('show');
+
+            // Save result to localStorage for dashboard
+            try {
+                const resultData = {
+                    type: 'result',
+                    id: 'res_' + Date.now(),
+                    neighborhood,
+                    locations: locations.map(l => ({ name: l.name, icon: l.icon, type: l.type, freq: l.freq })),
+                    distances: distData.map(d => ({ name: d.loc.name, dist: d.dist.toFixed(1), normalMin: d.normalMin, rushMin: d.rushMin })),
+                    totalKm: lastTotalKm,
+                    totalMin: lastTotalAvgMin,
+                    monthlyFuel: lastMonthlyFuel,
+                    timestamp: new Date().toISOString()
+                };
+                const results = JSON.parse(localStorage.getItem('wainaskan_results') || '[]');
+                results.unshift(resultData);
+                localStorage.setItem('wainaskan_results', JSON.stringify(results));
+            } catch (e) { console.error(e); }
+
+            // Google Sheets
+            if (GOOGLE_SHEETS_URL) {
+                fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'result', neighborhood, totalKm: lastTotalKm, totalMin: lastTotalAvgMin, monthlyFuel: lastMonthlyFuel, timestamp: new Date().toISOString() }) }).catch(() => {});
+            }
 
             showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
         }
@@ -1540,6 +1587,7 @@
             const monthlyFuel = Math.round((totalKm / 8) * 2.25);
 
             // Store for share
+            lastTotalKm = Math.round(totalKm);
             lastTotalAvgMin = totalAvgMin;
             lastMonthlyFuel = monthlyFuel;
 
@@ -1618,8 +1666,8 @@
             }).join('\n');
 
             const text = lang === 'ar'
-                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n📍 الأماكن والمسافات:\n${lines}\n\n⏱️ إجمالي الوقت الشهري: ~${lastTotalAvgMin} دقيقة\n⛽ تكلفة البنزين الشهرية: ~${lastMonthlyFuel} ريال\n\n📍 weeenaskn.com`
-                : `🏠 Where to Live?\nOptimal: ${nb}\n\n📍 Places & Distances:\n${lines}\n\n⏱️ Monthly commute: ~${lastTotalAvgMin} min\n⛽ Monthly fuel: ~${lastMonthlyFuel} SAR\n\n📍 weeenaskn.com`;
+                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n📍 الأماكن والمسافات:\n${lines}\n\n📏 إجمالي المسافة الشهرية: ~${lastTotalKm} كم\n⏱️ إجمالي الوقت الشهري: ~${lastTotalAvgMin} دقيقة\n⛽ تكلفة البنزين الشهرية: ~${lastMonthlyFuel} ريال\n\n📍 weeenaskn.com`
+                : `🏠 Where to Live?\nOptimal: ${nb}\n\n📍 Places & Distances:\n${lines}\n\n📏 Monthly distance: ~${lastTotalKm} km\n⏱️ Monthly commute: ~${lastTotalAvgMin} min\n⛽ Monthly fuel: ~${lastMonthlyFuel} SAR\n\n📍 weeenaskn.com`;
 
             navigator.clipboard.writeText(text).then(() => showToast(lang === 'ar' ? '📋 تم النسخ!' : '📋 Copied!'))
                 .catch(() => showToast('⚠️'));
@@ -1628,7 +1676,8 @@
         // ===== BROKER =====
         function checkBrokerValid() {
             const phone = document.getElementById('brokerPhone').value.trim();
-            const valid = phone.length >= 9 && phone.startsWith('5');
+            const consent = document.getElementById('brokerConsent').checked;
+            const valid = phone.length >= 9 && phone.startsWith('5') && consent;
             document.getElementById('brokerSubmitBtn').disabled = !valid;
         }
 
@@ -1745,6 +1794,19 @@
                 streetLayer.addTo(map);
                 document.getElementById('mapSatBtn').classList.remove('active');
                 document.getElementById('mapStreetBtn').classList.add('active');
+            }
+        }
+
+        // ===== COLLAPSIBLE =====
+        function toggleCollapsible(btn) {
+            const body = btn.nextElementSibling;
+            const arrow = btn.querySelector('.collapsible-arrow');
+            if (body.style.display === 'none') {
+                body.style.display = '';
+                arrow.classList.add('open');
+            } else {
+                body.style.display = 'none';
+                arrow.classList.remove('open');
             }
         }
 
