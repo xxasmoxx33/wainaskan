@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQ8GazEqpRAru6kOAOLBugkbO8xI8TsCs"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -1014,7 +1015,6 @@
 
         // ===== GOOGLE MAPS API =====
         const GOOGLE_MAPS_API_KEY = 'AIzaSyDQ8GazEqpRAru6kOAOLBugkbO8xI8TsCs';
-        let googleMapsLoaded = false;
 
         const LOCATION_COLORS = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
         const FREQ_WEIGHTS = { daily: 30, weekly: 4 };
@@ -1061,14 +1061,14 @@
         }
 
         // ===== GOOGLE MAPS HELPERS =====
-        function loadGoogleMapsAPI() {
+        function waitForGoogleMaps(timeout = 5000) {
             return new Promise((resolve, reject) => {
-                if (googleMapsLoaded) { resolve(); return; }
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
-                script.onload = () => { googleMapsLoaded = true; resolve(); };
-                script.onerror = reject;
-                document.head.appendChild(script);
+                if (window.google && window.google.maps) { resolve(); return; }
+                const start = Date.now();
+                const check = setInterval(() => {
+                    if (window.google && window.google.maps) { clearInterval(check); resolve(); }
+                    else if (Date.now() - start > timeout) { clearInterval(check); reject('timeout'); }
+                }, 100);
             });
         }
 
@@ -1085,7 +1085,7 @@
 
         async function getGoogleDistances(cLat, cLng, locs) {
             try {
-                await loadGoogleMapsAPI();
+                await waitForGoogleMaps(5000);
                 const service = new google.maps.DistanceMatrixService();
                 const origin = new google.maps.LatLng(cLat, cLng);
                 const destinations = locs.map(l => new google.maps.LatLng(l.lat, l.lng));
@@ -1736,11 +1736,7 @@
         }
 
         // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-            // تحميل Google Maps بالخلفية مسبقاً
-            if (GOOGLE_MAPS_API_KEY) loadGoogleMapsAPI().catch(() => {});
-        });
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
 </body>
 </html>
