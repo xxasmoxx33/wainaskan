@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQ8GazEqpRAru6kOAOLBugkbO8xI8TsCs&callback=initMap&libraries=geometry"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --green: #10b981;
@@ -54,8 +54,23 @@
             cursor: crosshair;
         }
 
-        /* Google Maps zoom control positioning */
-        #map .gm-bundled-control { margin-top: 70px !important; }
+        .leaflet-control-zoom { margin-top: 70px !important; }
+        .leaflet-control-zoom a {
+            background: rgba(10,20,30,0.85) !important;
+            color: #fff !important;
+            border-color: var(--glass-border) !important;
+            backdrop-filter: blur(10px);
+            width: 36px !important; height: 36px !important;
+            line-height: 36px !important; font-size: 18px !important;
+        }
+        .leaflet-control-zoom a:hover { background: rgba(16,185,129,0.3) !important; }
+        .leaflet-control-attribution {
+            background: rgba(10,20,30,0.6) !important;
+            color: rgba(255,255,255,0.3) !important;
+            font-size: 9px !important;
+            padding: 2px 6px !important;
+        }
+        .leaflet-control-attribution a { color: rgba(255,255,255,0.4) !important; }
 
         /* ===== TOP BAR (Logo + Lang) ===== */
         .top-bar {
@@ -607,17 +622,15 @@
             100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
         }
 
-        /* ===== GOOGLE MAPS INFOWINDOW ===== */
-        .gm-style .gm-style-iw-c {
-            background: rgba(10,20,30,0.95) !important; backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border) !important; border-radius: 12px !important;
-            color: #fff !important; font-family: 'Cairo' !important;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4) !important;
-            padding: 12px 14px !important;
+        /* ===== LEAFLET POPUP ===== */
+        .leaflet-popup-content-wrapper {
+            background: rgba(10,20,30,0.95); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            color: #fff; font-family: 'Cairo';
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
         }
-        .gm-style .gm-style-iw-d { overflow: auto !important; }
-        .gm-style .gm-style-iw-tc::after { background: rgba(10,20,30,0.95) !important; }
-        .gm-style .gm-ui-hover-effect { filter: invert(1); }
+        .leaflet-popup-tip { background: rgba(10,20,30,0.95); border: 1px solid var(--glass-border); }
+        .leaflet-popup-content { margin: 12px 14px; font-size: 13px; }
         .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
         .popup-info { color: var(--text-dim); font-size: 11px; }
         .popup-remove {
@@ -749,7 +762,7 @@
             .map-hint { right: 400px; left: auto; transform: none; margin-right: 16px; }
             .search-float { right: 400px; }
             [dir="ltr"] .search-float { left: 400px; right: 12px; }
-            #map .gm-bundled-control { margin-right: 10px !important; }
+            .leaflet-control-zoom { margin-right: 10px !important; }
         }
     </style>
 </head>
@@ -982,7 +995,7 @@
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
-    <!-- Google Maps loaded in head -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // ===== STATE =====
         let lang = 'ar';
@@ -992,14 +1005,12 @@
         let selectedEmoji = '📌';
         let selectedFreq = 'daily';
 
-        let map;
-        let currentMapType = 'street';
+        let map, markersGroup;
+        let streetLayer, satelliteLayer, currentMapType = 'street';
         let centroidMarker = null, zoneRect = null;
         let connectionLines = [], distanceLabels = [];
         let tempMarker = null;
         let lastDistData = null; // Store for share
-        let infoWindow;
-        let allMarkers = [];
 
 
 
@@ -1047,49 +1058,30 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // ===== GOOGLE DISTANCE MATRIX — مسافات شوارع حقيقية =====
-        async function getGoogleDistances(cLat, cLng, locs) {
-            return new Promise((resolve, reject) => {
-                const service = new google.maps.DistanceMatrixService();
-                const origin = new google.maps.LatLng(cLat, cLng);
-                const destinations = locs.map(l => new google.maps.LatLng(l.lat, l.lng));
+        // ===== OSRM — مسافات شوارع حقيقية (مجاني + سريع) =====
+        const RUSH_MULTIPLIER = 1.7; // معامل وقت الذروة
 
-                service.getDistanceMatrix({
-                    origins: [origin],
-                    destinations: destinations,
-                    travelMode: 'DRIVING',
-                    drivingOptions: {
-                        departureTime: getNextRushHour(),
-                        trafficModel: 'PESSIMISTIC'
+        async function getOSRMDistances(cLat, cLng, locs) {
+            try {
+                const promises = locs.map(loc =>
+                    fetch(`https://router.project-osrm.org/route/v1/driving/${cLng},${cLat};${loc.lng},${loc.lat}?overview=false`)
+                        .then(r => r.json())
+                );
+                const results = await Promise.all(promises);
+                return results.map((res, i) => {
+                    if (res.code === 'Ok' && res.routes && res.routes[0]) {
+                        const dist = res.routes[0].distance / 1000; // meters → km
+                        const normalMin = Math.max(1, Math.round(res.routes[0].duration / 60)); // seconds → min
+                        const rushMin = Math.max(1, Math.round(normalMin * RUSH_MULTIPLIER));
+                        const avgMin = Math.round((normalMin + rushMin) / 2);
+                        return { loc: locs[i], dist, normalMin, rushMin, avgMin };
                     }
-                }, (response, status) => {
-                    if (status === 'OK') {
-                        const results = response.rows[0].elements.map((el, i) => {
-                            if (el.status === 'OK') {
-                                const dist = el.distance.value / 1000;
-                                const normalMin = Math.round(el.duration.value / 60);
-                                const rushMin = Math.round((el.duration_in_traffic || el.duration).value / 60);
-                                const avgMin = Math.round((normalMin + rushMin) / 2);
-                                return { loc: locs[i], dist, normalMin, rushMin, avgMin };
-                            }
-                            return null;
-                        });
-                        if (results.every(r => r !== null)) resolve(results);
-                        else reject('Some elements failed');
-                    } else {
-                        reject(status);
-                    }
+                    return null; // fallback needed
                 });
-            });
-        }
-
-        function getNextRushHour() {
-            const now = new Date();
-            let target = new Date(now);
-            target.setUTCHours(4, 30, 0, 0);
-            if (target <= now) target.setDate(target.getDate() + 1);
-            while (target.getDay() === 0 || target.getDay() === 6) target.setDate(target.getDate() + 1);
-            return target;
+            } catch (e) {
+                console.warn('OSRM error:', e);
+                return null;
+            }
         }
 
         function escapeHtml(str) {
@@ -1100,48 +1092,48 @@
 
         // ===== MAP INIT =====
         function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 24.7136, lng: 46.6753 },
+            map = L.map('map', {
+                center: [24.7136, 46.6753],
                 zoom: 11,
-                disableDefaultUI: true,
                 zoomControl: true,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false,
-                gestureHandling: 'greedy',
-                mapId: 'wainaskan_map',
-                styles: [
-                    { elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
-                    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a2e' }] },
-                    { elementType: 'labels.text.fill', stylers: [{ color: '#8892b0' }] },
-                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2d2d4a' }] },
-                    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#8892b0' }] },
-                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1a2e' }] },
-                    { featureType: 'poi', stylers: [{ visibility: 'off' }] }
-                ]
+                dragging: true,
+                touchZoom: true,
+                scrollWheelZoom: true,
+                doubleClickZoom: false,
+                boxZoom: true,
+                keyboard: true
             });
 
-            infoWindow = new google.maps.InfoWindow();
+            streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            });
 
-            map.addListener('click', function(e) {
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; Esri',
+                maxZoom: 19
+            });
+
+            streetLayer.addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+
+            map.on('click', function(e) {
                 if (isCalculated) return;
-                onMapClick(e.latLng.lat(), e.latLng.lng());
+                onMapClick(e.latlng.lat, e.latlng.lng);
             });
+
+            setTimeout(() => map.invalidateSize(), 100);
         }
 
         // ===== MAP CLICK =====
         function onMapClick(lat, lng) {
-            if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
 
-            tempMarker = new google.maps.Circle({
-                center: { lat, lng },
-                radius: 200,
-                fillColor: '#10b981',
-                fillOpacity: 0.3,
-                strokeColor: '#10b981',
-                strokeWeight: 2,
-                map: map
-            });
+            tempMarker = L.circleMarker([lat, lng], {
+                radius: 12, color: '#10b981', fillColor: '#10b981',
+                fillOpacity: 0.3, weight: 2
+            }).addTo(map);
 
             document.getElementById('mapHint').classList.add('hidden');
 
@@ -1205,8 +1197,7 @@
         function selectSearch(lat, lng) {
             document.getElementById('searchResults').classList.remove('show');
             document.getElementById('searchInput').value = '';
-            map.panTo({ lat, lng });
-            map.setZoom(14);
+            map.flyTo([lat, lng], 14, { duration: 1 });
             setTimeout(() => onMapClick(lat, lng), 300);
         }
 
@@ -1242,7 +1233,7 @@
 
         function closeAddForm() {
             document.getElementById('addOverlay').classList.remove('show');
-            if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
             pendingLocation = null;
         }
 
@@ -1271,26 +1262,17 @@
                 color, marker: null
             };
 
-            const marker = new google.maps.Marker({
-                position: { lat: loc.lat, lng: loc.lng },
-                map: map,
-                icon: {
-                    url: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="46" viewBox="0 0 40 46"><path d="M20 0C9 0 0 9 0 20c0 15 20 26 20 26s20-11 20-26C40 9 31 0 20 0z" fill="${color}"/><text x="20" y="24" text-anchor="middle" font-size="17">${icon}</text></svg>`),
-                    scaledSize: new google.maps.Size(40, 46),
-                    anchor: new google.maps.Point(20, 46)
-                },
-                title: loc.name
+            const markerIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div class="marker-pin" style="background:${color}"><span class="marker-icon">${icon}</span></div>`,
+                iconSize: [40, 46], iconAnchor: [20, 46], popupAnchor: [0, -46]
             });
 
-            marker.addListener('click', () => {
-                infoWindow.setContent(createPopup(loc));
-                infoWindow.open(map, marker);
-            });
-
+            const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon }).addTo(markersGroup);
+            marker.bindPopup(createPopup(loc));
             loc.marker = marker;
-            allMarkers.push(marker);
 
-            if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
+            if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
 
             locations.push(loc);
             closeAddForm();
@@ -1309,9 +1291,9 @@
         function removeLoc(id) {
             const idx = locations.findIndex(l => l.id === id);
             if (idx === -1) return;
-            if (locations[idx].marker) locations[idx].marker.setMap(null);
+            if (locations[idx].marker) markersGroup.removeLayer(locations[idx].marker);
             locations.splice(idx, 1);
-            infoWindow.close();
+            map.closePopup();
             if (isCalculated) clearResult();
             updateUI();
             showToast(lang === 'ar' ? 'تم الحذف' : 'Removed');
@@ -1408,33 +1390,27 @@
             clearMapOverlays();
 
             // Centroid marker
-            centroidMarker = new google.maps.Marker({
-                position: { lat: cLat, lng: cLng },
-                map: map,
-                icon: {
-                    url: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="#10b981" stroke="white" stroke-width="3"/></svg>'),
-                    scaledSize: new google.maps.Size(20, 20),
-                    anchor: new google.maps.Point(10, 10)
-                },
-                zIndex: 1000
-            });
+            centroidMarker = L.marker([cLat, cLng], {
+                icon: L.divIcon({ className: 'custom-marker', html: '<div class="centroid-marker-inner"></div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
+                zIndexOffset: 1000
+            }).addTo(map);
 
             // 1km zone
             const latOff = 0.5 / 111.32;
             const lngOff = 0.5 / (111.32 * Math.cos(cLat * Math.PI / 180));
-            zoneRect = new google.maps.Rectangle({
-                bounds: { north: cLat + latOff, south: cLat - latOff, east: cLng + lngOff, west: cLng - lngOff },
-                strokeColor: '#10b981', strokeWeight: 2, strokeOpacity: 1,
-                fillColor: '#10b981', fillOpacity: 0.1,
-                map: map
-            });
+            zoneRect = L.rectangle([[cLat - latOff, cLng - lngOff], [cLat + latOff, cLng + lngOff]], {
+                color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.1, dashArray: '8,6'
+            }).addTo(map);
 
-            // Distances — Google Distance Matrix (real road distances), fallback to haversine
+            // Distances — OSRM (real road distances), fallback to haversine
             let distData = null;
             try {
-                distData = await getGoogleDistances(cLat, cLng, locations);
+                const osrmData = await getOSRMDistances(cLat, cLng, locations);
+                if (osrmData && osrmData.every(d => d !== null)) {
+                    distData = osrmData;
+                }
             } catch (e) {
-                console.warn('Distance Matrix fallback:', e);
+                console.warn('OSRM fallback:', e);
             }
             if (!distData) {
                 distData = locations.map(loc => {
@@ -1450,41 +1426,24 @@
 
             // Lines + labels
             distData.forEach(({ loc, dist, normalMin, rushMin }) => {
-                const line = new google.maps.Polyline({
-                    path: [{ lat: cLat, lng: cLng }, { lat: loc.lat, lng: loc.lng }],
-                    strokeColor: loc.color, strokeWeight: 2, strokeOpacity: 0.5,
-                    geodesic: true, map: map,
-                    icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '15px' }]
-                });
+                const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6,8', opacity: 0.5 }).addTo(map);
                 connectionLines.push(line);
 
                 const dText = lang === 'ar' ? 'د' : 'min';
-                const midLat = loc.lat + (loc.lat - cLat) * 0.12;
-                const midLng = loc.lng + (loc.lng - cLng) * 0.12;
-                const lbl = new google.maps.Marker({
-                    position: { lat: midLat, lng: midLng },
-                    map: map,
-                    icon: {
-                        url: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>`),
-                        scaledSize: new google.maps.Size(1, 1)
-                    },
-                    label: {
-                        text: `${dist.toFixed(1)}km  🟢${normalMin}${dText}  🔴${rushMin}${dText}`,
-                        color: '#fff',
-                        fontSize: '10px',
-                        fontWeight: '600',
-                        className: 'marker-info-label'
-                    },
-                    clickable: false
-                });
+                const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🟢 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
+                        iconSize: [90, 40], iconAnchor: [45, 20]
+                    }), interactive: false
+                }).addTo(map);
                 distanceLabels.push(lbl);
             });
 
-            // Fit to bounds
-            const bounds = new google.maps.LatLngBounds();
-            locations.forEach(l => bounds.extend({ lat: l.lat, lng: l.lng }));
-            bounds.extend({ lat: cLat, lng: cLng });
-            map.fitBounds(bounds, 50);
+            // Fly to bounds
+            const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]));
+            bounds.extend([cLat, cLng]);
+            map.flyToBounds(bounds.pad(0.2), { duration: 1 });
 
             // Get neighborhood
             const neighborhood = await reverseGeocode(cLat, cLng);
@@ -1581,10 +1540,10 @@
 
         // ===== CLEAR / RESET =====
         function clearMapOverlays() {
-            if (centroidMarker) { centroidMarker.setMap(null); centroidMarker = null; }
-            if (zoneRect) { zoneRect.setMap(null); zoneRect = null; }
-            connectionLines.forEach(l => l.setMap(null)); connectionLines = [];
-            distanceLabels.forEach(l => l.setMap(null)); distanceLabels = [];
+            if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
+            if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
+            connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
+            distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
         }
 
         function closeResult() {
@@ -1600,13 +1559,11 @@
 
         function resetAll() {
             clearResult();
-            locations.forEach(l => { if (l.marker) l.marker.setMap(null); });
-            allMarkers.forEach(m => m.setMap(null)); allMarkers = [];
+            locations.forEach(l => { if (l.marker) markersGroup.removeLayer(l.marker); });
             locations = [];
             updateUI();
             document.getElementById('mapHint').classList.remove('hidden');
-            map.panTo({ lat: 24.7136, lng: 46.6753 });
-            map.setZoom(11);
+            map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
             showToast(lang === 'ar' ? '🔄 تم إعادة الضبط' : '🔄 Reset');
         }
 
@@ -1700,6 +1657,8 @@
             });
 
             renderSidebarLocations();
+            locations.forEach(l => { if (l.marker) l.marker.setPopupContent(createPopup(l)); });
+            setTimeout(() => map.invalidateSize(), 100);
         }
 
         // ===== TOAST =====
@@ -1721,18 +1680,20 @@
             currentMapType = type;
 
             if (type === 'satellite') {
-                map.setMapTypeId('hybrid');
+                map.removeLayer(streetLayer);
+                satelliteLayer.addTo(map);
                 document.getElementById('mapStreetBtn').classList.remove('active');
                 document.getElementById('mapSatBtn').classList.add('active');
             } else {
-                map.setMapTypeId('roadmap');
+                map.removeLayer(satelliteLayer);
+                streetLayer.addTo(map);
                 document.getElementById('mapSatBtn').classList.remove('active');
                 document.getElementById('mapStreetBtn').classList.add('active');
             }
         }
 
         // ===== INIT =====
-        // initMap is called by Google Maps callback=initMap in the script tag
+        document.addEventListener('DOMContentLoaded', initMap);
     </script>
 </body>
 </html>
