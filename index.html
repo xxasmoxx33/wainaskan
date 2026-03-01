@@ -12,7 +12,6 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_SA">
     <link rel="canonical" href="https://weeenaskn.com/">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -54,7 +53,7 @@
             cursor: crosshair;
         }
 
-        .leaflet-control-zoom { margin-top: 70px !important; }
+        .leaflet-control-zoom { margin-top: 110px !important; }
         .leaflet-control-zoom a {
             background: rgba(10,20,30,0.85) !important;
             color: #fff !important;
@@ -169,16 +168,17 @@
             display: flex; gap: 6px; margin-bottom: 12px;
         }
         .quick-btn {
-            flex: 1; padding: 10px 6px;
+            flex: 1; padding: 8px 10px;
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--glass-border);
             border-radius: 10px; color: var(--text-dim);
             font-family: 'Cairo'; font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            display: flex; flex-direction: row; align-items: center; gap: 4px;
+            justify-content: center;
         }
         .quick-btn:active { transform: scale(0.95); }
-        .quick-btn .q-icon { font-size: 18px; }
+        .quick-btn .q-icon { font-size: 16px; }
         .quick-btn.selected {
             background: rgba(16,185,129,0.15);
             border-color: var(--green); color: var(--green-light);
@@ -209,8 +209,21 @@
             color: #fff; font-family: 'Cairo'; font-size: 15px; font-weight: 700;
             cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin-bottom: 8px;
         }
         .add-confirm-btn:active { transform: scale(0.97); }
+
+        .overlay-calc-btn {
+            width: 100%; padding: 14px;
+            background: transparent;
+            border: 2px solid var(--amber);
+            border-radius: 12px;
+            color: var(--amber); font-family: 'Cairo'; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .overlay-calc-btn:active { transform: scale(0.97); }
+        .overlay-calc-btn:hover { background: rgba(245,158,11,0.1); }
 
         /* ===== MAP HINT ===== */
         .map-hint {
@@ -491,52 +504,6 @@
             font-size: 12px; color: var(--text-dim); text-align: center; margin-bottom: 16px; line-height: 1.6;
         }
 
-        .broker-q-label {
-            font-size: 13px; font-weight: 700; color: var(--text-dim); margin-bottom: 8px;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .broker-q-num {
-            font-size: 10px; font-weight: 800; color: var(--amber);
-            background: rgba(245,158,11,0.15);
-            padding: 2px 8px; border-radius: 50px;
-        }
-
-        .prop-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 6px; margin-bottom: 16px;
-        }
-        .prop-btn {
-            padding: 10px 4px;
-            background: var(--glass); border: 1px solid var(--glass-border);
-            border-radius: 10px; color: var(--text-dim);
-            font-family: 'Cairo'; font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
-        }
-        .prop-btn:active { transform: scale(0.95); }
-        .prop-btn .prop-icon { font-size: 20px; }
-        .prop-btn.selected {
-            background: rgba(245,158,11,0.12);
-            border-color: var(--amber); color: #fbbf24;
-        }
-
-        .purpose-row {
-            display: flex; gap: 8px; margin-bottom: 16px;
-        }
-        .purpose-btn {
-            flex: 1; padding: 12px;
-            background: var(--glass); border: 1px solid var(--glass-border);
-            border-radius: 10px; color: var(--text-dim);
-            font-family: 'Cairo'; font-size: 14px; font-weight: 700;
-            cursor: pointer; text-align: center;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .purpose-btn:active { transform: scale(0.95); }
-        .purpose-btn.selected {
-            background: rgba(245,158,11,0.12);
-            border-color: var(--amber); color: #fbbf24;
-        }
-
         .phone-wrapper {
             display: flex; gap: 8px; margin-bottom: 16px; direction: ltr;
         }
@@ -579,6 +546,30 @@
         .broker-success-title { font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
         .broker-success-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
 
+        /* ===== CONTACT SECTION ===== */
+        .contact-message {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Cairo';
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 16px;
+            direction: rtl;
+        }
+        .contact-message:focus {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,0.08);
+        }
+        .contact-message::placeholder { color: var(--text-dimmer); }
+        .contact-section { margin-bottom: 16px; }
+
         /* ===== MARKER STYLES ===== */
         .custom-marker { background: none; border: none; }
         .marker-pin {
@@ -608,6 +599,41 @@
         .marker-info-km { color: var(--green-light); }
         .marker-info-time { color: var(--text-dim); font-size: 9px; }
         .marker-info-rush { color: #fca5a5; font-size: 9px; }
+
+        /* ===== RECTANGLE MARKERS ===== */
+        .loc-rect-marker {
+            background: rgba(10,20,30,0.92);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-family: 'Cairo';
+            white-space: nowrap;
+            color: #fff;
+            min-width: 100px;
+        }
+        .loc-rect-name {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .loc-rect-km {
+            font-size: 12px;
+            font-weight: 800;
+            color: #6ee7b7;
+            margin-bottom: 2px;
+        }
+        .loc-rect-time {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+        }
+        .loc-rect-rush {
+            font-size: 10px;
+            color: #fca5a5;
+        }
 
         .centroid-marker-inner {
             width: 20px; height: 20px;
@@ -704,13 +730,10 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-
-
-
         /* ===== MAP TYPE TOGGLE ===== */
         .map-type-toggle {
             position: fixed;
-            bottom: calc(24px + var(--safe-bottom));
+            bottom: calc(80px + var(--safe-bottom));
             right: 16px;
             z-index: 700;
             display: flex;
@@ -735,15 +758,6 @@
             color: var(--green-light);
         }
         .map-type-btn:active { transform: scale(0.95); }
-
-        /* ===== AD SLOT ===== */
-        .ad-slot {
-            background: rgba(255,255,255,0.02);
-            border: 1px dashed rgba(255,255,255,0.08);
-            border-radius: 10px; padding: 20px;
-            text-align: center; color: var(--text-dimmer);
-            font-size: 11px; margin: 12px 0;
-        }
 
         /* ===== DESKTOP ===== */
         @media (min-width: 769px) {
@@ -775,7 +789,7 @@
     <div class="top-bar">
         <div class="top-brand">
             <div class="top-logo">🏠</div>
-            <span class="top-title" data-ar="وين أسكن" data-en="Wain Askan">وين أسكن</span>
+            <span class="top-title" data-ar="وين أسكن" data-en="weeenaskn">وين أسكن</span>
         </div>
         <div class="top-actions">
             <button class="lang-btn active" onclick="setLang('ar')">عربي</button>
@@ -855,6 +869,11 @@
             <span data-ar="أضف الموقع" data-en="Add Location">أضف الموقع</span>
             <span>✅</span>
         </button>
+
+        <button class="overlay-calc-btn" id="overlayCalcBtn" onclick="calculateOptimal()" style="display:none;">
+            <span>✨</span>
+            <span data-ar="عطني النتيجة" data-en="Show Result">عطني النتيجة</span>
+        </button>
     </div>
 
     <!-- RESULT FAB -->
@@ -886,9 +905,6 @@
                     <p data-ar="اضغط على الخريطة لإضافة أماكنك" data-en="Tap the map to add your places">اضغط على الخريطة لإضافة أماكنك</p>
                 </div>
             </div>
-            <div class="ad-slot" style="margin-top:20px;">
-                <div>إعلان - Ad</div>
-            </div>
         </div>
         <button class="sidebar-calc-btn" id="sidebarCalcBtn" onclick="calculateOptimal()" disabled>
             <span>✨</span>
@@ -919,56 +935,12 @@
                     </button>
                 </div>
 
-                <div class="ad-slot"><div>إعلان - Ad</div></div>
-
                 <!-- BROKER -->
                 <div class="broker-divider"></div>
                 <div id="brokerArea">
-                    <div class="broker-title" data-ar="🏡 تبي وسيط عقاري؟" data-en="🏡 Want a broker?">🏡 تبي وسيط عقاري؟</div>
-                    <div class="broker-desc" data-ar="سجّل بياناتك وبيتواصلون معك" data-en="Register and brokers will contact you">سجّل بياناتك وبيتواصلون معك</div>
+                    <div class="broker-title" data-ar="🏠 سجل اهتمامك في العقار" data-en="🏠 Register Your Interest">🏠 سجل اهتمامك في العقار</div>
+                    <div class="broker-desc" data-ar="سجّل رقمك وبنتواصل معك" data-en="Leave your number and we'll contact you">سجّل رقمك وبنتواصل معك</div>
 
-                    <div class="broker-q-label">
-                        <span class="broker-q-num">1</span>
-                        <span data-ar="وش نوع العقار؟" data-en="Property type?">وش نوع العقار؟</span>
-                    </div>
-                    <div class="prop-grid" id="propGrid">
-                        <button class="prop-btn" data-type="land" onclick="pickProp(this)">
-                            <span class="prop-icon">🏗️</span><span data-ar="أرض" data-en="Land">أرض</span>
-                        </button>
-                        <button class="prop-btn" data-type="villa" onclick="pickProp(this)">
-                            <span class="prop-icon">🏡</span><span data-ar="فيلا" data-en="Villa">فيلا</span>
-                        </button>
-                        <button class="prop-btn" data-type="apartment" onclick="pickProp(this)">
-                            <span class="prop-icon">🏢</span><span data-ar="شقة" data-en="Apt">شقة</span>
-                        </button>
-                        <button class="prop-btn" data-type="duplex" onclick="pickProp(this)">
-                            <span class="prop-icon">🏘️</span><span data-ar="دبلكس" data-en="Duplex">دبلكس</span>
-                        </button>
-                        <button class="prop-btn" data-type="floor" onclick="pickProp(this)">
-                            <span class="prop-icon">🏠</span><span data-ar="دور" data-en="Floor">دور</span>
-                        </button>
-                        <button class="prop-btn" data-type="townhouse" onclick="pickProp(this)">
-                            <span class="prop-icon">🏚️</span><span data-ar="تاون هاوس" data-en="Town H.">تاون هاوس</span>
-                        </button>
-                    </div>
-
-                    <div class="broker-q-label">
-                        <span class="broker-q-num">2</span>
-                        <span data-ar="شراء أو إيجار؟" data-en="Buy or Rent?">شراء أو إيجار؟</span>
-                    </div>
-                    <div class="purpose-row" id="purposeRow">
-                        <button class="purpose-btn" data-purpose="buy" onclick="pickPurpose(this)">
-                            <span>🔑</span><span data-ar="شراء" data-en="Buy">شراء</span>
-                        </button>
-                        <button class="purpose-btn" data-purpose="rent" onclick="pickPurpose(this)">
-                            <span>📝</span><span data-ar="إيجار" data-en="Rent">إيجار</span>
-                        </button>
-                    </div>
-
-                    <div class="broker-q-label">
-                        <span class="broker-q-num">3</span>
-                        <span data-ar="رقم الجوال" data-en="Phone number">رقم الجوال</span>
-                    </div>
                     <div class="phone-wrapper">
                         <span class="phone-prefix-box">+966</span>
                         <input type="tel" class="phone-input" id="brokerPhone"
@@ -979,14 +951,42 @@
 
                     <button class="broker-submit" id="brokerSubmitBtn" onclick="submitBroker()" disabled>
                         <span>📤</span>
-                        <span data-ar="أرسل طلبي" data-en="Send Request">أرسل طلبي</span>
+                        <span data-ar="سجل اهتمامي" data-en="Register Interest">سجل اهتمامي</span>
                     </button>
                 </div>
 
                 <div class="broker-success" id="brokerSuccess">
                     <div class="broker-success-icon">🎉</div>
                     <div class="broker-success-title" data-ar="تم إرسال طلبك!" data-en="Request sent!">تم إرسال طلبك!</div>
-                    <div class="broker-success-desc" data-ar="تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!" data-en="Your request has been registered. Thanks for using Wain Askan!">تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!</div>
+                    <div class="broker-success-desc" data-ar="تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!" data-en="Your request has been registered. Thanks for using weeenaskn!">تم تسجيل طلبك بنجاح. شكرًا لاستخدامك وين أسكن!</div>
+                </div>
+
+                <!-- CONTACT US -->
+                <div class="broker-divider"></div>
+                <div class="contact-section">
+                    <div class="broker-title" data-ar="📞 تواصل معنا" data-en="📞 Contact Us">📞 تواصل معنا</div>
+                    <div class="broker-desc" data-ar="عندك سؤال أو اقتراح؟ راسلنا" data-en="Have a question? Message us">عندك سؤال أو اقتراح؟ راسلنا</div>
+
+                    <div class="phone-wrapper">
+                        <span class="phone-prefix-box">+966</span>
+                        <input type="tel" class="phone-input" id="contactPhone" placeholder="5XXXXXXXX" maxlength="9" oninput="this.value = toEnglishDigits(this.value).replace(/[^0-9]/g, '')">
+                    </div>
+
+                    <textarea class="contact-message" id="contactMessage"
+                        placeholder="اكتب رسالتك هنا..."
+                        data-ar-ph="اكتب رسالتك هنا..."
+                        data-en-ph="Write your message here..."
+                        rows="3"></textarea>
+
+                    <button class="broker-submit" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);" id="contactSubmitBtn" onclick="submitContact()">
+                        <span>📤</span>
+                        <span data-ar="أرسل الرسالة" data-en="Send Message">أرسل الرسالة</span>
+                    </button>
+                </div>
+
+                <!-- PRIVACY LINK -->
+                <div style="text-align:center;padding:12px 0 8px;">
+                    <a href="privacy.html" target="_blank" style="color:var(--text-dimmer);font-size:11px;text-decoration:none;" data-ar="🔒 سياسة الخصوصية" data-en="🔒 Privacy Policy">🔒 سياسة الخصوصية</a>
                 </div>
             </div>
         </div>
@@ -1011,15 +1011,16 @@
         let connectionLines = [], distanceLabels = [];
         let tempMarker = null;
         let lastDistData = null; // Store for share
+        let lastTotalAvgMin = 0; // Store for share
+        let lastMonthlyFuel = 0; // Store for share
 
 
 
         const LOCATION_COLORS = ['#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
         const FREQ_WEIGHTS = { daily: 30, weekly: 4 };
-        // العمل يومي = 5 أيام بالأسبوع = 22 يوم بالشهر
         function getWeight(loc) {
             const isWork = loc.name === 'العمل' || loc.name === 'Work' || loc.name === 'المكتب' || loc.name === 'Office';
-            if (isWork && loc.frequency === 'daily') return 22; // 5 days/week
+            if (isWork && loc.frequency === 'daily') return 22;
             return FREQ_WEIGHTS[loc.frequency];
         }
         function hasWorkLocation() {
@@ -1031,9 +1032,7 @@
         };
         const AVG_SPEED_NORMAL = 45;
         const AVG_SPEED_RUSH   = 22;
-        const ROAD_FACTOR = 1.4; // معامل تصحيح الشوارع (الطريق الفعلي أطول من الخط المستقيم)
-
-        let brokerData = { propertyType: null, purpose: null };
+        const ROAD_FACTOR = 1.4;
 
         // ===== ARABIC TO ENGLISH DIGITS =====
         function toEnglishDigits(str) {
@@ -1042,7 +1041,6 @@
         }
 
         function onPhoneInput(el) {
-            // Convert Arabic digits to English immediately
             el.value = toEnglishDigits(el.value).replace(/[^0-9]/g, '');
             checkBrokerValid();
         }
@@ -1058,8 +1056,8 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // ===== OSRM — مسافات شوارع حقيقية (مجاني + سريع) =====
-        const RUSH_MULTIPLIER = 1.7; // معامل وقت الذروة
+        // ===== OSRM =====
+        const RUSH_MULTIPLIER = 1.7;
 
         async function getOSRMDistances(cLat, cLng, locs) {
             try {
@@ -1070,13 +1068,13 @@
                 const results = await Promise.all(promises);
                 return results.map((res, i) => {
                     if (res.code === 'Ok' && res.routes && res.routes[0]) {
-                        const dist = res.routes[0].distance / 1000; // meters → km
-                        const normalMin = Math.max(1, Math.round(res.routes[0].duration / 60)); // seconds → min
+                        const dist = res.routes[0].distance / 1000;
+                        const normalMin = Math.max(1, Math.round(res.routes[0].duration / 60));
                         const rushMin = Math.max(1, Math.round(normalMin * RUSH_MULTIPLIER));
                         const avgMin = Math.round((normalMin + rushMin) / 2);
                         return { loc: locs[i], dist, normalMin, rushMin, avgMin };
                     }
-                    return null; // fallback needed
+                    return null;
                 });
             } catch (e) {
                 console.warn('OSRM error:', e);
@@ -1155,6 +1153,11 @@
 
             // Show form
             document.getElementById('addOverlay').classList.add('show');
+            // Update overlay calc button visibility
+            const overlayCalcBtn = document.getElementById('overlayCalcBtn');
+            if (overlayCalcBtn) {
+                overlayCalcBtn.style.display = (locations.length >= 1 && !isCalculated) ? '' : 'none';
+            }
             setTimeout(() => document.getElementById('locationName').focus(), 350);
         }
 
@@ -1299,6 +1302,21 @@
             showToast(lang === 'ar' ? 'تم الحذف' : 'Removed');
         }
 
+        // ===== RESTORE ORIGINAL PIN MARKERS =====
+        function restoreOriginalMarkers() {
+            locations.forEach(loc => {
+                if (loc.marker) markersGroup.removeLayer(loc.marker);
+                const markerIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="marker-pin" style="background:${loc.color}"><span class="marker-icon">${loc.icon}</span></div>`,
+                    iconSize: [40, 46], iconAnchor: [20, 46], popupAnchor: [0, -46]
+                });
+                const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon }).addTo(markersGroup);
+                marker.bindPopup(createPopup(loc));
+                loc.marker = marker;
+            });
+        }
+
         // ===== UPDATE UI =====
         function updateUI() {
             const count = locations.length;
@@ -1310,6 +1328,12 @@
                 document.getElementById('fabCount').textContent = count;
             } else {
                 fab.classList.remove('show');
+            }
+
+            // Overlay calc button
+            const overlayCalcBtn = document.getElementById('overlayCalcBtn');
+            if (overlayCalcBtn) {
+                overlayCalcBtn.style.display = (count >= 1 && !isCalculated) ? '' : 'none';
             }
 
             // Sidebar toggle
@@ -1378,6 +1402,7 @@
         async function calculateOptimal() {
             if (locations.length < 1) return;
             closeSidebar();
+            closeAddForm();
 
             // Weighted centroid
             let totalW = 0, wLat = 0, wLng = 0;
@@ -1402,7 +1427,7 @@
                 color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.1, dashArray: '8,6'
             }).addTo(map);
 
-            // Distances — OSRM (real road distances), fallback to haversine
+            // Distances
             let distData = null;
             try {
                 const osrmData = await getOSRMDistances(cLat, cLng, locations);
@@ -1424,20 +1449,30 @@
             }
             lastDistData = distData;
 
-            // Lines + labels
+            // Connection lines + Replace pin markers with rectangle markers
             distData.forEach(({ loc, dist, normalMin, rushMin }) => {
                 const line = L.polyline([[cLat, cLng], [loc.lat, loc.lng]], { color: loc.color, weight: 2, dashArray: '6,8', opacity: 0.5 }).addTo(map);
                 connectionLines.push(line);
 
+                // Remove old pin marker
+                if (loc.marker) markersGroup.removeLayer(loc.marker);
+
                 const dText = lang === 'ar' ? 'د' : 'min';
-                const lbl = L.marker([loc.lat + (loc.lat - cLat) * 0.12, loc.lng + (loc.lng - cLng) * 0.12], {
-                    icon: L.divIcon({
-                        className: '',
-                        html: `<div class="marker-info-label"><div class="marker-info-km">${dist.toFixed(1)} km</div><div class="marker-info-time">🟢 ${normalMin} ${dText}</div><div class="marker-info-rush">🔴 ${rushMin} ${dText}</div></div>`,
-                        iconSize: [90, 40], iconAnchor: [45, 20]
-                    }), interactive: false
-                }).addTo(map);
-                distanceLabels.push(lbl);
+                const rectIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="loc-rect-marker" style="border-color:${loc.color}40;">
+                        <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
+                        <div class="loc-rect-km">${dist.toFixed(1)} km</div>
+                        <div class="loc-rect-time">🟢 ${normalMin} ${dText}</div>
+                        <div class="loc-rect-rush">🔴 ${rushMin} ${dText}</div>
+                    </div>`,
+                    iconSize: [120, 70],
+                    iconAnchor: [60, 70]
+                });
+
+                const newMarker = L.marker([loc.lat, loc.lng], { icon: rectIcon }).addTo(markersGroup);
+                newMarker.bindPopup(createPopup(loc));
+                loc.marker = newMarker;
             });
 
             // Fly to bounds
@@ -1481,9 +1516,6 @@
             updateUI();
 
             // Reset broker
-            brokerData = { propertyType: null, purpose: null };
-            document.querySelectorAll('.prop-btn').forEach(b => b.classList.remove('selected'));
-            document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('selected'));
             document.getElementById('brokerPhone').value = '';
             document.getElementById('brokerSubmitBtn').disabled = true;
             document.getElementById('brokerArea').style.display = '';
@@ -1506,6 +1538,10 @@
 
             // Fuel: 2.25 SAR/liter, avg 8km/liter
             const monthlyFuel = Math.round((totalKm / 8) * 2.25);
+
+            // Store for share
+            lastTotalAvgMin = totalAvgMin;
+            lastMonthlyFuel = monthlyFuel;
 
             const workNote = hasWorkLocation();
 
@@ -1553,14 +1589,18 @@
         function clearResult() {
             clearMapOverlays();
             document.getElementById('resultOverlay').classList.remove('show');
+            restoreOriginalMarkers();
             isCalculated = false;
             updateUI();
         }
 
         function resetAll() {
-            clearResult();
+            clearMapOverlays();
+            document.getElementById('resultOverlay').classList.remove('show');
+            restoreOriginalMarkers();
             locations.forEach(l => { if (l.marker) markersGroup.removeLayer(l.marker); });
             locations = [];
+            isCalculated = false;
             updateUI();
             document.getElementById('mapHint').classList.remove('hidden');
             map.flyTo([24.7136, 46.6753], 11, { duration: 1 });
@@ -1573,34 +1613,22 @@
 
             const lines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
                 return lang === 'ar'
-                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (~${normalMin} د / ~${rushMin} د ذروة)`
-                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (~${normalMin}/${rushMin} min)`;
+                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (🟢 ~${normalMin} د / 🔴 ~${rushMin} د ذروة)`
+                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (🟢 ~${normalMin} min / 🔴 ~${rushMin} min rush)`;
             }).join('\n');
 
             const text = lang === 'ar'
-                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n${lines}\n\n📍 weeenaskn.com`
-                : `🏠 Where to Live?\nOptimal: ${nb}\n\n${lines}\n\n📍 weeenaskn.com`;
+                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n📍 الأماكن والمسافات:\n${lines}\n\n⏱️ إجمالي الوقت الشهري: ~${lastTotalAvgMin} دقيقة\n⛽ تكلفة البنزين الشهرية: ~${lastMonthlyFuel} ريال\n\n📍 weeenaskn.com`
+                : `🏠 Where to Live?\nOptimal: ${nb}\n\n📍 Places & Distances:\n${lines}\n\n⏱️ Monthly commute: ~${lastTotalAvgMin} min\n⛽ Monthly fuel: ~${lastMonthlyFuel} SAR\n\n📍 weeenaskn.com`;
 
             navigator.clipboard.writeText(text).then(() => showToast(lang === 'ar' ? '📋 تم النسخ!' : '📋 Copied!'))
                 .catch(() => showToast('⚠️'));
         }
 
         // ===== BROKER =====
-        function pickProp(el) {
-            document.querySelectorAll('.prop-btn').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.propertyType = el.dataset.type;
-            checkBrokerValid();
-        }
-        function pickPurpose(el) {
-            document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('selected'));
-            el.classList.add('selected');
-            brokerData.purpose = el.dataset.purpose;
-            checkBrokerValid();
-        }
         function checkBrokerValid() {
             const phone = document.getElementById('brokerPhone').value.trim();
-            const valid = brokerData.propertyType && brokerData.purpose && phone.length >= 9 && phone.startsWith('5');
+            const valid = phone.length >= 9 && phone.startsWith('5');
             document.getElementById('brokerSubmitBtn').disabled = !valid;
         }
 
@@ -1611,11 +1639,9 @@
             const neighborhood = document.getElementById('resultNeighborhood').textContent;
 
             const data = {
+                type: 'interest',
                 id: 'req_' + Date.now(),
                 neighborhood,
-                propertyType: brokerData.propertyType,
-                purpose: brokerData.purpose,
-                budget: '', rooms: '', family: '', timeline: '', notes: '',
                 phone: '+966' + phone,
                 status: 'new',
                 timestamp: new Date().toISOString(),
@@ -1638,6 +1664,39 @@
             document.getElementById('brokerArea').style.display = 'none';
             document.getElementById('brokerSuccess').classList.add('show');
             showToast(lang === 'ar' ? '🎉 تم إرسال طلبك!' : '🎉 Sent!');
+        }
+
+        // ===== CONTACT US =====
+        function submitContact() {
+            const phone = document.getElementById('contactPhone').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+            if (!phone || phone.length < 9 || !phone.startsWith('5') || !message) {
+                showToast(lang === 'ar' ? '⚠️ أدخل رقم الجوال والرسالة' : '⚠️ Enter phone and message');
+                return;
+            }
+
+            const data = {
+                type: 'contact',
+                phone: '+966' + phone,
+                message,
+                timestamp: new Date().toISOString()
+            };
+
+            // Save locally
+            try {
+                const contacts = JSON.parse(localStorage.getItem('wainaskan_contacts') || '[]');
+                contacts.unshift(data);
+                localStorage.setItem('wainaskan_contacts', JSON.stringify(contacts));
+            } catch (e) { console.error(e); }
+
+            // Google Sheets
+            if (GOOGLE_SHEETS_URL) {
+                fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(() => {});
+            }
+
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactMessage').value = '';
+            showToast(lang === 'ar' ? '✅ تم إرسال رسالتك!' : '✅ Message sent!');
         }
 
         // ===== LANGUAGE =====
@@ -1670,9 +1729,6 @@
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
         }
-
-
-
 
         // ===== MAP TYPE =====
         function setMapType(type) {
