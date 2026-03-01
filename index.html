@@ -1736,7 +1736,11 @@
         }
 
         // ===== INIT =====
-        document.addEventListener('DOMContentLoaded', initMap);
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            // تحميل Google Maps بالخلفية مسبقاً
+            if (GOOGLE_MAPS_API_KEY) loadGoogleMapsAPI().catch(() => {});
+        });
     </script>
 </body>
 </html>
