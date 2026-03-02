@@ -1039,7 +1039,7 @@
 
         let map, markersGroup;
         let streetLayer, satelliteLayer, currentMapType = 'street';
-        let centroidMarker = null, zoneRect = null;
+        let centroidMarker = null, zoneRect = null, zoneOuter = null;
         let connectionLines = [], distanceLabels = [];
         let tempMarker = null;
         let lastDistData = null; // Store for share
@@ -1442,7 +1442,13 @@
                 zIndexOffset: 1000
             }).addTo(map);
 
-            // 500m radius circle (equivalent to 1km x 1km area)
+            // Outer zone: 1000m radius (extended range)
+            zoneOuter = L.circle([cLat, cLng], {
+                radius: 1000,
+                color: '#6ee7b7', weight: 1.5, fillColor: '#6ee7b7', fillOpacity: 0.04, dashArray: '4,8'
+            }).addTo(map);
+
+            // Inner zone: 500m radius (core area)
             zoneRect = L.circle([cLat, cLng], {
                 radius: 500,
                 color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.08, dashArray: '8,6'
@@ -1625,14 +1631,68 @@
         // ===== CLEAR / RESET =====
         function clearMapOverlays() {
             if (centroidMarker) { map.removeLayer(centroidMarker); centroidMarker = null; }
+            if (zoneOuter) { map.removeLayer(zoneOuter); zoneOuter = null; }
             if (zoneRect) { map.removeLayer(zoneRect); zoneRect = null; }
             connectionLines.forEach(l => map.removeLayer(l)); connectionLines = [];
             distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
         }
 
         function closeResult() {
-            document.getElementById('resultOverlay').classList.remove('show');
+            const sheet = document.getElementById('resultSheet');
+            sheet.style.transition = 'transform 0.3s ease';
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                document.getElementById('resultOverlay').classList.remove('show');
+                sheet.style.transform = '';
+                sheet.style.transition = '';
+            }, 300);
         }
+
+        // ===== TOUCH SWIPE FOR RESULT SHEET =====
+        (function initResultSwipe() {
+            let startY = 0, currentY = 0, isDragging = false;
+            const getSheet = () => document.getElementById('resultSheet');
+
+            document.addEventListener('touchstart', function(e) {
+                const sheet = getSheet();
+                if (!sheet || !document.getElementById('resultOverlay').classList.contains('show')) return;
+                if (!sheet.contains(e.target)) return;
+                const handle = sheet.querySelector('.result-sheet-handle');
+                const isAtTop = sheet.scrollTop <= 5;
+                const touchedHandle = handle && handle.contains(e.target);
+                if (!isAtTop && !touchedHandle) return;
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                isDragging = true;
+                sheet.style.transition = 'none';
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                const sheet = getSheet();
+                if (!sheet) return;
+                currentY = e.touches[0].clientY;
+                const diffY = currentY - startY;
+                if (diffY > 0) {
+                    sheet.style.transform = `translateY(${diffY}px)`;
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                if (!isDragging) return;
+                isDragging = false;
+                const sheet = getSheet();
+                if (!sheet) return;
+                const diffY = currentY - startY;
+                sheet.style.transition = 'transform 0.3s ease';
+                if (diffY > 120) {
+                    closeResult();
+                } else {
+                    sheet.style.transform = 'translateY(0)';
+                    setTimeout(() => { sheet.style.transition = ''; }, 300);
+                }
+            }, { passive: true });
+        })();
 
         function clearResult() {
             clearMapOverlays();
@@ -1658,16 +1718,40 @@
         // ===== SHARE =====
         function shareResult() {
             const nb = document.getElementById('resultNeighborhood').textContent;
+            const workNote = hasWorkLocation();
 
-            const lines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
+            const distLines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
                 return lang === 'ar'
-                    ? `${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (🟢 ~${normalMin} د / 🔴 ~${rushMin} د ذروة)`
-                    : `${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (🟢 ~${normalMin} min / 🔴 ~${rushMin} min rush)`;
+                    ? `▸ ${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (🟢 الطبيعي: ~${normalMin} د / 🔴 الذروة: ~${rushMin} د)`
+                    : `▸ ${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (🟢 Normal: ~${normalMin} min / 🔴 Rush: ~${rushMin} min)`;
             }).join('\n');
 
-            const text = lang === 'ar'
-                ? `🏠 وين أسكن؟\nالمنطقة المثالية: ${nb}\n\n📍 الأماكن والمسافات:\n${lines}\n\n📏 إجمالي المسافة الشهرية: ~${lastTotalKm} كم\n⏱️ إجمالي الوقت الشهري: ~${lastTotalAvgMin} دقيقة\n⛽ تكلفة البنزين الشهرية: ~${lastMonthlyFuel} ريال\n\n📍 weeenaskn.com`
-                : `🏠 Where to Live?\nOptimal: ${nb}\n\n📍 Places & Distances:\n${lines}\n\n📏 Monthly distance: ~${lastTotalKm} km\n⏱️ Monthly commute: ~${lastTotalAvgMin} min\n⛽ Monthly fuel: ~${lastMonthlyFuel} SAR\n\n📍 weeenaskn.com`;
+            let text;
+            if (lang === 'ar') {
+                text = `🏠 وين أسكن؟\n🎯 المنطقة المثالية: ${nb}\n\n`;
+                text += `📍 الأماكن والمسافات:\n${distLines}\n\n`;
+                text += `💡 لماذا هذا الحي؟\n`;
+                text += `▸ 📍 الأمثل: أقرب نقطة متوازنة لجميع أماكنك.\n`;
+                text += `▸ ⏱️ الوقت: مجموع تنقلك الشهري ~${lastTotalAvgMin} دقيقة تقريباً.\n`;
+                text += `▸ 📏 المسافة: إجمالي المسافة الشهرية ~${lastTotalKm} كم (ذهاب وعودة).\n`;
+                text += `▸ ⛽ البنزين: تكلفة التنقل الشهرية ~${lastMonthlyFuel} ريال تقريباً.\n`;
+                text += `▸ ✅ الخلاصة: ${nb} أفضل حي يوازن بين أماكنك ويوفر لك وقت وبنزين كل شهر.\n\n`;
+                if (workNote) text += `* تم احتساب الدوام ٥ أيام بالأسبوع\n`;
+                text += `* جميع الأرقام تقديرية\n\n`;
+                text += `📍 weeenaskn.com`;
+            } else {
+                text = `🏠 Where to Live?\n🎯 Optimal Area: ${nb}\n\n`;
+                text += `📍 Places & Distances:\n${distLines}\n\n`;
+                text += `💡 Why this area?\n`;
+                text += `▸ 📍 Optimal: Best balanced point for all your places.\n`;
+                text += `▸ ⏱️ Time: Total monthly commute ~${lastTotalAvgMin} min approximately.\n`;
+                text += `▸ 📏 Distance: Total monthly distance ~${lastTotalKm} km (round-trip).\n`;
+                text += `▸ ⛽ Fuel: Estimated monthly fuel cost ~${lastMonthlyFuel} SAR.\n`;
+                text += `▸ ✅ Conclusion: ${nb} best balances all your places, saving you time and fuel monthly.\n\n`;
+                if (workNote) text += `* Work calculated as 5 days/week\n`;
+                text += `* All figures are estimates\n\n`;
+                text += `📍 weeenaskn.com`;
+            }
 
             navigator.clipboard.writeText(text).then(() => showToast(lang === 'ar' ? '📋 تم النسخ!' : '📋 Copied!'))
                 .catch(() => showToast('⚠️'));
