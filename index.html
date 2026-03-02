@@ -1780,12 +1780,12 @@
             const totalAvgMin = Math.round(distData.reduce((s, d) => s + d.avgMin * getWeight(d.loc) * 2, 0));
             const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * getWeight(d.loc) * 2, 0));
             const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * getWeight(d.loc) * 2, 0));
-            const monthlyFuel = Math.round((totalKm / 8) * 2.25);
+            const monthlyFuel = Math.round((totalKm / 8) * 2.25 * 2);
             const rushImpact = totalNormalMin > 0 ? Math.round(((totalRushMin - totalNormalMin) / totalNormalMin) * 100) : 0;
             const dailyMin = Math.round(totalAvgMin / 30);
 
             const timeFactor = Math.max(0, 10 - (dailyMin / 18));
-            const costFactor = Math.max(0, 10 - (monthlyFuel / 150));
+            const costFactor = Math.max(0, 10 - (monthlyFuel / 300));
             const rushFactor = Math.max(0, 10 - (rushImpact / 12));
 
             const weightedDists = distData.map(d => d.dist * getWeight(d.loc));
@@ -1796,7 +1796,7 @@
             const qol = Math.round(((timeFactor * 0.40) + (costFactor * 0.25) + (rushFactor * 0.20) + (balanceFactor * 0.15)) * 10);
             const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
 
-            return { qol: Math.max(0, Math.min(100, qol)), avgDist, distData };
+            return { qol: Math.max(0, Math.min(100, qol)), avgDist, totalKm, totalAvgMin, monthlyFuel, dailyMin, rushImpact, yearlyKm: Math.round(totalKm * 12), yearlyHours: Math.round((totalAvgMin * 12) / 60), yearlyFuel: Math.round(monthlyFuel * 12), distData };
         }
 
         // ===== POWERFUL ANALYSIS ENGINE =====
@@ -1815,8 +1815,8 @@
             const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * getWeight(d.loc) * 2, 0));
             const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * getWeight(d.loc) * 2, 0));
 
-            // Fuel: 2.25 SAR/liter, avg 8km/liter
-            const monthlyFuel = Math.round((totalKm / 8) * 2.25);
+            // Fuel: 2.25 SAR/liter, avg 8km/liter, ×2 for real-world estimate
+            const monthlyFuel = Math.round((totalKm / 8) * 2.25 * 2);
             const yearlyKm = Math.round(totalKm * 12);
             const yearlyHours = Math.round((totalAvgMin * 12) / 60);
             const yearlyFuel = Math.round(monthlyFuel * 12);
@@ -1826,7 +1826,7 @@
                 name: d.loc.name,
                 icon: d.loc.icon,
                 color: d.loc.color,
-                cost: Math.round((d.dist * getWeight(d.loc) * 2 / 8) * 2.25)
+                cost: Math.round((d.dist * getWeight(d.loc) * 2 / 8) * 2.25 * 2)
             })).sort((a, b) => b.cost - a.cost);
 
             // Rush hour impact percentage
@@ -1838,8 +1838,8 @@
             // ── Quality of Life Index (0-100%) ──
             // 1. Time Factor (40%) - daily minutes in car
             const timeFactor = Math.max(0, 10 - (dailyMin / 18));
-            // 2. Cost Factor (25%) - monthly fuel cost
-            const costFactor = Math.max(0, 10 - (monthlyFuel / 150));
+            // 2. Cost Factor (25%) - monthly fuel cost (doubled)
+            const costFactor = Math.max(0, 10 - (monthlyFuel / 300));
             // 3. Rush Factor (20%) - rush hour impact percentage
             const rushFactor = Math.max(0, 10 - (rushImpact / 12));
             // 4. Balance Factor (15%) - std dev of weighted distances
@@ -2091,7 +2091,6 @@
             if (hasWorkLocation()) {
                 html += `${isAr ? '* تم احتساب الدوام ٥ أيام بالأسبوع' : '* Work calculated as 5 days/week'}<br>`;
             }
-            html += `${isAr ? '* التكلفة مبنية على 2.25 ريال/لتر · 8 كم/لتر' : '* Cost based on 2.25 SAR/L · 8 km/L'}<br>`;
             html += `${isAr ? '* جميع الأرقام تقديرية' : '* All figures are estimates'}</div>`;
 
             el.innerHTML = html;
@@ -2109,7 +2108,7 @@
                     const pLat = cLat + dLat * Math.cos(angle);
                     const pLng = cLng + dLng * Math.sin(angle);
                     const result = calcQoLForPoint(pLat, pLng, locations);
-                    altPoints.push({ lat: pLat, lng: pLng, qol: result.qol, avgDist: result.avgDist });
+                    altPoints.push({ lat: pLat, lng: pLng, qol: result.qol, avgDist: result.avgDist, totalKm: result.totalKm, totalAvgMin: result.totalAvgMin, monthlyFuel: result.monthlyFuel, dailyMin: result.dailyMin, rushImpact: result.rushImpact, yearlyKm: result.yearlyKm, yearlyHours: result.yearlyHours, yearlyFuel: result.yearlyFuel });
                 }
 
                 // Sort by QoL descending, take top 6 for reverse geocoding
@@ -2150,16 +2149,44 @@
                         let cardsHtml = '';
                         top3.forEach((alt, idx) => {
                             const altColor = alt.qol >= 80 ? '#10b981' : alt.qol >= 60 ? '#f59e0b' : alt.qol >= 40 ? '#f97316' : '#ef4444';
-                            const altBg = alt.qol >= 80 ? 'rgba(16,185,129,0.12)' : alt.qol >= 60 ? 'rgba(245,158,11,0.12)' : alt.qol >= 40 ? 'rgba(249,115,22,0.12)' : 'rgba(239,68,68,0.12)';
-                            cardsHtml += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;background:${altBg};border:1px solid ${altColor}22;border-radius:10px;">
-                                <div style="width:28px;height:28px;border-radius:50%;background:${altColor}22;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:${altColor};flex-shrink:0;">${idx + 1}</div>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${alt.name}</div>
-                                    <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">${isAr ? 'متوسط المسافة' : 'Avg distance'}: ${alt.avgDist.toFixed(1)} ${isAr ? 'كم' : 'km'}</div>
+                            const altBg = alt.qol >= 80 ? 'rgba(16,185,129,0.06)' : alt.qol >= 60 ? 'rgba(245,158,11,0.06)' : alt.qol >= 40 ? 'rgba(249,115,22,0.06)' : 'rgba(239,68,68,0.06)';
+                            const qolDiff = alt.qol - qolClamped;
+                            const diffText = qolDiff > 0 ? `+${qolDiff}%` : `${qolDiff}%`;
+                            const diffColor = qolDiff >= 0 ? '#10b981' : '#ef4444';
+                            cardsHtml += `<div style="background:${altBg};border:1px solid ${altColor}18;border-radius:12px;padding:14px;margin-bottom:8px;">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                                    <div style="width:30px;height:30px;border-radius:50%;background:${altColor}20;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:${altColor};flex-shrink:0;">${idx + 1}</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-size:13px;font-weight:700;color:#fff;">${alt.name}</div>
+                                        <div style="font-size:10px;color:var(--text-dim);margin-top:1px;">${isAr ? 'مقارنة بـ' + neighborhood : 'vs ' + neighborhood}: <span style="color:${diffColor};font-weight:700;">${diffText}</span></div>
+                                    </div>
+                                    <div style="text-align:center;flex-shrink:0;padding:6px 10px;background:${altColor}15;border-radius:8px;">
+                                        <div style="font-size:18px;font-weight:900;color:${altColor};">${alt.qol}%</div>
+                                        <div style="font-size:8px;color:var(--text-dimmer);font-weight:600;">${isAr ? 'جودة الحياة' : 'QoL'}</div>
+                                    </div>
                                 </div>
-                                <div style="text-align:center;flex-shrink:0;">
-                                    <div style="font-size:16px;font-weight:900;color:${altColor};">${alt.qol}%</div>
-                                    <div style="font-size:8px;color:var(--text-dimmer);font-weight:600;">${isAr ? 'جودة الحياة' : 'QoL'}</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:800;color:var(--green-light);">~${Math.round(alt.totalKm)} <span style="font-size:9px;font-weight:600;">كم</span></div>
+                                        <div style="font-size:9px;color:var(--text-dimmer);">${isAr ? 'شهرياً' : 'Monthly'}</div>
+                                    </div>
+                                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:800;color:var(--amber);">~${alt.dailyMin} <span style="font-size:9px;font-weight:600;">${isAr ? 'د' : 'min'}</span></div>
+                                        <div style="font-size:9px;color:var(--text-dimmer);">${isAr ? 'يومياً بالسيارة' : 'Daily in car'}</div>
+                                    </div>
+                                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:800;color:#fca5a5;">~${alt.monthlyFuel} <span style="font-size:9px;font-weight:600;">${isAr ? 'ريال' : 'SAR'}</span></div>
+                                        <div style="font-size:9px;color:var(--text-dimmer);">${isAr ? 'بنزين شهري' : 'Monthly fuel'}</div>
+                                    </div>
+                                    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:800;color:#c4b5fd;">~${alt.rushImpact}% <span style="font-size:9px;font-weight:600;">${isAr ? 'زيادة' : 'more'}</span></div>
+                                        <div style="font-size:9px;color:var(--text-dimmer);">${isAr ? 'تأثير الذروة' : 'Rush impact'}</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:9px;text-align:center;color:var(--text-dimmer);">
+                                    <div>${isAr ? 'سنوي' : 'Yearly'}: <span style="color:var(--green-light);font-weight:700;">${alt.yearlyKm.toLocaleString()} ${isAr ? 'كم' : 'km'}</span></div>
+                                    <div><span style="color:var(--amber);font-weight:700;">${alt.yearlyHours} ${isAr ? 'ساعة' : 'hrs'}</span></div>
+                                    <div><span style="color:#fca5a5;font-weight:700;">${alt.yearlyFuel.toLocaleString()} ${isAr ? 'ريال' : 'SAR'}</span></div>
                                 </div>
                             </div>`;
                         });
