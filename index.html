@@ -1705,6 +1705,15 @@
                 localStorage.setItem('wainaskan_leads', JSON.stringify(leads));
             } catch (e) { console.error(e); }
 
+            // Link phone to latest result
+            try {
+                const results = JSON.parse(localStorage.getItem('wainaskan_results') || '[]');
+                if (results.length > 0) {
+                    results[0].phone = '+966' + phone;
+                    localStorage.setItem('wainaskan_results', JSON.stringify(results));
+                }
+            } catch (e) { console.error(e); }
+
             // Google Sheets
             if (GOOGLE_SHEETS_URL) {
                 fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(() => {});
