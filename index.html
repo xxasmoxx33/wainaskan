@@ -1008,7 +1008,8 @@
         <input type="text" class="add-name-input" id="locationName"
             placeholder="سمّ هذا المكان..."
             data-ar-ph="سمّ هذا المكان..."
-            data-en-ph="Name this place...">
+            data-en-ph="Name this place..."
+            onfocus="clearQuickSelection()">
 
         <div class="quick-row">
             <button class="quick-btn" onclick="pickQuick(this,'🏡','بيت الأهل','Family Home')">
@@ -1342,7 +1343,10 @@
             document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('selected'));
             document.querySelector('.freq-btn[data-freq="daily"]').classList.add('selected');
-            document.getElementById('locationName').value = '';
+            const nameInput = document.getElementById('locationName');
+            nameInput.value = '';
+            nameInput.disabled = false;
+            nameInput.style.opacity = '1';
 
             // Reverse geocode
             document.getElementById('addNeighborhoodText').textContent = lang === 'ar' ? 'جاري التحديد...' : 'Detecting...';
@@ -1415,10 +1419,22 @@
         }
 
         // ===== ADD FORM CONTROLS =====
+        function clearQuickSelection() {
+            document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+            const input = document.getElementById('locationName');
+            input.disabled = false;
+            input.style.opacity = '1';
+            input.value = '';
+            selectedEmoji = '📍';
+        }
+
         function pickQuick(el, emoji, arName, enName) {
             document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
             el.classList.add('selected');
-            document.getElementById('locationName').value = lang === 'ar' ? arName : enName;
+            const input = document.getElementById('locationName');
+            input.value = lang === 'ar' ? arName : enName;
+            input.disabled = true;
+            input.style.opacity = '0.5';
             selectedEmoji = emoji;
         }
 
@@ -1432,6 +1448,9 @@
             document.getElementById('addOverlay').classList.remove('show');
             if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
             pendingLocation = null;
+            const input = document.getElementById('locationName');
+            input.disabled = false;
+            input.style.opacity = '1';
         }
 
         function confirmAdd() {
@@ -1786,17 +1805,16 @@
 
             const timeFactor = Math.max(0, 10 - (dailyMin / 18));
             const costFactor = Math.max(0, 10 - (monthlyFuel / 300));
-            const rushFactor = Math.max(0, 10 - (rushImpact / 12));
 
             const weightedDists = distData.map(d => d.dist * getWeight(d.loc));
             const wdMean = weightedDists.reduce((s, v) => s + v, 0) / weightedDists.length;
             const weightedStdDev = Math.sqrt(weightedDists.reduce((s, v) => s + (v - wdMean) ** 2, 0) / weightedDists.length);
             const balanceFactor = Math.max(0, 10 - (weightedStdDev / 5));
 
-            const qol = Math.round(((timeFactor * 0.40) + (costFactor * 0.25) + (rushFactor * 0.20) + (balanceFactor * 0.15)) * 10);
+            const qol = Math.round(((timeFactor * 0.50) + (costFactor * 0.30) + (balanceFactor * 0.20)) * 10);
             const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
 
-            return { qol: Math.max(0, Math.min(100, qol)), avgDist, totalKm, totalAvgMin, monthlyFuel, dailyMin, rushImpact, yearlyKm: Math.round(totalKm * 12), yearlyHours: Math.round((totalAvgMin * 12) / 60), yearlyFuel: Math.round(monthlyFuel * 12), distData };
+            return { qol: Math.max(0, Math.min(100, qol)), avgDist };
         }
 
         // ===== POWERFUL ANALYSIS ENGINE =====
@@ -1835,20 +1853,18 @@
             // Daily time in car (weighted average per day, assuming distributed across 30 days)
             const dailyMin = Math.round(totalAvgMin / 30);
 
-            // ── Quality of Life Index (0-100%) ──
-            // 1. Time Factor (40%) - daily minutes in car
+            // ── Quality of Life Index (0-100%) - 3 factors ──
+            // 1. Time Factor (50%) - daily minutes in car
             const timeFactor = Math.max(0, 10 - (dailyMin / 18));
-            // 2. Cost Factor (25%) - monthly fuel cost (doubled)
+            // 2. Cost Factor (30%) - monthly fuel cost
             const costFactor = Math.max(0, 10 - (monthlyFuel / 300));
-            // 3. Rush Factor (20%) - rush hour impact percentage
-            const rushFactor = Math.max(0, 10 - (rushImpact / 12));
-            // 4. Balance Factor (15%) - std dev of weighted distances
+            // 3. Balance Factor (20%) - std dev of weighted distances
             const weightedDists = distData.map(d => d.dist * getWeight(d.loc));
             const wdMean = weightedDists.reduce((s, v) => s + v, 0) / weightedDists.length;
             const weightedStdDev = Math.sqrt(weightedDists.reduce((s, v) => s + (v - wdMean) ** 2, 0) / weightedDists.length);
             const balanceFactor = Math.max(0, 10 - (weightedStdDev / 5));
 
-            const qol = Math.round(((timeFactor * 0.40) + (costFactor * 0.25) + (rushFactor * 0.20) + (balanceFactor * 0.15)) * 10);
+            const qol = Math.round(((timeFactor * 0.50) + (costFactor * 0.30) + (balanceFactor * 0.20)) * 10);
             const qolClamped = Math.max(0, Math.min(100, qol));
 
             const scoreColor = qolClamped >= 80 ? '#10b981' : qolClamped >= 60 ? '#f59e0b' : qolClamped >= 40 ? '#f97316' : '#ef4444';
@@ -1897,28 +1913,6 @@
                 </div>
             </div>`;
 
-            // QoL factor breakdown mini bars
-            const factors = [
-                { name: isAr ? 'الوقت اليومي' : 'Daily Time', value: timeFactor, weight: '40%', icon: '🕐' },
-                { name: isAr ? 'تكلفة الوقود' : 'Fuel Cost', value: costFactor, weight: '25%', icon: '⛽' },
-                { name: isAr ? 'تأثير الذروة' : 'Rush Impact', value: rushFactor, weight: '20%', icon: '🚦' },
-                { name: isAr ? 'التوازن' : 'Balance', value: balanceFactor, weight: '15%', icon: '⚖️' }
-            ];
-            html += `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;margin-bottom:14px;">
-                <div style="font-size:10px;font-weight:700;color:var(--text-dimmer);margin-bottom:8px;">${isAr ? 'تفاصيل المؤشر' : 'Index Breakdown'}</div>`;
-            factors.forEach(f => {
-                const pct = Math.round(f.value * 10);
-                const fColor = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : pct >= 30 ? '#f97316' : '#ef4444';
-                html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <span style="font-size:12px;width:18px;text-align:center;">${f.icon}</span>
-                    <span style="font-size:10px;font-weight:600;color:var(--text-dim);width:80px;flex-shrink:0;">${f.name} <span style="color:var(--text-dimmer);">(${f.weight})</span></span>
-                    <div style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;">
-                        <div style="height:100%;width:${pct}%;border-radius:3px;background:${fColor};transition:width 0.5s;"></div>
-                    </div>
-                    <span style="font-size:10px;font-weight:700;color:${fColor};width:30px;text-align:left;direction:ltr;">${pct}%</span>
-                </div>`;
-            });
-            html += `</div>`;
 
             // 2. Key stats grid
             html += `<div class="analysis-stat-grid">
