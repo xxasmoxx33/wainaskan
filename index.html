@@ -344,13 +344,15 @@
             font-size: 10px; padding: 2px 8px; border-radius: 50px; font-weight: 600;
         }
         .sloc-delete {
-            width: 28px; height: 28px; border-radius: 8px;
-            border: none; background: rgba(255,255,255,0.05);
-            color: var(--text-dimmer); font-size: 14px;
+            width: 30px; height: 30px; border-radius: 8px;
+            border: 1px solid rgba(239,68,68,0.15); background: rgba(239,68,68,0.08);
+            color: #f87171; font-size: 14px;
             cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
         }
-        .sloc-delete:active { background: rgba(239,68,68,0.2); color: var(--red); }
+        .sloc-delete:hover { background: rgba(239,68,68,0.2); color: var(--red); border-color: rgba(239,68,68,0.3); }
+        .sloc-delete:active { background: rgba(239,68,68,0.3); color: var(--red); transform: scale(0.95); }
 
         .sidebar-empty {
             text-align: center; padding: 40px 16px;
@@ -428,7 +430,9 @@
             width: 36px; height: 4px; border-radius: 4px;
             background: rgba(255,255,255,0.15);
             margin: 10px auto 0;
+            cursor: grab;
         }
+        .result-sheet-handle:active { cursor: grabbing; }
 
         .result-sheet-body { padding: 20px 18px calc(20px + var(--safe-bottom)); }
 
@@ -446,14 +450,100 @@
         }
 
         .result-justification {
-            background: rgba(16,185,129,0.06);
-            border: 1px solid rgba(16,185,129,0.12);
-            border-radius: 12px; padding: 14px; margin-bottom: 16px;
+            background: rgba(16,185,129,0.04);
+            border: 1px solid rgba(16,185,129,0.10);
+            border-radius: 14px; padding: 16px; margin-bottom: 16px;
         }
         .just-title { font-size: 12px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; }
         .just-point { display: flex; gap: 6px; margin-bottom: 8px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
         .just-point strong { color: rgba(255,255,255,0.85); }
         .just-point span:first-child { color: var(--green); flex-shrink: 0; }
+
+        /* ===== PREMIUM ANALYSIS STYLES ===== */
+        .analysis-score-row {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+        }
+        .analysis-score-circle {
+            width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 3px solid; font-family: 'Cairo';
+        }
+        .analysis-score-num { font-size: 20px; font-weight: 800; line-height: 1; }
+        .analysis-score-label { font-size: 8px; font-weight: 700; opacity: 0.7; }
+        .analysis-score-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+        .analysis-score-desc strong { color: #fff; }
+
+        .analysis-divider {
+            height: 1px; margin: 14px 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        }
+
+        .analysis-section-title {
+            font-size: 11px; font-weight: 800; color: var(--green-light);
+            margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+        }
+
+        .analysis-stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;
+        }
+        .analysis-stat-card {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; padding: 10px; text-align: center;
+        }
+        .analysis-stat-icon { font-size: 18px; margin-bottom: 4px; }
+        .analysis-stat-value { font-size: 16px; font-weight: 800; color: #fff; line-height: 1.2; }
+        .analysis-stat-unit { font-size: 10px; font-weight: 600; color: var(--text-dim); }
+        .analysis-stat-label { font-size: 9px; color: var(--text-dimmer); margin-top: 2px; }
+
+        .analysis-insight {
+            display: flex; gap: 8px; padding: 8px 10px; margin-bottom: 6px;
+            background: rgba(255,255,255,0.03); border-radius: 8px;
+            font-size: 11px; color: var(--text-dim); line-height: 1.7; align-items: flex-start;
+        }
+        .analysis-insight-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+        .analysis-insight strong { color: rgba(255,255,255,0.9); }
+        .analysis-insight .highlight { color: var(--green-light); font-weight: 700; }
+        .analysis-insight .highlight-amber { color: var(--amber); font-weight: 700; }
+        .analysis-insight .highlight-red { color: #fca5a5; font-weight: 700; }
+
+        .analysis-progress-bar {
+            height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06);
+            margin-top: 6px; overflow: hidden;
+        }
+        .analysis-progress-fill {
+            height: 100%; border-radius: 3px; transition: width 0.5s ease;
+        }
+
+        .analysis-rank-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px 0;
+            font-size: 11px; color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .analysis-rank-item:last-child { border-bottom: none; }
+        .analysis-rank-num {
+            width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 800; background: rgba(16,185,129,0.15); color: var(--green-light);
+        }
+        .analysis-rank-name { flex: 1; font-weight: 600; color: rgba(255,255,255,0.8); }
+        .analysis-rank-detail { font-size: 10px; color: var(--text-dimmer); direction: ltr; }
+        .analysis-rank-badge {
+            font-size: 9px; padding: 1px 6px; border-radius: 50px; font-weight: 700;
+        }
+
+        .analysis-fuel-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 5px 0; font-size: 11px; color: var(--text-dim);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .analysis-fuel-row:last-child { border-bottom: none; }
+        .analysis-fuel-name { display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .analysis-fuel-cost { font-weight: 700; color: var(--amber); direction: ltr; }
+
+        .analysis-note {
+            font-size: 9px; color: var(--text-dimmer); text-align: center;
+            margin-top: 10px; line-height: 1.6;
+        }
 
         .result-distances { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .rdist-item {
@@ -619,51 +709,56 @@
         .marker-info-rush { color: #fca5a5; font-size: 9px; }
 
         /* ===== RECTANGLE MARKERS ===== */
+        .loc-rect-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .loc-rect-marker {
             background: linear-gradient(135deg, rgba(8,15,28,0.95), rgba(12,22,38,0.95));
             backdrop-filter: blur(12px);
-            border-radius: 14px;
+            border-radius: 10px;
             padding: 0;
             font-family: 'Cairo';
             white-space: nowrap;
             color: #fff;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
             border: 1px solid rgba(255,255,255,0.08);
             overflow: hidden;
-            min-width: 130px;
+            min-width: 100px;
         }
         .loc-rect-header {
-            padding: 8px 12px 6px;
+            padding: 4px 8px 3px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 5px;
         }
         .loc-rect-name {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
             letter-spacing: -0.2px;
         }
         .loc-rect-km {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 800;
             color: #6ee7b7;
             background: rgba(16,185,129,0.12);
-            padding: 2px 8px;
+            padding: 1px 6px;
             border-radius: 50px;
             letter-spacing: 0.3px;
         }
         .loc-rect-divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-            margin: 0 8px;
+            margin: 0 6px;
         }
         .loc-rect-times {
             display: flex;
-            padding: 6px 10px 8px;
+            padding: 3px 6px 4px;
             gap: 0;
         }
         .loc-rect-time-cell {
@@ -671,29 +766,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1px;
-            padding: 2px 4px;
+            gap: 0px;
+            padding: 1px 3px;
         }
         .loc-rect-time-cell:first-child {
             border-inline-end: 1px solid rgba(255,255,255,0.06);
         }
         .loc-rect-time-label {
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             opacity: 0.4;
         }
         .loc-rect-time-val {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 800;
             line-height: 1.1;
         }
         .loc-rect-time-val.normal { color: #6ee7b7; }
         .loc-rect-time-val.rush { color: #fca5a5; }
         .loc-rect-color-bar {
-            height: 3px;
+            height: 2px;
             width: 100%;
+        }
+        .loc-rect-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            margin-top: 2px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+        .loc-rect-stem {
+            width: 2px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
         }
 
         .centroid-marker-inner {
@@ -1090,6 +1198,12 @@
         let lastTotalAvgMin = 0; // Store for share
         let lastMonthlyFuel = 0; // Store for share
         let lastTotalKm = 0; // Store for share
+        let lastScore = 0;
+        let lastYearlyKm = 0;
+        let lastYearlyHours = 0;
+        let lastYearlyFuel = 0;
+        let lastRushImpact = 0;
+        let lastDailyMin = 0;
 
 
 
@@ -1452,7 +1566,7 @@
                             · ${loc.neighborhood}
                         </div>
                     </div>
-                    <button class="sloc-delete" onclick="removeLoc('${loc.id}')">✕</button>
+                    <button class="sloc-delete" onclick="removeLoc('${loc.id}')" title="${lang === 'ar' ? 'حذف' : 'Delete'}">🗑️</button>
                 </div>`;
             }).join('');
 
@@ -1538,30 +1652,34 @@
                 if (loc.marker) markersGroup.removeLayer(loc.marker);
 
                 const dText = lang === 'ar' ? 'د' : 'min';
-                const nLabel = lang === 'ar' ? 'عادي' : 'Normal';
+                const nLabel = lang === 'ar' ? 'طبيعي' : 'Normal';
                 const rLabel = lang === 'ar' ? 'ذروة' : 'Rush';
                 const rectIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div class="loc-rect-marker">
-                        <div class="loc-rect-color-bar" style="background:${loc.color};"></div>
-                        <div class="loc-rect-header">
-                            <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
-                            <div class="loc-rect-km">${dist.toFixed(1)} km</div>
-                        </div>
-                        <div class="loc-rect-divider"></div>
-                        <div class="loc-rect-times">
-                            <div class="loc-rect-time-cell">
-                                <span class="loc-rect-time-label">${nLabel}</span>
-                                <span class="loc-rect-time-val normal">${normalMin} ${dText}</span>
+                    html: `<div class="loc-rect-wrapper">
+                        <div class="loc-rect-marker">
+                            <div class="loc-rect-color-bar" style="background:${loc.color};"></div>
+                            <div class="loc-rect-header">
+                                <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
+                                <div class="loc-rect-km">${dist.toFixed(1)} km</div>
                             </div>
-                            <div class="loc-rect-time-cell">
-                                <span class="loc-rect-time-label">${rLabel}</span>
-                                <span class="loc-rect-time-val rush">${rushMin} ${dText}</span>
+                            <div class="loc-rect-divider"></div>
+                            <div class="loc-rect-times">
+                                <div class="loc-rect-time-cell">
+                                    <span class="loc-rect-time-label">${nLabel}</span>
+                                    <span class="loc-rect-time-val normal">${normalMin} ${dText}</span>
+                                </div>
+                                <div class="loc-rect-time-cell">
+                                    <span class="loc-rect-time-label">${rLabel}</span>
+                                    <span class="loc-rect-time-val rush">${rushMin} ${dText}</span>
+                                </div>
                             </div>
                         </div>
+                        <div class="loc-rect-stem"></div>
+                        <div class="loc-rect-dot" style="background:${loc.color};"></div>
                     </div>`,
-                    iconSize: [155, 90],
-                    iconAnchor: [78, 90]
+                    iconSize: [120, 78],
+                    iconAnchor: [60, 78]
                 });
 
                 const newMarker = L.marker([loc.lat, loc.lng], { icon: rectIcon }).addTo(markersGroup);
@@ -1645,52 +1763,256 @@
             showToast(lang === 'ar' ? '🎯 تم تحديد المنطقة المثالية!' : '🎯 Optimal area found!');
         }
 
-        // ===== JUSTIFICATION (5 concise points) =====
+        // ===== POWERFUL ANALYSIS ENGINE =====
         function buildJustification(distData, cLat, cLng, neighborhood) {
             const el = document.getElementById('resultJustification');
+            const isAr = lang === 'ar';
+
+            // ── Core calculations ──
             const sorted = [...distData].sort((a, b) => getWeight(b.loc) - getWeight(a.loc));
-            const most = sorted[0];
+            const byDist = [...distData].sort((a, b) => a.dist - b.dist);
+            const closest = byDist[0];
+            const farthest = byDist[byDist.length - 1];
 
             const totalKm = distData.reduce((s, d) => s + d.dist * getWeight(d.loc) * 2, 0);
             const totalAvgMin = Math.round(distData.reduce((s, d) => s + d.avgMin * getWeight(d.loc) * 2, 0));
+            const totalNormalMin = Math.round(distData.reduce((s, d) => s + d.normalMin * getWeight(d.loc) * 2, 0));
+            const totalRushMin = Math.round(distData.reduce((s, d) => s + d.rushMin * getWeight(d.loc) * 2, 0));
 
             // Fuel: 2.25 SAR/liter, avg 8km/liter
             const monthlyFuel = Math.round((totalKm / 8) * 2.25);
+            const yearlyKm = Math.round(totalKm * 12);
+            const yearlyHours = Math.round((totalAvgMin * 12) / 60);
+            const yearlyFuel = Math.round(monthlyFuel * 12);
+
+            // Per-place fuel costs
+            const perPlaceFuel = distData.map(d => ({
+                name: d.loc.name,
+                icon: d.loc.icon,
+                color: d.loc.color,
+                cost: Math.round((d.dist * getWeight(d.loc) * 2 / 8) * 2.25)
+            })).sort((a, b) => b.cost - a.cost);
+
+            // Rush hour impact percentage
+            const rushImpact = totalNormalMin > 0 ? Math.round(((totalRushMin - totalNormalMin) / totalNormalMin) * 100) : 0;
+
+            // Daily time in car (weighted average per day, assuming distributed across 30 days)
+            const dailyMin = Math.round(totalAvgMin / 30);
+
+            // Smart score (10 = perfect, based on avg distance; <5km avg = 10, >30km avg = 1)
+            const avgDist = distData.reduce((s, d) => s + d.dist, 0) / distData.length;
+            const rawScore = Math.max(1, Math.min(10, 10 - ((avgDist - 3) / 3)));
+            const score = Math.round(rawScore * 10) / 10;
+            const scoreColor = score >= 7 ? '#10b981' : score >= 5 ? '#f59e0b' : '#ef4444';
+            const scoreBg = score >= 7 ? 'rgba(16,185,129,0.15)' : score >= 5 ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)';
+            const scoreText = isAr
+                ? (score >= 8 ? 'ممتاز' : score >= 7 ? 'جيد جداً' : score >= 5 ? 'مقبول' : 'بعيد')
+                : (score >= 8 ? 'Excellent' : score >= 7 ? 'Very Good' : score >= 5 ? 'Acceptable' : 'Far');
+
+            // Work commute special calc
+            const workLoc = locations.find(l => (l.name === 'العمل' || l.name === 'Work' || l.name === 'المكتب' || l.name === 'Office') && l.frequency === 'daily');
+            let workData = null;
+            if (workLoc) {
+                workData = distData.find(d => d.loc.id === workLoc.id);
+            }
+
+            // Time savings vs farthest place
+            const farthestMonthlyMin = farthest ? Math.round(farthest.avgMin * getWeight(farthest.loc) * 2) : 0;
+            const closestMonthlyMin = closest ? Math.round(closest.avgMin * getWeight(closest.loc) * 2) : 0;
 
             // Store for share
             lastTotalKm = Math.round(totalKm);
             lastTotalAvgMin = totalAvgMin;
             lastMonthlyFuel = monthlyFuel;
+            lastScore = score;
+            lastYearlyKm = yearlyKm;
+            lastYearlyHours = yearlyHours;
+            lastYearlyFuel = yearlyFuel;
+            lastRushImpact = rushImpact;
+            lastDailyMin = dailyMin;
 
-            const workNote = hasWorkLocation();
+            // ── Build HTML ──
+            let html = '';
 
-            let pts;
-            if (lang === 'ar') {
-                pts = [
-                    `📍 <strong>الأمثل:</strong> أقرب نقطة متوازنة لجميع أماكنك.`,
-                    `⏱️ <strong>الوقت:</strong> مجموع تنقلك الشهري ~${totalAvgMin} دقيقة تقريباً.`,
-                    `📏 <strong>المسافة:</strong> إجمالي المسافة الشهرية ~${Math.round(totalKm)} كم (ذهاب وعودة).`,
-                    `⛽ <strong>البنزين:</strong> تكلفة التنقل الشهرية ~${monthlyFuel} ريال تقريباً.`,
-                    `✅ <strong>الخلاصة:</strong> ${neighborhood} أفضل حي يوازن بين أماكنك ويوفر لك وقت وبنزين كل شهر.`
-                ];
-            } else {
-                pts = [
-                    `📍 <strong>Optimal:</strong> Best balanced point for all your places.`,
-                    `⏱️ <strong>Time:</strong> Total monthly commute ~${totalAvgMin} min approximately.`,
-                    `📏 <strong>Distance:</strong> Total monthly distance ~${Math.round(totalKm)} km (round-trip).`,
-                    `⛽ <strong>Fuel:</strong> Estimated monthly fuel cost ~${monthlyFuel} SAR.`,
-                    `✅ <strong>Conclusion:</strong> ${neighborhood} best balances all your places, saving you time and fuel monthly.`
-                ];
+            // 1. Score circle + summary
+            html += `<div class="analysis-score-row">
+                <div class="analysis-score-circle" style="border-color:${scoreColor};background:${scoreBg};">
+                    <span class="analysis-score-num" style="color:${scoreColor}">${score}</span>
+                    <span class="analysis-score-label" style="color:${scoreColor}">/10</span>
+                </div>
+                <div class="analysis-score-desc">
+                    <strong>${neighborhood}</strong> - <span style="color:${scoreColor};font-weight:700;">${scoreText}</span><br>
+                    ${isAr
+                        ? `${distData.length > 1 ? 'أفضل نقطة توازن بين ' + distData.length + ' أماكن' : 'موقع مناسب بالنسبة لمكانك'}`
+                        : `${distData.length > 1 ? 'Best balance point for ' + distData.length + ' places' : 'Suitable location for your place'}`}
+                </div>
+            </div>`;
+
+            // 2. Key stats grid
+            html += `<div class="analysis-stat-grid">
+                <div class="analysis-stat-card">
+                    <div class="analysis-stat-icon">🛣️</div>
+                    <div class="analysis-stat-value">${Math.round(totalKm)} <span class="analysis-stat-unit">${isAr ? 'كم' : 'km'}</span></div>
+                    <div class="analysis-stat-label">${isAr ? 'شهرياً (ذهاب وعودة)' : 'Monthly (round-trip)'}</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="analysis-stat-icon">⏱️</div>
+                    <div class="analysis-stat-value">${totalAvgMin} <span class="analysis-stat-unit">${isAr ? 'دقيقة' : 'min'}</span></div>
+                    <div class="analysis-stat-label">${isAr ? 'وقت التنقل الشهري' : 'Monthly commute time'}</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="analysis-stat-icon">⛽</div>
+                    <div class="analysis-stat-value">${monthlyFuel} <span class="analysis-stat-unit">${isAr ? 'ريال' : 'SAR'}</span></div>
+                    <div class="analysis-stat-label">${isAr ? 'تكلفة البنزين الشهرية' : 'Monthly fuel cost'}</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="analysis-stat-icon">🚗</div>
+                    <div class="analysis-stat-value">~${dailyMin} <span class="analysis-stat-unit">${isAr ? 'دقيقة' : 'min'}</span></div>
+                    <div class="analysis-stat-label">${isAr ? 'يومياً في السيارة' : 'Daily in car'}</div>
+                </div>
+            </div>`;
+
+            // Score progress bar
+            html += `<div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dimmer);margin-bottom:3px;">
+                    <span>${isAr ? 'تقييم الموقع' : 'Location Rating'}</span>
+                    <span style="color:${scoreColor};font-weight:700;">${score}/10</span>
+                </div>
+                <div class="analysis-progress-bar">
+                    <div class="analysis-progress-fill" style="width:${score * 10}%;background:linear-gradient(90deg,${scoreColor},${scoreColor}80);"></div>
+                </div>
+            </div>`;
+
+            html += `<div class="analysis-divider"></div>`;
+
+            // 3. Yearly projections
+            html += `<div class="analysis-section-title">📊 ${isAr ? 'الإسقاط السنوي' : 'Yearly Projections'}</div>`;
+            html += `<div class="analysis-stat-grid">
+                <div class="analysis-stat-card" style="grid-column:span 2;">
+                    <div style="display:flex;justify-content:space-around;text-align:center;">
+                        <div>
+                            <div class="analysis-stat-value" style="color:var(--green-light);">${yearlyKm.toLocaleString()} <span class="analysis-stat-unit">${isAr ? 'كم' : 'km'}</span></div>
+                            <div class="analysis-stat-label">${isAr ? 'مسافة سنوية' : 'Yearly distance'}</div>
+                        </div>
+                        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
+                        <div>
+                            <div class="analysis-stat-value" style="color:var(--amber);">${yearlyHours} <span class="analysis-stat-unit">${isAr ? 'ساعة' : 'hrs'}</span></div>
+                            <div class="analysis-stat-label">${isAr ? 'وقت سنوي' : 'Yearly time'}</div>
+                        </div>
+                        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
+                        <div>
+                            <div class="analysis-stat-value" style="color:#fca5a5;">${yearlyFuel.toLocaleString()} <span class="analysis-stat-unit">${isAr ? 'ريال' : 'SAR'}</span></div>
+                            <div class="analysis-stat-label">${isAr ? 'تكلفة سنوية' : 'Yearly cost'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            html += `<div class="analysis-divider"></div>`;
+
+            // 4. Rush hour impact
+            html += `<div class="analysis-section-title">🚦 ${isAr ? 'تأثير الذروة' : 'Rush Hour Impact'}</div>`;
+            html += `<div class="analysis-insight">
+                <span class="analysis-insight-icon">⚠️</span>
+                <span>${isAr
+                    ? `وقت الذروة يزيد تنقلك <span class="highlight-red">${rushImpact}%</span> مقارنة بالوضع الطبيعي (${totalNormalMin} دقيقة → ${totalRushMin} دقيقة شهرياً)`
+                    : `Rush hour increases commute by <span class="highlight-red">${rushImpact}%</span> vs normal (${totalNormalMin} min → ${totalRushMin} min monthly)`}</span>
+            </div>`;
+
+            html += `<div class="analysis-divider"></div>`;
+
+            // 5. Work commute focus (if applicable)
+            if (workData) {
+                const workTrips = 5 * 4; // 5 days × 4 weeks
+                const workMonthlyKm = Math.round(workData.dist * 2 * workTrips);
+                const workMonthlyMin = Math.round(workData.avgMin * 2 * workTrips);
+                html += `<div class="analysis-section-title">💼 ${isAr ? 'تحليل رحلة العمل' : 'Work Commute Analysis'}</div>`;
+                html += `<div class="analysis-insight">
+                    <span class="analysis-insight-icon">📋</span>
+                    <span>${isAr
+                        ? `<strong>5 أيام × 4 أسابيع = <span class="highlight">${workTrips} رحلة شهرياً</span></strong><br>
+                           المسافة: <span class="highlight">${workMonthlyKm} كم/شهر</span> · الوقت: <span class="highlight-amber">${workMonthlyMin} دقيقة/شهر</span><br>
+                           رحلة واحدة: ${workData.dist.toFixed(1)} كم · طبيعي ${workData.normalMin} د · ذروة ${workData.rushMin} د`
+                        : `<strong>5 days × 4 weeks = <span class="highlight">${workTrips} trips/month</span></strong><br>
+                           Distance: <span class="highlight">${workMonthlyKm} km/mo</span> · Time: <span class="highlight-amber">${workMonthlyMin} min/mo</span><br>
+                           Single trip: ${workData.dist.toFixed(1)} km · Normal ${workData.normalMin} min · Rush ${workData.rushMin} min`}</span>
+                </div>`;
+                html += `<div class="analysis-divider"></div>`;
             }
 
-            let noteHtml = `<div style="font-size:10px;color:var(--text-dimmer);margin-top:8px;text-align:center;">`;
-            if (workNote) {
-                noteHtml += `${lang === 'ar' ? '* تم احتساب الدوام ٥ أيام بالأسبوع' : '* Work calculated as 5 days/week'}<br>`;
-            }
-            noteHtml += `${lang === 'ar' ? '* جميع الأرقام تقديرية' : '* All figures are estimates'}</div>`;
+            // 6. Weighted importance ranking
+            html += `<div class="analysis-section-title">📌 ${isAr ? 'ترتيب الأماكن حسب التأثير' : 'Places by Impact'}</div>`;
+            sorted.forEach((d, i) => {
+                const w = getWeight(d.loc);
+                const freqLabel = isAr ? FREQ_LABELS[d.loc.frequency].ar : FREQ_LABELS[d.loc.frequency].en;
+                const monthlyKmPlace = Math.round(d.dist * w * 2);
+                html += `<div class="analysis-rank-item">
+                    <span class="analysis-rank-num">${i + 1}</span>
+                    <span style="font-size:14px;">${d.loc.icon}</span>
+                    <span class="analysis-rank-name">${d.loc.name}</span>
+                    <span class="analysis-rank-badge" style="background:${d.loc.color}20;color:${d.loc.color};">${freqLabel}</span>
+                    <span class="analysis-rank-detail">${monthlyKmPlace} ${isAr ? 'كم/شهر' : 'km/mo'}</span>
+                </div>`;
+            });
 
-            el.innerHTML = `<div class="just-title">${lang === 'ar' ? '💡 لماذا هذا الحي؟' : '💡 Why this area?'}</div>
-                ${pts.map(p => `<div class="just-point"><span>▸</span><span>${p}</span></div>`).join('')}${noteHtml}`;
+            html += `<div class="analysis-divider"></div>`;
+
+            // 7. Fuel breakdown per place
+            html += `<div class="analysis-section-title">⛽ ${isAr ? 'تكلفة البنزين لكل مكان' : 'Fuel Cost Per Place'}</div>`;
+            perPlaceFuel.forEach(p => {
+                html += `<div class="analysis-fuel-row">
+                    <span class="analysis-fuel-name"><span>${p.icon}</span> ${p.name}</span>
+                    <span class="analysis-fuel-cost">${p.cost} ${isAr ? 'ريال' : 'SAR'}</span>
+                </div>`;
+            });
+            html += `<div class="analysis-fuel-row" style="font-weight:700;color:var(--amber);border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;margin-top:4px;">
+                <span>${isAr ? 'الإجمالي الشهري' : 'Monthly Total'}</span>
+                <span class="analysis-fuel-cost" style="font-size:13px;">${monthlyFuel} ${isAr ? 'ريال' : 'SAR'}</span>
+            </div>`;
+
+            html += `<div class="analysis-divider"></div>`;
+
+            // 8. Comparison insights
+            if (distData.length > 1) {
+                html += `<div class="analysis-section-title">📊 ${isAr ? 'مقارنة المسافات' : 'Distance Comparison'}</div>`;
+                html += `<div class="analysis-insight">
+                    <span class="analysis-insight-icon">📏</span>
+                    <span>${isAr
+                        ? `أقرب مكان: <span class="highlight">${closest.loc.icon} ${closest.loc.name}</span> (${closest.dist.toFixed(1)} كم) | أبعد مكان: <span class="highlight-red">${farthest.loc.icon} ${farthest.loc.name}</span> (${farthest.dist.toFixed(1)} كم)`
+                        : `Closest: <span class="highlight">${closest.loc.icon} ${closest.loc.name}</span> (${closest.dist.toFixed(1)} km) | Farthest: <span class="highlight-red">${farthest.loc.icon} ${farthest.loc.name}</span> (${farthest.dist.toFixed(1)} km)`}</span>
+                </div>`;
+
+                // Time savings insight
+                if (farthest.dist > closest.dist + 2) {
+                    const savedMinMonthly = Math.round(Math.abs(farthest.avgMin - closest.avgMin) * 2 * 4);
+                    const savedHrsMonthly = (savedMinMonthly / 60).toFixed(1);
+                    html += `<div class="analysis-insight">
+                        <span class="analysis-insight-icon">💡</span>
+                        <span>${isAr
+                            ? `لو سكنت بالقرب من ${closest.loc.name} بدل ${farthest.loc.name}، بتوفر ~<span class="highlight">${savedHrsMonthly} ساعة شهرياً</span> في التنقل`
+                            : `Living near ${closest.loc.name} instead of ${farthest.loc.name} saves ~<span class="highlight">${savedHrsMonthly} hrs/month</span> commuting`}</span>
+                    </div>`;
+                }
+            }
+
+            // 9. Daily time estimate
+            html += `<div class="analysis-divider"></div>`;
+            html += `<div class="analysis-insight" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.12);">
+                <span class="analysis-insight-icon">🚗</span>
+                <span style="color:var(--green-light);">${isAr
+                    ? `بتقضي تقريباً <strong>~${dailyMin} دقيقة يومياً</strong> في السيارة (${Math.round(dailyMin * 30 / 60)} ساعة شهرياً)`
+                    : `You'll spend ~<strong>${dailyMin} min daily</strong> in the car (${Math.round(dailyMin * 30 / 60)} hrs/month)`}</span>
+            </div>`;
+
+            // Notes
+            html += `<div class="analysis-note">`;
+            if (hasWorkLocation()) {
+                html += `${isAr ? '* تم احتساب الدوام ٥ أيام بالأسبوع' : '* Work calculated as 5 days/week'}<br>`;
+            }
+            html += `${isAr ? '* التكلفة مبنية على 2.25 ريال/لتر · 8 كم/لتر' : '* Cost based on 2.25 SAR/L · 8 km/L'}<br>`;
+            html += `${isAr ? '* جميع الأرقام تقديرية' : '* All figures are estimates'}</div>`;
+
+            el.innerHTML = html;
         }
 
         // ===== CLEAR / RESET =====
@@ -1742,49 +2064,42 @@
             setTimeout(() => { sheet.style.transition = ''; }, 300);
         }
 
-        // ===== TOUCH SWIPE FOR RESULT SHEET =====
+        // ===== TOUCH + MOUSE SWIPE FOR RESULT SHEET =====
         (function initResultSwipe() {
             let startY = 0, currentY = 0, isDragging = false;
             const getSheet = () => document.getElementById('resultSheet');
 
-            document.addEventListener('touchstart', function(e) {
-                const sheet = getSheet();
-                if (!sheet || !document.getElementById('resultOverlay').classList.contains('show')) return;
-                if (!sheet.contains(e.target)) return;
+            function canStartDrag(sheet, target) {
+                if (!sheet || !document.getElementById('resultOverlay').classList.contains('show')) return false;
+                if (!sheet.contains(target)) return false;
                 const handle = sheet.querySelector('.result-sheet-handle');
                 const isAtTop = sheet.scrollTop <= 5;
-                const touchedHandle = handle && handle.contains(e.target);
-                // Allow drag from handle always, or from top of sheet
-                if (!isAtTop && !touchedHandle && !sheetMinimized) return;
-                startY = e.touches[0].clientY;
-                currentY = startY;
-                isDragging = true;
-                sheet.style.transition = 'none';
-            }, { passive: true });
+                const touchedHandle = handle && handle.contains(target);
+                if (!isAtTop && !touchedHandle && !sheetMinimized) return false;
+                return true;
+            }
 
-            document.addEventListener('touchmove', function(e) {
+            function onDragMove(clientY) {
                 if (!isDragging) return;
                 const sheet = getSheet();
                 if (!sheet) return;
-                currentY = e.touches[0].clientY;
+                currentY = clientY;
                 const diffY = currentY - startY;
 
                 if (sheetMinimized) {
-                    // When minimized, allow drag up (negative diffY)
                     const sheetH = sheet.offsetHeight;
                     const peekH = window.innerHeight * 0.25;
                     const baseOffset = sheetH - peekH;
                     const newOffset = Math.max(0, Math.min(sheetH, baseOffset + diffY));
                     sheet.style.transform = `translateY(${newOffset}px)`;
                 } else {
-                    // When maximized, allow drag down (positive diffY)
                     if (diffY > 0) {
                         sheet.style.transform = `translateY(${diffY}px)`;
                     }
                 }
-            }, { passive: true });
+            }
 
-            document.addEventListener('touchend', function() {
+            function onDragEnd() {
                 if (!isDragging) return;
                 isDragging = false;
                 const sheet = getSheet();
@@ -1792,17 +2107,14 @@
                 const diffY = currentY - startY;
 
                 if (sheetMinimized) {
-                    // Was minimized: pull up → maximize, pull down more → close
                     if (diffY < -80) {
                         maximizeResult();
                     } else if (diffY > 80) {
                         closeResult();
                     } else {
-                        // Snap back to minimized
                         minimizeResult();
                     }
                 } else {
-                    // Was maximized: pull down → minimize
                     sheet.style.transition = 'transform 0.3s ease';
                     if (diffY > 100) {
                         minimizeResult();
@@ -1811,7 +2123,46 @@
                         setTimeout(() => { sheet.style.transition = ''; }, 300);
                     }
                 }
+            }
+
+            // Touch events
+            document.addEventListener('touchstart', function(e) {
+                const sheet = getSheet();
+                if (!canStartDrag(sheet, e.target)) return;
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                isDragging = true;
+                sheet.style.transition = 'none';
             }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                onDragMove(e.touches[0].clientY);
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                onDragEnd();
+            }, { passive: true });
+
+            // Mouse events (desktop drag)
+            document.addEventListener('mousedown', function(e) {
+                const sheet = getSheet();
+                if (!canStartDrag(sheet, e.target)) return;
+                startY = e.clientY;
+                currentY = startY;
+                isDragging = true;
+                sheet.style.transition = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                onDragMove(e.clientY);
+                e.preventDefault();
+            });
+
+            document.addEventListener('mouseup', function() {
+                onDragEnd();
+            });
         })();
 
         function clearResult() {
@@ -1842,32 +2193,40 @@
 
             const distLines = (lastDistData || []).map(({ loc, dist, normalMin, rushMin }) => {
                 return lang === 'ar'
-                    ? `▸ ${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (🟢 الطبيعي: ~${normalMin} د / 🔴 الذروة: ~${rushMin} د)`
-                    : `▸ ${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (🟢 Normal: ~${normalMin} min / 🔴 Rush: ~${rushMin} min)`;
+                    ? `  ${loc.icon} ${loc.name}: ${dist.toFixed(1)} كم (🟢 طبيعي: ~${normalMin} د / 🔴 ذروة: ~${rushMin} د)`
+                    : `  ${loc.icon} ${loc.name}: ${dist.toFixed(1)} km (🟢 Normal: ~${normalMin} min / 🔴 Rush: ~${rushMin} min)`;
             }).join('\n');
 
             let text;
             if (lang === 'ar') {
-                text = `🏠 وين أسكن؟\n🎯 المنطقة المثالية: ${nb}\n\n`;
+                text = `🏠 وين أسكن؟\n`;
+                text += `🎯 المنطقة المثالية: ${nb}\n`;
+                text += `⭐ التقييم: ${lastScore}/10\n\n`;
                 text += `📍 الأماكن والمسافات:\n${distLines}\n\n`;
-                text += `💡 لماذا هذا الحي؟\n`;
-                text += `▸ 📍 الأمثل: أقرب نقطة متوازنة لجميع أماكنك.\n`;
-                text += `▸ ⏱️ الوقت: مجموع تنقلك الشهري ~${lastTotalAvgMin} دقيقة تقريباً.\n`;
-                text += `▸ 📏 المسافة: إجمالي المسافة الشهرية ~${lastTotalKm} كم (ذهاب وعودة).\n`;
-                text += `▸ ⛽ البنزين: تكلفة التنقل الشهرية ~${lastMonthlyFuel} ريال تقريباً.\n`;
-                text += `▸ ✅ الخلاصة: ${nb} أفضل حي يوازن بين أماكنك ويوفر لك وقت وبنزين كل شهر.\n\n`;
+                text += `📊 الملخص الشهري:\n`;
+                text += `  🛣️ المسافة: ~${lastTotalKm} كم\n`;
+                text += `  ⏱️ الوقت: ~${lastTotalAvgMin} دقيقة\n`;
+                text += `  ⛽ البنزين: ~${lastMonthlyFuel} ريال\n`;
+                text += `  🚗 يومياً: ~${lastDailyMin} دقيقة في السيارة\n\n`;
+                text += `📊 الإسقاط السنوي:\n`;
+                text += `  🛣️ ${lastYearlyKm.toLocaleString()} كم · ⏱️ ${lastYearlyHours} ساعة · ⛽ ${lastYearlyFuel.toLocaleString()} ريال\n\n`;
+                text += `🚦 وقت الذروة يزيد التنقل ${lastRushImpact}%\n\n`;
                 if (workNote) text += `* تم احتساب الدوام ٥ أيام بالأسبوع\n`;
                 text += `* جميع الأرقام تقديرية\n\n`;
                 text += `📍 weeenaskn.com`;
             } else {
-                text = `🏠 Where to Live?\n🎯 Optimal Area: ${nb}\n\n`;
+                text = `🏠 Where to Live?\n`;
+                text += `🎯 Optimal Area: ${nb}\n`;
+                text += `⭐ Score: ${lastScore}/10\n\n`;
                 text += `📍 Places & Distances:\n${distLines}\n\n`;
-                text += `💡 Why this area?\n`;
-                text += `▸ 📍 Optimal: Best balanced point for all your places.\n`;
-                text += `▸ ⏱️ Time: Total monthly commute ~${lastTotalAvgMin} min approximately.\n`;
-                text += `▸ 📏 Distance: Total monthly distance ~${lastTotalKm} km (round-trip).\n`;
-                text += `▸ ⛽ Fuel: Estimated monthly fuel cost ~${lastMonthlyFuel} SAR.\n`;
-                text += `▸ ✅ Conclusion: ${nb} best balances all your places, saving you time and fuel monthly.\n\n`;
+                text += `📊 Monthly Summary:\n`;
+                text += `  🛣️ Distance: ~${lastTotalKm} km\n`;
+                text += `  ⏱️ Time: ~${lastTotalAvgMin} min\n`;
+                text += `  ⛽ Fuel: ~${lastMonthlyFuel} SAR\n`;
+                text += `  🚗 Daily: ~${lastDailyMin} min in car\n\n`;
+                text += `📊 Yearly Projection:\n`;
+                text += `  🛣️ ${lastYearlyKm.toLocaleString()} km · ⏱️ ${lastYearlyHours} hrs · ⛽ ${lastYearlyFuel.toLocaleString()} SAR\n\n`;
+                text += `🚦 Rush hour increases commute by ${lastRushImpact}%\n\n`;
                 if (workNote) text += `* Work calculated as 5 days/week\n`;
                 text += `* All figures are estimates\n\n`;
                 text += `📍 weeenaskn.com`;
