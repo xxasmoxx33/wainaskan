@@ -1090,7 +1090,14 @@
         }
 
         // ===== OSRM =====
-        function getRushMultiplier() { return 1.7 + Math.random() * 0.5; }
+        // Normal multiplier: start 1.0, +0.1 every 5km, max 1.5
+        function getNormalMultiplier(km) {
+            return Math.min(1.5, 1.0 + Math.floor(km / 5) * 0.1);
+        }
+        // Rush multiplier: start 1.7, +0.1 every 2.5km, max 2.5
+        function getRushMultiplier(km) {
+            return Math.min(2.5, 1.7 + Math.floor(km / 2.5) * 0.1);
+        }
 
         async function getOSRMDistances(cLat, cLng, locs) {
             try {
@@ -1102,8 +1109,9 @@
                 return results.map((res, i) => {
                     if (res.code === 'Ok' && res.routes && res.routes[0]) {
                         const dist = res.routes[0].distance / 1000;
-                        const normalMin = Math.max(1, Math.round(res.routes[0].duration / 60));
-                        const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier()));
+                        const baseMin = res.routes[0].duration / 60;
+                        const normalMin = Math.max(1, Math.round(baseMin * getNormalMultiplier(dist)));
+                        const rushMin = Math.max(1, Math.round(baseMin * getRushMultiplier(dist)));
                         const avgMin = Math.round((normalMin + rushMin) / 2);
                         return { loc: locs[i], dist, normalMin, rushMin, avgMin };
                     }
@@ -1445,13 +1453,13 @@
             // Outer zone: 1000m radius (extended range)
             zoneOuter = L.circle([cLat, cLng], {
                 radius: 1000,
-                color: '#6ee7b7', weight: 1.5, fillColor: '#6ee7b7', fillOpacity: 0.04, dashArray: '4,8'
+                color: '#059669', weight: 2, fillColor: '#059669', fillOpacity: 0.10, dashArray: '4,8'
             }).addTo(map);
 
             // Inner zone: 500m radius (core area)
             zoneRect = L.circle([cLat, cLng], {
                 radius: 500,
-                color: '#10b981', weight: 2, fillColor: '#10b981', fillOpacity: 0.08, dashArray: '8,6'
+                color: '#047857', weight: 2.5, fillColor: '#047857', fillOpacity: 0.18, dashArray: '8,6'
             }).addTo(map);
 
             // Distances
@@ -1468,8 +1476,9 @@
                 distData = locations.map(loc => {
                     const straight = haversineDistance(cLat, cLng, loc.lat, loc.lng);
                     const dist = straight * ROAD_FACTOR;
-                    const normalMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
-                    const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier()));
+                    const baseMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
+                    const normalMin = Math.max(1, Math.round(baseMin * getNormalMultiplier(dist)));
+                    const rushMin = Math.max(1, Math.round(baseMin * getRushMultiplier(dist)));
                     const avgMin = Math.round((normalMin + rushMin) / 2);
                     return { loc, dist, normalMin, rushMin, avgMin };
                 });
@@ -1637,15 +1646,41 @@
             distanceLabels.forEach(l => map.removeLayer(l)); distanceLabels = [];
         }
 
+        let sheetMinimized = false;
+
         function closeResult() {
             const sheet = document.getElementById('resultSheet');
             sheet.style.transition = 'transform 0.3s ease';
             sheet.style.transform = 'translateY(100%)';
+            sheetMinimized = false;
             setTimeout(() => {
                 document.getElementById('resultOverlay').classList.remove('show');
                 sheet.style.transform = '';
                 sheet.style.transition = '';
             }, 300);
+        }
+
+        function minimizeResult() {
+            const sheet = document.getElementById('resultSheet');
+            const sheetH = sheet.offsetHeight;
+            const peekH = window.innerHeight * 0.25;
+            const hideAmount = sheetH - peekH;
+            sheet.style.transition = 'transform 0.3s ease';
+            sheet.style.transform = `translateY(${hideAmount}px)`;
+            sheetMinimized = true;
+            // Make background clickable to map
+            document.getElementById('resultOverlay').style.pointerEvents = 'none';
+            sheet.style.pointerEvents = 'auto';
+        }
+
+        function maximizeResult() {
+            const sheet = document.getElementById('resultSheet');
+            sheet.style.transition = 'transform 0.3s ease';
+            sheet.style.transform = 'translateY(0)';
+            sheetMinimized = false;
+            document.getElementById('resultOverlay').style.pointerEvents = '';
+            sheet.style.pointerEvents = '';
+            setTimeout(() => { sheet.style.transition = ''; }, 300);
         }
 
         // ===== TOUCH SWIPE FOR RESULT SHEET =====
@@ -1660,7 +1695,8 @@
                 const handle = sheet.querySelector('.result-sheet-handle');
                 const isAtTop = sheet.scrollTop <= 5;
                 const touchedHandle = handle && handle.contains(e.target);
-                if (!isAtTop && !touchedHandle) return;
+                // Allow drag from handle always, or from top of sheet
+                if (!isAtTop && !touchedHandle && !sheetMinimized) return;
                 startY = e.touches[0].clientY;
                 currentY = startY;
                 isDragging = true;
@@ -1673,8 +1709,19 @@
                 if (!sheet) return;
                 currentY = e.touches[0].clientY;
                 const diffY = currentY - startY;
-                if (diffY > 0) {
-                    sheet.style.transform = `translateY(${diffY}px)`;
+
+                if (sheetMinimized) {
+                    // When minimized, allow drag up (negative diffY)
+                    const sheetH = sheet.offsetHeight;
+                    const peekH = window.innerHeight * 0.25;
+                    const baseOffset = sheetH - peekH;
+                    const newOffset = Math.max(0, Math.min(sheetH, baseOffset + diffY));
+                    sheet.style.transform = `translateY(${newOffset}px)`;
+                } else {
+                    // When maximized, allow drag down (positive diffY)
+                    if (diffY > 0) {
+                        sheet.style.transform = `translateY(${diffY}px)`;
+                    }
                 }
             }, { passive: true });
 
@@ -1684,12 +1731,26 @@
                 const sheet = getSheet();
                 if (!sheet) return;
                 const diffY = currentY - startY;
-                sheet.style.transition = 'transform 0.3s ease';
-                if (diffY > 120) {
-                    closeResult();
+
+                if (sheetMinimized) {
+                    // Was minimized: pull up → maximize, pull down more → close
+                    if (diffY < -80) {
+                        maximizeResult();
+                    } else if (diffY > 80) {
+                        closeResult();
+                    } else {
+                        // Snap back to minimized
+                        minimizeResult();
+                    }
                 } else {
-                    sheet.style.transform = 'translateY(0)';
-                    setTimeout(() => { sheet.style.transition = ''; }, 300);
+                    // Was maximized: pull down → minimize
+                    sheet.style.transition = 'transform 0.3s ease';
+                    if (diffY > 100) {
+                        minimizeResult();
+                    } else {
+                        sheet.style.transform = 'translateY(0)';
+                        setTimeout(() => { sheet.style.transition = ''; }, 300);
+                    }
                 }
             }, { passive: true });
         })();
