@@ -1111,7 +1111,7 @@
                         const dist = res.routes[0].distance / 1000;
                         const baseMin = res.routes[0].duration / 60;
                         const normalMin = Math.max(1, Math.round(baseMin * getNormalMultiplier(dist)));
-                        const rushMin = Math.max(1, Math.round(baseMin * getRushMultiplier(dist)));
+                        const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier(dist)));
                         const avgMin = Math.round((normalMin + rushMin) / 2);
                         return { loc: locs[i], dist, normalMin, rushMin, avgMin };
                     }
@@ -1478,7 +1478,7 @@
                     const dist = straight * ROAD_FACTOR;
                     const baseMin = estimateMinutes(dist, AVG_SPEED_NORMAL);
                     const normalMin = Math.max(1, Math.round(baseMin * getNormalMultiplier(dist)));
-                    const rushMin = Math.max(1, Math.round(baseMin * getRushMultiplier(dist)));
+                    const rushMin = Math.max(1, Math.round(normalMin * getRushMultiplier(dist)));
                     const avgMin = Math.round((normalMin + rushMin) / 2);
                     return { loc, dist, normalMin, rushMin, avgMin };
                 });
