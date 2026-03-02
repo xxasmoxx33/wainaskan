@@ -1205,6 +1205,9 @@
         let lastYearlyFuel = 0;
         let lastRushImpact = 0;
         let lastDailyMin = 0;
+        let lastTotalNormalMin = 0;
+        let lastTotalRushMin = 0;
+        let lastWorkData = null;
 
 
 
@@ -1354,8 +1357,9 @@
                 document.getElementById('addNeighborhoodText').textContent = name;
             });
 
-            // Show form
+            // Show form & hide FAB
             document.getElementById('addOverlay').classList.add('show');
+            document.getElementById('resultFab').classList.remove('show');
             setTimeout(() => document.getElementById('locationName').focus(), 350);
         }
 
@@ -1429,9 +1433,17 @@
         }
 
         function pickQuick(el, emoji, arName, enName) {
+            const input = document.getElementById('locationName');
+            if (el.classList.contains('selected')) {
+                el.classList.remove('selected');
+                input.value = '';
+                input.disabled = false;
+                input.style.opacity = '1';
+                selectedEmoji = '📍';
+                return;
+            }
             document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
             el.classList.add('selected');
-            const input = document.getElementById('locationName');
             input.value = lang === 'ar' ? arName : enName;
             input.disabled = true;
             input.style.opacity = '0.5';
@@ -1534,9 +1546,10 @@
         function updateUI() {
             const count = locations.length;
 
-            // FAB button
+            // FAB button - hide when add form is open
             const fab = document.getElementById('resultFab');
-            if (count >= 1 && !isCalculated) {
+            const addFormOpen = document.getElementById('addOverlay').classList.contains('show');
+            if (count >= 1 && !isCalculated && !addFormOpen) {
                 fab.classList.add('show');
                 document.getElementById('fabCount').textContent = count;
             } else {
@@ -1894,6 +1907,9 @@
             lastYearlyFuel = yearlyFuel;
             lastRushImpact = rushImpact;
             lastDailyMin = dailyMin;
+            lastTotalNormalMin = totalNormalMin;
+            lastTotalRushMin = totalRushMin;
+            lastWorkData = workData;
 
             // ── Build HTML ──
             let html = '';
@@ -1951,31 +1967,6 @@
 
             html += `<div class="analysis-divider"></div>`;
 
-            // 3. Yearly projections
-            html += `<div class="analysis-section-title">📊 ${isAr ? 'الإسقاط السنوي' : 'Yearly Projections'}</div>`;
-            html += `<div class="analysis-stat-grid">
-                <div class="analysis-stat-card" style="grid-column:span 2;">
-                    <div style="display:flex;justify-content:space-around;text-align:center;">
-                        <div>
-                            <div class="analysis-stat-value" style="color:var(--green-light);">${yearlyKm.toLocaleString()} <span class="analysis-stat-unit">${isAr ? 'كم' : 'km'}</span></div>
-                            <div class="analysis-stat-label">${isAr ? 'مسافة سنوية' : 'Yearly distance'}</div>
-                        </div>
-                        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
-                        <div>
-                            <div class="analysis-stat-value" style="color:var(--amber);">${yearlyHours} <span class="analysis-stat-unit">${isAr ? 'ساعة' : 'hrs'}</span></div>
-                            <div class="analysis-stat-label">${isAr ? 'وقت سنوي' : 'Yearly time'}</div>
-                        </div>
-                        <div style="width:1px;background:rgba(255,255,255,0.06);"></div>
-                        <div>
-                            <div class="analysis-stat-value" style="color:#fca5a5;">${yearlyFuel.toLocaleString()} <span class="analysis-stat-unit">${isAr ? 'ريال' : 'SAR'}</span></div>
-                            <div class="analysis-stat-label">${isAr ? 'تكلفة سنوية' : 'Yearly cost'}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-
-            html += `<div class="analysis-divider"></div>`;
-
             // 4. Rush hour impact
             html += `<div class="analysis-section-title">🚦 ${isAr ? 'تأثير الذروة' : 'Rush Hour Impact'}</div>`;
             html += `<div class="analysis-insight">
@@ -2006,37 +1997,6 @@
                 html += `<div class="analysis-divider"></div>`;
             }
 
-            // 6. Weighted importance ranking
-            html += `<div class="analysis-section-title">📌 ${isAr ? 'ترتيب الأماكن حسب التأثير' : 'Places by Impact'}</div>`;
-            sorted.forEach((d, i) => {
-                const w = getWeight(d.loc);
-                const freqLabel = isAr ? FREQ_LABELS[d.loc.frequency].ar : FREQ_LABELS[d.loc.frequency].en;
-                const monthlyKmPlace = Math.round(d.dist * w * 2);
-                html += `<div class="analysis-rank-item">
-                    <span class="analysis-rank-num">${i + 1}</span>
-                    <span style="font-size:14px;">${d.loc.icon}</span>
-                    <span class="analysis-rank-name">${d.loc.name}</span>
-                    <span class="analysis-rank-badge" style="background:${d.loc.color}20;color:${d.loc.color};">${freqLabel}</span>
-                    <span class="analysis-rank-detail">${monthlyKmPlace} ${isAr ? 'كم/شهر' : 'km/mo'}</span>
-                </div>`;
-            });
-
-            html += `<div class="analysis-divider"></div>`;
-
-            // 7. Fuel breakdown per place
-            html += `<div class="analysis-section-title">⛽ ${isAr ? 'تكلفة البنزين لكل مكان' : 'Fuel Cost Per Place'}</div>`;
-            perPlaceFuel.forEach(p => {
-                html += `<div class="analysis-fuel-row">
-                    <span class="analysis-fuel-name"><span>${p.icon}</span> ${p.name}</span>
-                    <span class="analysis-fuel-cost">${p.cost} ${isAr ? 'ريال' : 'SAR'}</span>
-                </div>`;
-            });
-            html += `<div class="analysis-fuel-row" style="font-weight:700;color:var(--amber);border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;margin-top:4px;">
-                <span>${isAr ? 'الإجمالي الشهري' : 'Monthly Total'}</span>
-                <span class="analysis-fuel-cost" style="font-size:13px;">${monthlyFuel} ${isAr ? 'ريال' : 'SAR'}</span>
-            </div>`;
-
-            html += `<div class="analysis-divider"></div>`;
 
             // 8. Comparison insights
             if (distData.length > 1) {
@@ -2350,11 +2310,16 @@
                 text += `  ⏱️ الوقت: ~${lastTotalAvgMin} دقيقة\n`;
                 text += `  ⛽ البنزين: ~${lastMonthlyFuel} ريال\n`;
                 text += `  🚗 يومياً: ~${lastDailyMin} دقيقة في السيارة\n\n`;
-                text += `📊 الإسقاط السنوي:\n`;
-                text += `  🛣️ ${lastYearlyKm.toLocaleString()} كم · ⏱️ ${lastYearlyHours} ساعة · ⛽ ${lastYearlyFuel.toLocaleString()} ريال\n\n`;
-                text += `🚦 وقت الذروة يزيد التنقل ${lastRushImpact}%\n\n`;
-                if (workNote) text += `* تم احتساب الدوام ٥ أيام بالأسبوع\n`;
-                text += `* جميع الأرقام تقديرية\n\n`;
+                text += `🚦 تأثير الذروة:\n`;
+                text += `  وقت الذروة يزيد التنقل ${lastRushImpact}% (${lastTotalNormalMin} دقيقة → ${lastTotalRushMin} دقيقة شهرياً)\n\n`;
+                if (lastWorkData) {
+                    const wTrips = 5 * 4;
+                    const wKm = Math.round(lastWorkData.dist * 2 * wTrips);
+                    const wMin = Math.round(lastWorkData.avgMin * 2 * wTrips);
+                    text += `💼 رحلة العمل:\n`;
+                    text += `  ${wTrips} رحلة شهرياً · ${wKm} كم/شهر · ${wMin} دقيقة/شهر\n`;
+                    text += `  رحلة واحدة: ${lastWorkData.dist.toFixed(1)} كم · طبيعي ${lastWorkData.normalMin} د · ذروة ${lastWorkData.rushMin} د\n\n`;
+                }
                 text += `📍 weeenaskn.com`;
             } else {
                 text = `🏠 Where to Live?\n`;
@@ -2366,11 +2331,16 @@
                 text += `  ⏱️ Time: ~${lastTotalAvgMin} min\n`;
                 text += `  ⛽ Fuel: ~${lastMonthlyFuel} SAR\n`;
                 text += `  🚗 Daily: ~${lastDailyMin} min in car\n\n`;
-                text += `📊 Yearly Projection:\n`;
-                text += `  🛣️ ${lastYearlyKm.toLocaleString()} km · ⏱️ ${lastYearlyHours} hrs · ⛽ ${lastYearlyFuel.toLocaleString()} SAR\n\n`;
-                text += `🚦 Rush hour increases commute by ${lastRushImpact}%\n\n`;
-                if (workNote) text += `* Work calculated as 5 days/week\n`;
-                text += `* All figures are estimates\n\n`;
+                text += `🚦 Rush Hour Impact:\n`;
+                text += `  Rush increases commute by ${lastRushImpact}% (${lastTotalNormalMin} min → ${lastTotalRushMin} min monthly)\n\n`;
+                if (lastWorkData) {
+                    const wTrips = 5 * 4;
+                    const wKm = Math.round(lastWorkData.dist * 2 * wTrips);
+                    const wMin = Math.round(lastWorkData.avgMin * 2 * wTrips);
+                    text += `💼 Work Commute:\n`;
+                    text += `  ${wTrips} trips/month · ${wKm} km/mo · ${wMin} min/mo\n`;
+                    text += `  Single trip: ${lastWorkData.dist.toFixed(1)} km · Normal ${lastWorkData.normalMin} min · Rush ${lastWorkData.rushMin} min\n\n`;
+                }
                 text += `📍 weeenaskn.com`;
             }
 
