@@ -402,11 +402,12 @@
         /* ===== RESULT OVERLAY ===== */
         .result-overlay {
             position: fixed; inset: 0; z-index: 1100;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.3);
             display: none; align-items: flex-end; justify-content: center;
+            transition: background 0.3s;
         }
         .result-overlay.show { display: flex; }
+        .result-overlay.minimized { background: transparent; }
 
         .result-sheet {
             width: 100%; max-width: 500px;
@@ -619,38 +620,81 @@
 
         /* ===== RECTANGLE MARKERS ===== */
         .loc-rect-marker {
-            background: rgba(10,20,30,0.92);
-            backdrop-filter: blur(10px);
-            border-left: 3px solid;
-            border-radius: 8px;
-            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(8,15,28,0.95), rgba(12,22,38,0.95));
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            padding: 0;
             font-family: 'Cairo';
             white-space: nowrap;
             color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            overflow: hidden;
+            min-width: 130px;
+        }
+        .loc-rect-header {
+            padding: 8px 12px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
         .loc-rect-name {
             font-size: 12px;
             font-weight: 800;
-            margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
+            letter-spacing: -0.2px;
         }
         .loc-rect-km {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
             color: #6ee7b7;
-            margin-bottom: 4px;
+            background: rgba(16,185,129,0.12);
+            padding: 2px 8px;
+            border-radius: 50px;
+            letter-spacing: 0.3px;
+        }
+        .loc-rect-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            margin: 0 8px;
         }
         .loc-rect-times {
             display: flex;
-            gap: 8px;
-            font-size: 10px;
-            font-weight: 600;
+            padding: 6px 10px 8px;
+            gap: 0;
         }
-        .loc-rect-time { color: rgba(255,255,255,0.7); }
-        .loc-rect-rush { color: #fca5a5; }
+        .loc-rect-time-cell {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            padding: 2px 4px;
+        }
+        .loc-rect-time-cell:first-child {
+            border-inline-end: 1px solid rgba(255,255,255,0.06);
+        }
+        .loc-rect-time-label {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.4;
+        }
+        .loc-rect-time-val {
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .loc-rect-time-val.normal { color: #6ee7b7; }
+        .loc-rect-time-val.rush { color: #fca5a5; }
+        .loc-rect-color-bar {
+            height: 3px;
+            width: 100%;
+        }
 
         .centroid-marker-inner {
             width: 20px; height: 20px;
@@ -1090,13 +1134,13 @@
         }
 
         // ===== OSRM =====
-        // Normal multiplier: start 1.0, +0.1 every 5km, max 1.5
+        // Normal multiplier: 1.0 base, 1.1 at 10km, 1.2 at 20km, 1.3 at 30km+ (max)
         function getNormalMultiplier(km) {
-            return Math.min(1.5, 1.0 + Math.floor(km / 5) * 0.1);
+            return Math.min(1.3, 1.0 + Math.floor(km / 10) * 0.1);
         }
-        // Rush multiplier: start 1.7, +0.1 every 2.5km, max 2.5
+        // Rush multiplier: start 1.7, +0.1 every 2.5km, max 2.2
         function getRushMultiplier(km) {
-            return Math.min(2.5, 1.7 + Math.floor(km / 2.5) * 0.1);
+            return Math.min(2.2, 1.7 + Math.floor(km / 2.5) * 0.1);
         }
 
         async function getOSRMDistances(cLat, cLng, locs) {
@@ -1494,18 +1538,30 @@
                 if (loc.marker) markersGroup.removeLayer(loc.marker);
 
                 const dText = lang === 'ar' ? 'د' : 'min';
+                const nLabel = lang === 'ar' ? 'عادي' : 'Normal';
+                const rLabel = lang === 'ar' ? 'ذروة' : 'Rush';
                 const rectIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div class="loc-rect-marker" style="border-left-color:${loc.color};">
-                        <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
-                        <div class="loc-rect-km">${dist.toFixed(1)} km</div>
+                    html: `<div class="loc-rect-marker">
+                        <div class="loc-rect-color-bar" style="background:${loc.color};"></div>
+                        <div class="loc-rect-header">
+                            <div class="loc-rect-name"><span>${loc.icon}</span> ${loc.name}</div>
+                            <div class="loc-rect-km">${dist.toFixed(1)} km</div>
+                        </div>
+                        <div class="loc-rect-divider"></div>
                         <div class="loc-rect-times">
-                            <span class="loc-rect-time">🟢 ${normalMin} ${dText}</span>
-                            <span class="loc-rect-rush">🔴 ${rushMin} ${dText}</span>
+                            <div class="loc-rect-time-cell">
+                                <span class="loc-rect-time-label">${nLabel}</span>
+                                <span class="loc-rect-time-val normal">${normalMin} ${dText}</span>
+                            </div>
+                            <div class="loc-rect-time-cell">
+                                <span class="loc-rect-time-label">${rLabel}</span>
+                                <span class="loc-rect-time-val rush">${rushMin} ${dText}</span>
+                            </div>
                         </div>
                     </div>`,
-                    iconSize: [140, 75],
-                    iconAnchor: [70, 75]
+                    iconSize: [155, 90],
+                    iconAnchor: [78, 90]
                 });
 
                 const newMarker = L.marker([loc.lat, loc.lng], { icon: rectIcon }).addTo(markersGroup);
@@ -1662,23 +1718,26 @@
 
         function minimizeResult() {
             const sheet = document.getElementById('resultSheet');
+            const overlay = document.getElementById('resultOverlay');
             const sheetH = sheet.offsetHeight;
             const peekH = window.innerHeight * 0.25;
             const hideAmount = sheetH - peekH;
             sheet.style.transition = 'transform 0.3s ease';
             sheet.style.transform = `translateY(${hideAmount}px)`;
             sheetMinimized = true;
-            // Make background clickable to map
-            document.getElementById('resultOverlay').style.pointerEvents = 'none';
+            overlay.classList.add('minimized');
+            overlay.style.pointerEvents = 'none';
             sheet.style.pointerEvents = 'auto';
         }
 
         function maximizeResult() {
             const sheet = document.getElementById('resultSheet');
+            const overlay = document.getElementById('resultOverlay');
             sheet.style.transition = 'transform 0.3s ease';
             sheet.style.transform = 'translateY(0)';
             sheetMinimized = false;
-            document.getElementById('resultOverlay').style.pointerEvents = '';
+            overlay.classList.remove('minimized');
+            overlay.style.pointerEvents = '';
             sheet.style.pointerEvents = '';
             setTimeout(() => { sheet.style.transition = ''; }, 300);
         }
