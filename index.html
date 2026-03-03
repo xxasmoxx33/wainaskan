@@ -1640,6 +1640,30 @@
             closeSidebar();
             closeAddForm();
 
+            // Show loading overlay
+            let loadingOv = document.getElementById('calcLoadingOverlay');
+            if (!loadingOv) {
+                loadingOv = document.createElement('div');
+                loadingOv.id = 'calcLoadingOverlay';
+                loadingOv.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+                    <div style="width:50px;height:50px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                    <div style="font-size:16px;font-weight:700;color:#fff;" id="calcLoadingText">${lang === 'ar' ? 'جاري التحليل...' : 'Analyzing...'}</div>
+                    <div style="font-size:12px;color:var(--text-dim);" id="calcLoadingDetail">${lang === 'ar' ? 'نحسب أفضل موقع لك' : 'Calculating your optimal location'}</div>
+                </div>`;
+                Object.assign(loadingOv.style, {
+                    position:'fixed', inset:'0', zIndex:'9999',
+                    background:'rgba(10,22,40,0.85)', backdropFilter:'blur(8px)',
+                    display:'flex', alignItems:'center', justifyContent:'center'
+                });
+                document.body.appendChild(loadingOv);
+            }
+            loadingOv.style.display = 'flex';
+            document.getElementById('calcLoadingText').textContent = lang === 'ar' ? 'جاري التحليل...' : 'Analyzing...';
+            document.getElementById('calcLoadingDetail').textContent = lang === 'ar' ? 'نحسب أفضل موقع لك' : 'Calculating your optimal location';
+
+            // Small delay so loading shows before heavy work
+            await new Promise(r => setTimeout(r, 50));
+
             // Weighted centroid
             let totalW = 0, wLat = 0, wLng = 0;
             locations.forEach(loc => {
@@ -1740,6 +1764,12 @@
             bounds.extend([cLat, cLng]);
             map.flyToBounds(bounds.pad(0.2), { duration: 1 });
 
+            // Update loading text
+            const clt = document.getElementById('calcLoadingText');
+            const cld = document.getElementById('calcLoadingDetail');
+            if (clt) clt.textContent = lang === 'ar' ? 'نحلل البيانات...' : 'Analyzing data...';
+            if (cld) cld.textContent = lang === 'ar' ? 'نحدد الحي المثالي' : 'Finding optimal neighborhood';
+
             // Get neighborhood
             const neighborhood = await reverseGeocode(cLat, cLng);
 
@@ -1782,7 +1812,9 @@
             document.getElementById('brokerArea').style.display = '';
             document.getElementById('brokerSuccess').classList.remove('show');
 
-            // Show result
+            // Hide loading & show result
+            const lo = document.getElementById('calcLoadingOverlay');
+            if (lo) lo.style.display = 'none';
             document.getElementById('resultOverlay').classList.add('show');
 
             // Save result to localStorage for dashboard
