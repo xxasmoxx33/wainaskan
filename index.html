@@ -1485,7 +1485,7 @@
             if (!pendingLocation) return;
 
             const nameInput = document.getElementById('locationName').value.trim();
-            const name = nameInput || (lang === 'ar' ? 'مكان' : 'Place');
+            const name = nameInput || (lang === 'ar' ? 'مخصص' : 'Custom');
             const neighborhood = document.getElementById('addNeighborhoodText').textContent;
 
             const NAME_ICONS = { 'العمل':'💼','Work':'💼','بيت الأهل':'🏡','Family Home':'🏡','الاستراحة':'🌴','Rest House':'🌴',
@@ -2086,18 +2086,22 @@
                     altResults.push({ ...pt, name });
                 }
 
-                // Deduplicate by name, remove main neighborhood, cap QoL to main
+                // Deduplicate by name, remove main neighborhood
                 const seen = new Set();
                 const deduped = [];
                 for (const r of altResults) {
                     if (r.name === neighborhood) continue;
                     if (seen.has(r.name)) continue;
-                    if (r.qol > qolClamped) r.qol = qolClamped - 1;
                     seen.add(r.name);
+                    // Force all alternatives below the main QoL
+                    if (r.qol >= qolClamped) {
+                        r.qol = Math.max(1, qolClamped - Math.floor(Math.random() * 8 + 3));
+                    }
                     deduped.push(r);
                 }
 
-                // Take top 3
+                // Sort by QoL descending after capping, take top 3
+                deduped.sort((a, b) => b.qol - a.qol);
                 const top3 = deduped.slice(0, 3);
 
                 // Hide loading
