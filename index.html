@@ -2086,13 +2086,13 @@
                     altResults.push({ ...pt, name });
                 }
 
-                // Deduplicate by name (keep highest QoL)
+                // Deduplicate by name, remove main neighborhood, cap QoL to main
                 const seen = new Set();
                 const deduped = [];
-                // Also remove the main neighborhood
                 for (const r of altResults) {
                     if (r.name === neighborhood) continue;
                     if (seen.has(r.name)) continue;
+                    if (r.qol > qolClamped) r.qol = qolClamped - 1;
                     seen.add(r.name);
                     deduped.push(r);
                 }
