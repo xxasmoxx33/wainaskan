@@ -362,8 +362,20 @@
         .sidebar-empty p { font-size: 13px; line-height: 1.6; }
 
         /* ===== SIDEBAR CALCULATE BTN ===== */
+        .sidebar-add-btn {
+            margin: 8px 18px 0;
+            padding: 12px;
+            background: var(--glass);
+            border: 1px dashed var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-dim); font-family: 'Cairo'; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .sidebar-add-btn:active { background: rgba(16,185,129,0.1); color: var(--green-light); }
+
         .sidebar-calc-btn {
-            margin: 16px 18px 20px;
+            margin: 8px 18px 20px;
             padding: 16px;
             background: linear-gradient(135deg, var(--green), var(--green-dark));
             border: none; border-radius: 14px;
@@ -1071,6 +1083,10 @@
                 </div>
             </div>
         </div>
+        <button class="sidebar-add-btn" onclick="closeSidebar(); showToast(lang === 'ar' ? '📍 اضغط على الخريطة لإضافة مكان' : '📍 Tap the map to add a place')">
+            <span>➕</span>
+            <span data-ar="إضافة مكان" data-en="Add Place">إضافة مكان</span>
+        </button>
         <button class="sidebar-calc-btn" id="sidebarCalcBtn" onclick="calculateOptimal()" disabled>
             <span>✨</span>
             <span data-ar="عطني النتيجة" data-en="Show Result">عطني النتيجة</span>
