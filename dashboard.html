@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>لوحة التحكم - وين أسكن</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -453,7 +454,7 @@
             if (!password) { errorEl.textContent = lang === 'ar' ? 'أدخل كلمة المرور' : 'Enter password'; return; }
             const hash = await sha256(password);
             const storedHash = localStorage.getItem('wainaskan_dash_pass');
-            const defaultHash = await sha256('admin123');
+            const defaultHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
             if (hash === storedHash || hash === defaultHash) {
                 if (!storedHash) localStorage.setItem('wainaskan_dash_pass', defaultHash);
                 sessionStorage.setItem('wainaskan_dash_auth', 'true');
@@ -501,7 +502,7 @@
             if (!current) { err.textContent = lang === 'ar' ? 'أدخل كلمة المرور الحالية' : 'Enter current password'; return; }
             const curHash = await sha256(current);
             const stored = localStorage.getItem('wainaskan_dash_pass');
-            const defHash = await sha256('admin123');
+            const defHash = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
             if (curHash !== stored && curHash !== defHash) { err.textContent = lang === 'ar' ? 'كلمة المرور الحالية غير صحيحة' : 'Current password is incorrect'; return; }
             if (!newP) { err.textContent = lang === 'ar' ? 'أدخل كلمة المرور الجديدة' : 'Enter new password'; return; }
             if (newP.length < 4) { err.textContent = lang === 'ar' ? 'كلمة المرور قصيرة (4 أحرف على الأقل)' : 'Password too short (min 4)'; return; }
